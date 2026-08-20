@@ -505,6 +505,32 @@ def test_source_overlap_requires_compatible_citation_identity():
     assert row["alignment_status"] == "unmatched"
 
 
+def test_broad_reference_span_cannot_substitute_for_annotated_identity():
+    checksum = hashlib.sha256(b"source").hexdigest()
+    annotation = {
+        "source_itemid": "001-source",
+        "source_text_sha256": checksum,
+        "start": 10,
+        "end": 80,
+        "citation": "Alpha v. State",
+        "exact_span": "discussion; Beta v. State, no. 56/78; more discussion",
+        "citation_appnos": ["12/34"],
+    }
+    wrong = {
+        "occurrence_id": "wrong",
+        "source_itemid": "001-source",
+        "benchmark_source_text_sha256": checksum,
+        "document_start": 20,
+        "document_end": 44,
+        "raw_text": "Beta v. State, no. 56/78",
+        "target_appnos": ["56/78"],
+    }
+
+    row = align_benchmark_annotations([annotation], [wrong])[0]
+
+    assert row["alignment_status"] == "unmatched"
+
+
 def test_xmi_hash_mismatch_disables_offset_evidence():
     annotation = {
         "source_itemid": "001-source",

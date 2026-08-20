@@ -751,14 +751,30 @@ def segment_full(
 
     bench = extract_bench_composition(text, spine=spine)
     opinions = []
-    opinion_cursor = positions.get("separate_opinion", 0)
-    for ordinal, opinion in enumerate(opinion_report.opinions, 1):
+    opinion_section_start = positions.get("separate_opinion", 0)
+    later_sections = [
+        value for name, value in positions.items()
+        if name != "separate_opinion" and value > opinion_section_start
+    ]
+    opinion_section_end = min(later_sections, default=len(text))
+    opinion_cursor = opinion_section_start
+    opinion_starts: list[int] = []
+    for opinion in opinion_report.opinions:
         start = text.find(opinion.raw_header, opinion_cursor)
         if start < 0:
             start = text.find(opinion.text[:80], opinion_cursor)
         if start < 0:
             start = opinion_cursor
-        end = min(len(text), start + len(opinion.text))
+        opinion_starts.append(start)
+        opinion_cursor = max(start + len(opinion.raw_header), start + 1)
+    for ordinal, (opinion, start) in enumerate(
+        zip(opinion_report.opinions, opinion_starts, strict=True), 1
+    ):
+        end = (
+            opinion_starts[ordinal]
+            if ordinal < len(opinion_starts)
+            else opinion_section_end
+        )
         start_block = next(
             (i for i, block in enumerate(spine.blocks) if block.char_end > start),
             len(spine.blocks),
@@ -790,7 +806,6 @@ def segment_full(
             block.opinion_type = opinion.opinion_type
             block.opinion_authors = list(opinion.authors)
             block.opinion_joined_by = list(opinion.joined_by)
-        opinion_cursor = end
 
     # Footnote bodies are physically stored after the judgment/opinions in
     # HUDOC's converted Word HTML. Their legal context comes from the inline

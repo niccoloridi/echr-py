@@ -25,6 +25,7 @@ ResolvedStatus = Literal[
 ]
 ProceduralPhase = Literal[
     "merits",
+    "preliminary_objections",
     "admissibility",
     "article_50",
     "just_satisfaction",
@@ -355,13 +356,34 @@ class CitationParagraphResolution(BaseModel):
     evidence: dict[str, object] = Field(default_factory=dict)
 
 
+class CitationSourceInvocation(BaseModel):
+    """Legal source address through which a citation-bearing footnote is invoked."""
+
+    source_block_id: str
+    source_para_id: str | None = None
+    source_para_num: int | None = None
+    source_section: str | None = None
+    source_component: Literal["majority", "opinion", "appendix"] = "majority"
+    source_opinion_id: str | None = None
+    source_opinion_ordinal: int | None = None
+    source_opinion_type: str | None = None
+    source_opinion_authors: list[str] = Field(default_factory=list)
+    source_opinion_joined_by: list[str] = Field(default_factory=list)
+
+
 class CitationOccurrence(BaseModel):
     """One source-addressable textual occurrence of an SCL authority."""
 
-    schema_version: Literal["citation-occurrence/v1", "citation-occurrence/v2"] = (
-        "citation-occurrence/v2"
+    schema_version: Literal[
+        "citation-occurrence/v1", "citation-occurrence/v2", "citation-occurrence/v3"
+    ] = (
+        "citation-occurrence/v3"
     )
     occurrence_id: str
+    locus_id: str | None = None
+    citation_group_id: str | None = None
+    group_ordinal: int = 1
+    group_size: int = 1
     mention_id: str
     source_itemid: str | None = None
     source_language: str | None = None
@@ -393,6 +415,7 @@ class CitationOccurrence(BaseModel):
     source_footnote_id: str | None = None
     source_invoking_block_ids: list[str] = Field(default_factory=list)
     source_invoking_para_ids: list[str] = Field(default_factory=list)
+    source_invocations: list[CitationSourceInvocation] = Field(default_factory=list)
     scl_coverage: Literal["covered", "not_covered", "indeterminate"] = "covered"
     scl_mention_ids: list[str] = Field(default_factory=list)
     discovery_methods: list[str] = Field(default_factory=list)

@@ -20,6 +20,7 @@ from .models import (
     CitationOccurrenceReport,
     CitationOccurrenceResult,
     CitationResolution,
+    CitationSourceInvocation,
     HistoricalCatalogEntry,
 )
 from .reporter import (
@@ -161,10 +162,50 @@ _HISTORICAL_FALLBACK_ENVELOPE_RE = re.compile(
     r"(?:19|20)\d{2}(?:[-‑–][IVX]+)?))?\)?)",
     re.I,
 )
+_NAME_DATE_SERIES_RE = re.compile(
+    rf"(?P<raw>(?P<name>{_HISTORICAL_CASE_NAME})\s*,\s*"
+    rf"\d{{1,2}}(?:er)?\s+{_MONTH_WORD}\s+(?:19|20)\d{{2}}"
+    r"[^.;\n]{0,140}?(?:Series|s[ée]rie)\s+A\s+n(?:o\.?|°|º)\s*\d+"
+    r"(?:[-‑–]\s*[A-Z])?)",
+    re.I,
+)
 _SERIES_ONLY_RE = re.compile(
     r"\b(?:Series|s[ée]rie)\s+A\s+n(?:o\.?|°|º)\s*\d+(?:[-‑–]\s*[A-Z])?\b",
     re.I,
 )
+_GROUPED_PHASE_RE = re.compile(
+    r"(?P<raw>(?:(?:the|les)\s+)?(?P<name>[A-ZÀ-ÖØ-Þ][\wÀ-ÖØ-öø-ÿ'’.-]{2,80}?)\s+"
+    r"(?:judgments?|arr[êe]ts?)\s*\(\s*"
+    r"(?P<first>preliminary objections?|exceptions pr[ée]liminaires)\s+"
+    r"(?:and|et)\s+(?P<second>merits|fond)\s*\)\s*,?\s*"
+    r"(?:at|aux?|respectivement\s+aux?)?\s*§{1,2}\s*(?P<first_para>\d{1,4})\s+"
+    r"(?:and|et)\s+§?\s*(?P<second_para>\d{1,4})\s+(?:respectively|respectivement)|"
+    r"(?:(?:the|les)\s+)?(?P<name_rev>[A-ZÀ-ÖØ-Þ][\wÀ-ÖØ-öø-ÿ'’.-]{2,80}?)\s+"
+    r"(?:judgments?|arr[êe]ts?)\s*\(\s*"
+    r"(?P<first_rev>merits|fond)\s+(?:and|et)\s+"
+    r"(?P<second_rev>preliminary objections?|exceptions pr[ée]liminaires)\s*\)\s*,?\s*"
+    r"(?:at|aux?|respectivement\s+aux?)?\s*§{1,2}\s*(?P<first_para_rev>\d{1,4})\s+"
+    r"(?:and|et)\s+§?\s*(?P<second_para_rev>\d{1,4})\s+"
+    r"(?:respectively|respectivement))",
+    re.I,
+)
+_ACCENT_EQUIVALENTS = {
+    "a": "aàáâãäåāăą",
+    "c": "cçćĉċč",
+    "d": "dďđ",
+    "e": "eèéêëēĕėęě",
+    "g": "gĝğġģ",
+    "i": "iìíîïĩīĭįı",
+    "l": "lĺļľŀł",
+    "n": "nñńņň",
+    "o": "oòóôõöøōŏő",
+    "r": "rŕŗř",
+    "s": "sśŝşšș",
+    "t": "tţťŧț",
+    "u": "uùúûüũūŭůűų",
+    "y": "yýÿŷ",
+    "z": "zźżž",
+}
 
 
 def _fold(value: str) -> str:
@@ -208,7 +249,16 @@ def _match_key(value: str) -> str:
 def _pattern(value: str) -> re.Pattern[str]:
     value = re.sub(r"([\[(])\s+", r"\1", value)
     value = re.sub(r"\s+([])])", r"\1", value)
-    bits = [re.escape(bit) for bit in re.split(r"\s+", value.strip()) if bit]
+    def accent_escape(bit: str) -> str:
+        output: list[str] = []
+        for char in bit:
+            folded = _fold(char)
+            base = folded if len(folded) == 1 else char.casefold()
+            equivalents = _ACCENT_EQUIVALENTS.get(base)
+            output.append(f"[{equivalents}]" if equivalents else re.escape(char))
+        return "".join(output)
+
+    bits = [accent_escape(bit) for bit in re.split(r"\s+", value.strip()) if bit]
     body = r"\s+".join(bits).replace(r"\-", r"[-‑–\u2014]")
     # Spine v1 used BeautifulSoup's space separator while flattening inline
     # markup.  That could materialise ``( re Crimea )`` even though the HTML
@@ -238,6 +288,20 @@ def _strip_phase(value: str) -> str:
         previous = value
         value = _PHASE_RE.sub("", value).strip(" ,;")
     return value
+
+
+def _printed_title_alias(raw: str) -> str | None:
+    """Retain title parentheticals while dropping bibliographic tail material."""
+    head = raw.split(",", 1)[0].strip()
+    head = re.sub(
+        rf"\s+\(?(?:judgment|decision|arr[êe]t|d[ée]cision)(?:\s+of|\s+du)?\s+"
+        rf"\d{{1,2}}(?:er)?\s+{_MONTH_WORD}\s+(?:19|20)\d{{2}}.*$",
+        "",
+        head,
+        flags=re.I,
+    ).strip()
+    head = re.sub(r"\s*\[GC\]\s*$", "", head, flags=re.I)
+    return head if _PARTY_RE.search(head) else None
 
 
 def _distinctive_short_forms(name: str) -> list[str]:
@@ -283,9 +347,21 @@ class _Owner:
 
     @property
     def identity(self) -> str:
-        if self.resolution and self.resolution.target:
-            return self.resolution.target.node_id
-        return self.mention.mention_id
+        mention = self.mention
+        if mention.explicit_ecli:
+            return f"ecli:{mention.explicit_ecli}"
+        if mention.explicit_itemid:
+            return f"itemid:{mention.explicit_itemid}"
+        phase = f"{mention.document_kind}:{mention.procedural_phase}"
+        if mention.explicit_appnos:
+            return f"appno:{'|'.join(sorted(mention.explicit_appnos))}:{phase}"
+        name = _key(mention.cited_name or "")
+        date = mention.target_date.isoformat() if mention.target_date else ""
+        if name:
+            return f"name:{name}:{date}:{phase}"
+        if mention.reporter:
+            return f"reporter:{mention.reporter.key}:{date}:{phase}"
+        return f"reference:{mention.reference_hash}"
 
 
 @dataclass(frozen=True)
@@ -330,6 +406,7 @@ def _aliases(owner: _Owner) -> list[tuple[str, str, bool]]:
 
     add(mention.raw_ref, "scl_reference")
     add(mention.cited_name, "full_name")
+    add(_printed_title_alias(mention.raw_ref), "printed_title")
     if mention.cited_name:
         phase_stripped = _strip_phase(mention.cited_name)
         add(phase_stripped, "full_name")
@@ -340,20 +417,23 @@ def _aliases(owner: _Owner) -> list[tuple[str, str, bool]]:
             add(f"{phase_stripped}, {date_match.group()}", "name_date")
         for short in _distinctive_short_forms(mention.cited_name):
             add(short, "short_form", False)
+            if mention.procedural_phase == "preliminary_objections":
+                add(
+                    f"{short} judgment (preliminary objections)",
+                    "phase_short_form",
+                )
+                add(
+                    f"arrêt {short} (exceptions préliminaires)",
+                    "phase_short_form",
+                )
+            elif mention.procedural_phase == "merits":
+                add(f"{short} judgment (merits)", "phase_short_form")
+                add(f"arrêt {short} (fond)", "phase_short_form")
     for appno in mention.explicit_appnos:
         add(appno, "application_number")
     add(mention.explicit_ecli, "ecli")
     if mention.reporter and mention.reporter.family == "series_a":
         add(mention.reporter.raw, "reporter")
-    if owner.resolution and owner.resolution.target:
-        target = owner.resolution.target
-        add(target.docname, "target_name")
-        for title in target.title_aliases:
-            add(title, "target_name")
-        for appno in target.appnos:
-            add(appno, "application_number")
-        add(target.ecli, "ecli")
-
     seen: set[tuple[str, str]] = set()
     out: list[tuple[str, str, bool]] = []
     for value, finder, strong in values:
@@ -399,53 +479,127 @@ def _component(block: DocumentBlock) -> Literal["majority", "opinion", "appendix
     return "majority"
 
 
+def _locus_id(case: Case, block: DocumentBlock, start: int, end: int) -> str:
+    """Identify a printed source locus without using target-resolution state."""
+    source = case.itemid or case.ecli or ";".join(case.appno) or "unknown"
+    raw = normalize_reference(block.text[start:end])
+    return hashlib.sha256(
+        f"{source}|{block.block_id}|{start}|{end}|{raw}".encode()
+    ).hexdigest()
+
+
+def _group_fields(
+    mention: CitationMention, _locus_id: str
+) -> tuple[str | None, int, int]:
+    evidence = mention.discovery_evidence
+    group_id = evidence.get("citation_group_id")
+    ordinal = evidence.get("group_ordinal", 1)
+    size = evidence.get("group_size", 1)
+    return (
+        str(group_id) if group_id else None,
+        ordinal if isinstance(ordinal, int) and ordinal > 0 else 1,
+        size if isinstance(size, int) and size > 0 else 1,
+    )
+
+
+def _attach_source_invocations(
+    occurrences: list[CitationOccurrence], blocks: dict[str, DocumentBlock]
+) -> None:
+    for occurrence in occurrences:
+        source = blocks.get(occurrence.source_block_id)
+        if source is None:
+            continue
+        invocation_ids = (
+            source.referenced_by_block_ids
+            if source.footnote_id and source.referenced_by_block_ids
+            else [source.block_id]
+        )
+        invocations: list[CitationSourceInvocation] = []
+        for block_id in dict.fromkeys(invocation_ids):
+            block = blocks.get(block_id)
+            if block is None:
+                continue
+            invocations.append(CitationSourceInvocation(
+                source_block_id=block.block_id,
+                source_para_id=block.para_id,
+                source_para_num=block.para_num,
+                source_section=block.section,
+                source_component=_component(block),
+                source_opinion_id=block.opinion_id,
+                source_opinion_ordinal=block.opinion_ordinal,
+                source_opinion_type=block.opinion_type,
+                source_opinion_authors=list(block.opinion_authors),
+                source_opinion_joined_by=list(block.opinion_joined_by),
+            ))
+        occurrence.source_invocations = invocations
+        if not source.footnote_id or not invocations:
+            continue
+        contexts = {
+            (
+                value.source_component,
+                value.source_opinion_id,
+                value.source_opinion_ordinal,
+                value.source_opinion_type,
+                tuple(value.source_opinion_authors),
+                tuple(value.source_opinion_joined_by),
+            )
+            for value in invocations
+        }
+        if len(contexts) != 1:
+            occurrence.source_component = "appendix"
+            continue
+        selected = invocations[0]
+        occurrence.source_component = selected.source_component
+        occurrence.source_opinion_id = selected.source_opinion_id
+        occurrence.source_opinion_ordinal = selected.source_opinion_ordinal
+        occurrence.source_opinion_type = selected.source_opinion_type
+        occurrence.source_opinion_authors = list(selected.source_opinion_authors)
+        occurrence.source_opinion_joined_by = list(selected.source_opinion_joined_by)
+
+
 def _evidence_offset(value: object, default: int = 0) -> int:
     return value if isinstance(value, int) else default
+
+
+def _balanced_identifier_boundary(
+    text: str, citation_start: int, identifier_end: int, tail: str
+) -> int | None:
+    """Return a closing-delimiter boundary after an identifier when appropriate."""
+    prefix = text[citation_start:identifier_end]
+    depth = prefix.count("(") - prefix.count(")")
+    if depth <= 0:
+        return None
+    for index, char in enumerate(tail):
+        if char == "(":
+            depth += 1
+        elif char == ")":
+            depth -= 1
+            if depth == 0:
+                after = tail[index + 1 :]
+                if re.match(
+                    r"\s*,?\s*(?:§{1,2}|paras?\.?|paragraphs?)\b",
+                    after,
+                    flags=re.I,
+                ):
+                    return None
+                return index + 1
+    return None
 
 
 def _coverage_matches(
     discovered: CitationMention,
     scl_mentions: list[CitationMention],
-    resolutions: dict[str, CitationResolution],
 ) -> list[CitationMention]:
     appnos = set(discovered.explicit_appnos)
     name_key = _key(discovered.cited_name or "")
-    discovered_target = resolutions.get(discovered.mention_id)
-    discovered_node = (
-        discovered_target.target.node_id
-        if discovered_target and discovered_target.target else None
-    )
     matches = []
     for mention in scl_mentions:
-        scl_resolution = resolutions.get(mention.mention_id)
-        scl_node = (
-            scl_resolution.target.node_id
-            if scl_resolution and scl_resolution.target else None
-        )
-        if discovered_node and scl_node:
-            if discovered_node == scl_node:
-                matches.append(mention)
-            continue
         discovered_kind: str = discovered.document_kind
         discovered_phase = discovered.procedural_phase
         discovered_date = discovered.target_date
-        if discovered_target and discovered_target.target:
-            target = discovered_target.target
-            if discovered_kind == "unknown":
-                discovered_kind = target.document_kind
-            if discovered_phase == "unknown":
-                discovered_phase = target.procedural_phase
-            discovered_date = discovered_date or target.date
         scl_kind: str = mention.document_kind
         scl_phase = mention.procedural_phase
         scl_date = mention.target_date
-        if scl_resolution and scl_resolution.target:
-            target = scl_resolution.target
-            if scl_kind == "unknown":
-                scl_kind = target.document_kind
-            if scl_phase == "unknown":
-                scl_phase = target.procedural_phase
-            scl_date = scl_date or target.date
         if (
             discovered_kind != "unknown"
             and scl_kind != "unknown"
@@ -459,6 +613,12 @@ def _coverage_matches(
         ):
             continue
         if discovered_date and scl_date and discovered_date != scl_date:
+            continue
+        scl_appnos = set(mention.explicit_appnos)
+        if appnos and scl_appnos and not appnos.intersection(scl_appnos):
+            # A shared title cannot override conflicting printed application
+            # numbers.  This distinction is essential for later applications
+            # between the same parties and for numbered procedural cases.
             continue
         if appnos and appnos.intersection(mention.explicit_appnos):
             matches.append(mention)
@@ -521,6 +681,69 @@ def discover_citation_mentions(
             or block.heading_role == "frontmatter"
         ):
             continue
+        for match in _GROUPED_PHASE_RE.finditer(block.text):
+            raw = match.group("raw")
+            name = match.group("name") or match.group("name_rev")
+            phases = (
+                ("preliminary_objections", "merits")
+                if match.group("name")
+                else ("merits", "preliminary_objections")
+            )
+            paragraphs = (
+                (match.group("first_para"), match.group("second_para"))
+                if match.group("name")
+                else (match.group("first_para_rev"), match.group("second_para_rev"))
+            )
+            group_id = hashlib.sha256(
+                f"{case.itemid}|{block.block_id}|{match.start()}|{match.end()}|group".encode()
+            ).hexdigest()
+            for group_ordinal, (phase, paragraph) in enumerate(
+                zip(phases, paragraphs, strict=True), 1
+            ):
+                grouped_mention = parse_scl_mentions(
+                    case.model_copy(
+                        update={
+                            "scl": f"{name} judgment ({phase.replace('_', ' ')}), § {paragraph}",
+                            "sclappnos": [],
+                        }
+                    )
+                )[0]
+                mention_id = hashlib.sha256(
+                    f"{group_id}|{group_ordinal}|{phase}".encode()
+                ).hexdigest()
+                mention = grouped_mention.model_copy(update={
+                    "mention_id": mention_id,
+                    "reference_hash": hashlib.sha256(
+                        f"{normalize_reference(raw).casefold()}|{phase}".encode()
+                    ).hexdigest(),
+                    "ordinal": ordinal,
+                    "raw_ref": raw,
+                    "normalized_ref": normalize_reference(raw).casefold(),
+                    "origin": "text_discovery",
+                    "cited_name": name,
+                    "respondent": None,
+                    "document_kind": "judgment",
+                    "procedural_phase": phase,
+                    "target_paragraphs": [paragraph],
+                    "source_section": block.section,
+                    "source_block_id": block.block_id,
+                    "source_para_id": block.para_id,
+                    "source_opinion_id": block.opinion_id,
+                    "source_footnote_id": block.footnote_id,
+                    "source_invoking_block_ids": list(block.referenced_by_block_ids),
+                    "source_invoking_para_ids": list(block.referenced_by_para_ids),
+                    "discovery_evidence": {
+                        "method": "grouped_procedural_documents",
+                        "block_start": match.start(),
+                        "block_end": match.end(),
+                        "citation_group_id": group_id,
+                        "group_ordinal": group_ordinal,
+                        "group_size": 2,
+                        "owned_pinpoint": paragraph,
+                    },
+                })
+                found.append((block.char_start + match.start(), mention))
+                ordinal += 1
         claimed_app_spans: list[tuple[int, int]] = []
         for app_match in APPNO_REGEX.finditer(block.text):
             if any(start <= app_match.start() < end for start, end in claimed_app_spans):
@@ -581,6 +804,11 @@ def discover_citation_mentions(
                 tail,
             )
             boundary_offset = boundary.start() if boundary else len(tail)
+            balanced = _balanced_identifier_boundary(
+                block.text, start, app_match.end(), tail
+            )
+            if balanced is not None:
+                boundary_offset = min(boundary_offset, balanced)
             # A following authority owns its own envelope and any pinpoint
             # after it.  This is essential for ``A ... and B ..., § 42``.
             following_names = [
@@ -715,6 +943,55 @@ def discover_citation_mentions(
             for _, value in found
             if value.source_block_id == block.block_id
         ]
+        for match in _NAME_DATE_SERIES_RE.finditer(block.text):
+            if any(match.start() < end and match.end() > start for start, end in occupied):
+                continue
+            cited_name = match.group("name").strip(" ,")
+            leading = re.match(
+                r"(?:(?:See|Compare|Contrast|And|Voir)\s+)+(?:l['’])?(?:the\s+)?",
+                cited_name,
+                flags=re.I,
+            )
+            leading_chars = leading.end() if leading else 0
+            cited_name = cited_name[leading_chars:].strip()
+            actual_start = match.start("name") + leading_chars
+            raw = block.text[actual_start:match.end()].strip(" ,")
+            if not _unicode_case_name_valid(cited_name):
+                continue
+            parsed = parse_scl_mentions(
+                case.model_copy(update={"scl": raw, "sclappnos": []})
+            )
+            if not parsed:
+                continue
+            digest = hashlib.sha256(
+                f"{case.itemid}|{block.block_id}|{actual_start}|{match.end()}|"
+                f"{normalize_reference(raw).casefold()}".encode()
+            ).hexdigest()
+            mention = parsed[0].model_copy(update={
+                "mention_id": digest,
+                "reference_hash": hashlib.sha256(
+                    normalize_reference(raw).casefold().encode()
+                ).hexdigest(),
+                "ordinal": ordinal,
+                "origin": "text_discovery",
+                "cited_name": cited_name,
+                "respondent": extract_respondent(cited_name),
+                "source_section": block.section,
+                "source_block_id": block.block_id,
+                "source_para_id": block.para_id,
+                "source_opinion_id": block.opinion_id,
+                "source_footnote_id": block.footnote_id,
+                "source_invoking_block_ids": list(block.referenced_by_block_ids),
+                "source_invoking_para_ids": list(block.referenced_by_para_ids),
+                "discovery_evidence": {
+                    "method": "historical_name_date_reporter",
+                    "block_start": actual_start,
+                    "block_end": match.end(),
+                },
+            })
+            found.append((block.char_start + actual_start, mention))
+            occupied.append((actual_start, match.end()))
+            ordinal += 1
         for method, pattern in (("exact_ecli", ECLI_REGEX), ("exact_itemid", ITEMID_REGEX)):
             for match in pattern.finditer(block.text):
                 if any(match.start() < end and match.end() > start for start, end in occupied):
@@ -826,7 +1103,11 @@ def discover_citation_mentions(
             })
             found.append((block.char_start + match.start(), mention))
             ordinal += 1
-    found.sort(key=lambda value: (value[0], value[1].mention_id))
+    found.sort(key=lambda value: (
+        value[0],
+        _evidence_offset(value[1].discovery_evidence.get("group_ordinal"), 1),
+        value[1].mention_id,
+    ))
     blocks = {block.block_id: block for block in spine.blocks}
     preliminary: list[CitationOccurrence] = []
     for _, mention in found:
@@ -838,11 +1119,19 @@ def discover_citation_mentions(
         end = _evidence_offset(evidence.get("block_end"), start)
         italic, bold = _style_at(source_block, start, end)
         method = str(evidence.get("method", "text_discovery"))
+        locus_id = _locus_id(case, source_block, start, end)
+        occurrence_group_id, group_ordinal, group_size = _group_fields(
+            mention, locus_id
+        )
         occurrence_id = hashlib.sha256(
-            f"{case.itemid}|{source_block.block_id}|{start}|{end}|{mention.mention_id}".encode()
+            f"{locus_id}|{mention.mention_id}".encode()
         ).hexdigest()
         preliminary.append(CitationOccurrence(
             occurrence_id=occurrence_id,
+            locus_id=locus_id,
+            citation_group_id=occurrence_group_id,
+            group_ordinal=group_ordinal,
+            group_size=group_size,
             mention_id=mention.mention_id,
             source_itemid=case.itemid,
             source_language=case.language,
@@ -860,7 +1149,10 @@ def discover_citation_mentions(
             bold=bold,
             finder=method,
             evidence={"discovery_evidence": evidence},
-            target_paragraphs=[],
+            target_paragraphs=(
+                list(mention.target_paragraphs)
+                if method == "grouped_procedural_documents" else []
+            ),
             source_component=_component(source_block),
             source_opinion_id=source_block.opinion_id,
             source_opinion_ordinal=source_block.opinion_ordinal,
@@ -874,6 +1166,7 @@ def discover_citation_mentions(
             discovery_methods=[method],
             resolution_scope="unresolved",
         ))
+    _attach_source_invocations(preliminary, blocks)
     _assign_owned_pinpoints(preliminary, blocks, diagnostics)
     return CitationDiscoveryResult(
         mentions=[value[1] for value in found],
@@ -959,6 +1252,10 @@ def _assign_owned_pinpoints(
             continue
         values.sort(key=lambda value: (value.block_start, value.block_end))
         for index, occurrence in enumerate(values):
+            if occurrence.group_size > 1 and occurrence.target_paragraphs:
+                occurrence.evidence["pinpoint_source"] = "grouped_procedural_documents"
+                occurrence.evidence["pinpoint_boundary"] = occurrence.block_end
+                continue
             next_start = values[index + 1].block_start if index + 1 < len(values) else None
             labels, source = _target_paragraphs(
                 block.text,
@@ -1055,11 +1352,19 @@ def _occurrence(
 ) -> CitationOccurrence:
     target = alias.owner.resolution.target if alias.owner.resolution else None
     raw = block.text[start:end]
+    locus_id = _locus_id(case, block, start, end)
+    occurrence_group_id, group_ordinal, group_size = _group_fields(
+        alias.owner.mention, locus_id
+    )
     digest = hashlib.sha256(
-        f"{case.itemid}|{block.block_id}|{start}|{end}|{alias.owner.mention.mention_id}".encode()
+        f"{locus_id}|{alias.owner.mention.mention_id}".encode()
     ).hexdigest()
     return CitationOccurrence(
         occurrence_id=digest,
+        locus_id=locus_id,
+        citation_group_id=occurrence_group_id,
+        group_ordinal=group_ordinal,
+        group_size=group_size,
         mention_id=alias.owner.mention.mention_id,
         source_itemid=case.itemid,
         source_language=case.language,
@@ -1178,9 +1483,7 @@ def extract_citation_occurrences(
         value.mention.mention_id: value for value in resolution_values
     }
     coverage = {
-        mention.mention_id: _coverage_matches(
-            mention, scl_mentions, supplied_by_mention
-        )
+        mention.mention_id: _coverage_matches(mention, scl_mentions)
         for mention in discovery.mentions
     }
     for mention in discovery.mentions:
@@ -1312,16 +1615,40 @@ def extract_citation_occurrences(
         end_value = evidence.get("block_end", start_value)
         start = start_value if isinstance(start_value, int) else 0
         end = end_value if isinstance(end_value, int) else start
+        overlapping_values = [
+            value for value in occurrences
+            if value.source_block_id == discovery_block.block_id
+            and start < value.block_end and end > value.block_start
+        ]
+        ids = sorted(value.mention_id for value in matches)
+        grouped_discovery = _evidence_offset(evidence.get("group_size"), 1) > 1
+        if grouped_discovery:
+            # A compound printed envelope owns the full shared locus.  Remove
+            # a shorter gazetteer alias for the same SCL authority before
+            # emitting the target-specific grouped rows.
+            removable = {
+                value.occurrence_id
+                for value in overlapping_values
+                if value.mention_id in ids
+                or bool(set(value.scl_mention_ids).intersection(ids))
+            }
+            if removable:
+                occurrences[:] = [
+                    value for value in occurrences if value.occurrence_id not in removable
+                ]
+                overlapping_values = [
+                    value for value in overlapping_values
+                    if value.occurrence_id not in removable
+                ]
         overlapping = next(
             (
-                value for value in occurrences
-                if value.source_block_id == discovery_block.block_id
-                and start < value.block_end and end > value.block_start
+                value for value in overlapping_values
+                if value.mention_id in ids
+                or bool(set(value.scl_mention_ids).intersection(ids))
             ),
             None,
         )
-        ids = sorted(value.mention_id for value in matches)
-        if overlapping is not None:
+        if overlapping is not None and not grouped_discovery:
             overlapping.scl_coverage = "covered"
             overlapping.scl_mention_ids = sorted(set([*overlapping.scl_mention_ids, *ids]))
             overlapping.discovery_methods = sorted(
@@ -1331,6 +1658,19 @@ def extract_citation_occurrences(
                 ])
             )
             continue
+        if overlapping_values:
+            diagnostics.append({
+                "code": "overlapping_distinct_authorities",
+                "source_itemid": case.itemid,
+                "block_id": discovery_block.block_id,
+                "block_start": start,
+                "block_end": end,
+                "discovery_mention_id": mention.mention_id,
+                "scl_mention_ids": ids,
+                "overlapping_occurrence_ids": [
+                    value.occurrence_id for value in overlapping_values
+                ],
+            })
         selected = matches[0]
         alias = _Alias(
             text=mention.raw_ref,
@@ -1344,14 +1684,28 @@ def extract_citation_occurrences(
             case, discovery_block, alias, start, end, italic=italic, bold=bold
         )
         value.scl_mention_ids = ids
+        if grouped_discovery:
+            occurrence_group_id, group_ordinal, group_size = _group_fields(
+                mention, value.locus_id or value.occurrence_id
+            )
+            value.citation_group_id = occurrence_group_id
+            value.group_ordinal = group_ordinal
+            value.group_size = group_size
+            value.target_paragraphs = list(mention.target_paragraphs)
         value.discovery_methods = [
             str(mention.discovery_evidence.get("method", "text_discovery")),
             "scl_identity",
         ]
         occurrences.append(value)
 
+    _attach_source_invocations(occurrences, blocks)
     _assign_owned_pinpoints(occurrences, blocks, diagnostics)
-    occurrences.sort(key=lambda value: (value.document_start, value.document_end, value.mention_id))
+    occurrences.sort(key=lambda value: (
+        value.document_start,
+        value.document_end,
+        value.group_ordinal,
+        value.mention_id,
+    ))
     located = {value.mention_id for value in occurrences}
     for owner in owners:
         if owner.mention.mention_id not in located:

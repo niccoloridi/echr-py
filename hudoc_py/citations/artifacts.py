@@ -197,6 +197,8 @@ def write_occurrence_artifacts(
         rows,
         empty_columns=[
             "occurrence_id",
+            "locus_id",
+            "citation_group_id",
             "mention_id",
             "source_itemid",
             "source_para_id",
@@ -244,6 +246,8 @@ def write_occurrence_artifacts(
         empty_columns=[
             "paragraph_edge_id",
             "occurrence_id",
+            "locus_id",
+            "citation_group_id",
             "source_itemid",
             "source_para_id",
             "source_footnote_id",

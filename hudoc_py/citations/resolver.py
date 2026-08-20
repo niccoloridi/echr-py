@@ -308,6 +308,12 @@ def _authority_matches(
         ]
     )
     if len(reporter_matches) <= 1:
+        if (
+            reporter_matches
+            and mention.cited_name
+            and not _authority_title_matches(mention, reporter_matches[0])
+        ):
+            return []
         return reporter_matches
     narrowed = reporter_matches
     if mention.explicit_appnos:
@@ -321,9 +327,13 @@ def _authority_matches(
             narrowed = dated
     title = normalize_docname(mention.cited_name)
     if title:
-        titled = [entry for entry in narrowed if entry.normalized_title == title]
-        if titled:
-            narrowed = titled
+        titled = [entry for entry in narrowed if _authority_title_matches(mention, entry)]
+        # Printed title evidence is a precision gate, not an optional
+        # tie-breaker.  A unique date/reporter bucket can still contain a
+        # completely different authority.
+        if not titled:
+            return []
+        narrowed = titled
     # A reporter volume is not a document locator. If corroboration has not
     # selected one exact authority row, retain ambiguity instead of iterating
     # through unrelated cases in the same ECHR/Reports volume.
@@ -344,6 +354,34 @@ def _title_similarity(mention: CitationMention, candidate: CitationCandidate) ->
     return max(
         (SequenceMatcher(None, source, target).ratio() for target in targets if source and target),
         default=0.0,
+    )
+
+
+def _authority_title_matches(
+    mention: CitationMention, entry: CitationAuthorityEntry
+) -> bool:
+    source = normalize_docname(mention.cited_name)
+    target = entry.normalized_title or normalize_docname(entry.title)
+    if not source or not target:
+        return not source
+    return source == target or SequenceMatcher(None, source, target).ratio() >= 0.82
+
+
+def _entry_candidate_title_matches(
+    entry: CitationAuthorityEntry, candidate: CitationCandidate
+) -> bool:
+    source = entry.normalized_title or normalize_docname(entry.title)
+    aliases = list(candidate.title_aliases)
+    if not aliases and candidate.docname:
+        aliases = [candidate.docname]
+    targets = [normalize_docname(value) for value in aliases if value]
+    return bool(
+        source
+        and any(
+            source == target or SequenceMatcher(None, source, target).ratio() >= 0.82
+            for target in targets
+            if target
+        )
     )
 
 
@@ -489,14 +527,10 @@ def _evaluate_candidate(
             and authority_entry.reporter.year == candidate.date.year
         ):
             candidate.positive_evidence.append("authority reporter publication year")
-        aliases = candidate.title_aliases
-        if not aliases and candidate.docname:
-            aliases = [candidate.docname]
-        candidate_titles = {normalize_docname(title) for title in aliases if title}
-        if authority_entry.normalized_title in candidate_titles:
+        if _entry_candidate_title_matches(authority_entry, candidate):
             candidate.positive_evidence.append("authority title")
-        elif candidate.title_similarity >= 0.82:
-            candidate.positive_evidence.append("authority similar title")
+        else:
+            candidate.conflicting_evidence.append("different authority title")
     return candidate
 
 
@@ -507,6 +541,7 @@ def _metadata_accepts(mention: CitationMention, candidate: CitationCandidate) ->
         "target date is after source document" in conflicts
         or "exact source document self-edge" in conflicts
         or "placeholder HUDOC record" in conflicts
+        or (mention.cited_name and "different title" in conflicts)
     ):
         return False
     if mention.explicit_appnos and "explicit application number" not in evidence:
@@ -574,7 +609,10 @@ def _authority_accepts(
         "placeholder HUDOC record",
         "different authority document kind",
         "different authority procedural phase",
+        "different authority title",
     } & conflicts:
+        return False
+    if mention.cited_name and "different title" in conflicts:
         return False
     identity = {
         "authority date",
@@ -1073,29 +1111,39 @@ def _resolve_one(
         }
         identities.discard(None)
         if len(identities) == 1:
-            selected = next(
-                entry for entry in historical
+            source_title = normalize_docname(mention.cited_name)
+            compatible = [
+                entry
+                for entry in historical
                 if (normalize_ecli(entry.target_ecli) or entry.target_itemid) in identities
-            )
-            ecli = normalize_ecli(selected.target_ecli)
-            target = CitationCandidate(
-                node_id=f"ecli:{ecli}" if ecli else f"itemid:{selected.target_itemid}",
-                itemid=selected.target_itemid,
-                ecli=ecli,
-                docname=selected.title,
-                title_aliases=[selected.title] if selected.title else [],
-                reporter_keys=[selected.reporter_key],
-                appnos=list(selected.appnos),
-                date=selected.date,
-                document_kind=selected.document_kind,
-            )
-            return CitationResolution(
-                mention=mention,
-                status="resolved_authority",
-                method="packaged historical reporter catalog",
-                target=target,
-                candidates=[target],
-            )
+                and (
+                    not source_title
+                    or not (target_title := normalize_docname(entry.title))
+                    or source_title == target_title
+                    or SequenceMatcher(None, source_title, target_title).ratio() >= 0.82
+                )
+            ]
+            if compatible:
+                selected = compatible[0]
+                ecli = normalize_ecli(selected.target_ecli)
+                target = CitationCandidate(
+                    node_id=f"ecli:{ecli}" if ecli else f"itemid:{selected.target_itemid}",
+                    itemid=selected.target_itemid,
+                    ecli=ecli,
+                    docname=selected.title,
+                    title_aliases=[selected.title] if selected.title else [],
+                    reporter_keys=[selected.reporter_key],
+                    appnos=list(selected.appnos),
+                    date=selected.date,
+                    document_kind=selected.document_kind,
+                )
+                return CitationResolution(
+                    mention=mention,
+                    status="resolved_authority",
+                    method="packaged historical reporter catalog",
+                    target=target,
+                    candidates=[target],
+                )
 
     authority_entries = _authority_matches(
         mention,

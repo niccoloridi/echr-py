@@ -260,6 +260,89 @@ def test_historical_english_and_french_name_and_paragraph_forms():
     assert french.target_paragraphs == ["27"]
 
 
+def test_historical_scl_name_stops_before_unpunctuated_judgment_date():
+    mention = parse_scl_mentions(
+        _case(
+            scl=(
+                "Assenov and Others v. Bulgaria judgment of 28 October 1998, "
+                "Reports 1998, §§ 144-150, § 162, § 163"
+            )
+        )
+    )[0]
+
+    assert mention.cited_name == "Assenov and Others v. Bulgaria"
+    assert mention.respondent == "Bulgaria"
+    assert mention.target_date.isoformat() == "1998-10-28"
+
+
+def test_same_date_and_reporter_cannot_promote_a_different_printed_title():
+    source = _case(
+        scl=(
+            "Assenov and Others v. Bulgaria judgment of 28 October 1998, "
+            "Reports 1998, §§ 144-150"
+        )
+    )
+    authority = CitationAuthority(
+        source_url="test",
+        entries=[
+            authority_entry_from_citation(
+                "Assenov and Others v. Bulgaria, 28 October 1998, § ..., Reports 1998-VIII"
+            ),
+            authority_entry_from_citation(
+                "Pérez de Rada Cavanilles v. Spain, 28 October 1998, § ..., Reports 1998-VIII"
+            ),
+        ],
+    )
+    assenov = _case(
+        itemid="001-58261",
+        ecli="ECLI:CE:ECHR:1998:1028JUD002476094",
+        appno="24760/94",
+        docname="CASE OF ASSENOV AND OTHERS v. BULGARIA",
+        kpdate="1998-10-28",
+    )
+    perez = _case(
+        itemid="001-58260",
+        ecli="ECLI:CE:ECHR:1998:1028JUD002809095",
+        appno="28090/95",
+        docname="CASE OF PÉREZ DE RADA CAVANILLES v. SPAIN",
+        kpdate="1998-10-28",
+    )
+
+    resolution = asyncio.run(
+        resolve_citations([source], authority=authority, catalog=[perez, assenov])
+    ).resolutions[0]
+
+    assert resolution.target is not None
+    assert resolution.target.itemid == "001-58261"
+    assert resolution.target.appnos == ["24760/94"]
+    assert all(candidate.itemid != "001-58260" for candidate in resolution.candidates)
+
+
+def test_exact_application_number_with_conflicting_title_is_not_a_document_target():
+    source = _case(
+        scl="Assenov and Others v. Bulgaria, no. 24760/94, 28 October 1998"
+    )
+    wrong = _case(
+        itemid="001-wrong",
+        ecli="ECLI:CE:ECHR:1998:1028JUD002476094",
+        appno="24760/94",
+        docname="CASE OF AN ENTIRELY DIFFERENT APPLICANT v. BULGARIA",
+        kpdate="1998-10-28",
+    )
+
+    resolution = asyncio.run(
+        resolve_citations(
+            [source],
+            authority=CitationAuthority(source_url="test", entries=[]),
+            catalog=[wrong],
+        )
+    ).resolutions[0]
+
+    assert resolution.target is None
+    assert resolution.status == "unresolved_reference"
+    assert resolution.candidates[0].conflicting_evidence == ["different title"]
+
+
 def test_reporter_authority_selects_merits_not_article_50():
     result = asyncio.run(resolve_citations([_albert_source()], catalog=_albert_targets()))
     resolution = result.resolutions[0]

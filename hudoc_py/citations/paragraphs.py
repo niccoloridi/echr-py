@@ -192,6 +192,25 @@ def resolve_occurrence_paragraphs(
         )
         updated.append(updated_occurrence)
         target_blocks = {block.block_id: block for block in spine.blocks} if spine else {}
+        source_rows: list[dict[str, object]] = [{}]
+        if occurrence.source_footnote_id and occurrence.source_invocations:
+            source_rows = [
+                {
+                    "citation_source_block_id": occurrence.source_block_id,
+                    "source_block_id": invocation.source_block_id,
+                    "source_para_id": invocation.source_para_id,
+                    "source_para_num": invocation.source_para_num,
+                    "source_section": invocation.source_section,
+                    "source_component": invocation.source_component,
+                    "source_opinion_id": invocation.source_opinion_id,
+                    "source_opinion_ordinal": invocation.source_opinion_ordinal,
+                    "source_opinion_type": invocation.source_opinion_type,
+                    "source_opinion_authors": invocation.source_opinion_authors,
+                    "source_opinion_joined_by": invocation.source_opinion_joined_by,
+                    "source_invocation_ordinal": ordinal,
+                }
+                for ordinal, invocation in enumerate(occurrence.source_invocations, 1)
+            ]
         for resolution in resolutions:
             for block_id, para_id, para_num in zip(
                 resolution.target_block_ids,
@@ -200,14 +219,19 @@ def resolve_occurrence_paragraphs(
                 strict=False,
             ):
                 target_block = target_blocks.get(block_id)
-                edge_id = hashlib.sha256(
-                    f"{occurrence.occurrence_id}|{target_key}|{block_id}|"
-                    f"{resolution.printed_label}".encode()
-                ).hexdigest()
-                edges.append(
-                    {
+                for source_row in source_rows:
+                    source_address = str(
+                        source_row.get("source_block_id", occurrence.source_block_id)
+                    )
+                    edge_id = hashlib.sha256(
+                        f"{occurrence.occurrence_id}|{source_address}|{target_key}|{block_id}|"
+                        f"{resolution.printed_label}".encode()
+                    ).hexdigest()
+                    row: dict[str, object] = {
                         "paragraph_edge_id": edge_id,
                         "occurrence_id": occurrence.occurrence_id,
+                        "locus_id": occurrence.locus_id,
+                        "citation_group_id": occurrence.citation_group_id,
                         "mention_id": occurrence.mention_id,
                         "source_itemid": occurrence.source_itemid,
                         "source_block_id": occurrence.source_block_id,
@@ -231,7 +255,8 @@ def resolve_occurrence_paragraphs(
                         "mapping_status": resolution.status,
                         "target_html_sha256": checksums.get(target_key),
                     }
-                )
+                    row.update(source_row)
+                    edges.append(row)
     report = result.report.model_copy(
         update={
             "pinpoint_occurrences": pinpoint_occurrences,

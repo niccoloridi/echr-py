@@ -227,6 +227,8 @@ def parse_reporter(raw: str) -> ReporterLocator | None:
 
 def infer_procedural_phase(raw: str) -> ProceduralPhase:
     text = normalize_reference(raw).lower()
+    if "preliminary objection" in text or "exceptions préliminaires" in text:
+        return "preliminary_objections"
     if "article 50" in text or "ancien article 50" in text:
         return "article_50"
     if "article 41" in text or "just satisfaction" in text or "satisfaction équitable" in text:
@@ -277,12 +279,15 @@ def infer_document_kind(raw: str) -> str:
 
 
 def extract_reference_name(raw: str) -> str | None:
-    match = _NAME_RE.match(raw)
-    if match:
-        return match.group("name").strip(" ,")
+    # Historical SCL rows often omit the comma between the respondent and
+    # ``judgment of DATE``.  Try that grammar before the permissive modern
+    # name matcher, whose next comma may be the one after the printed date.
     if match := _FRENCH_LEADING_NAME_RE.match(raw):
         return match.group("name").strip(" ,")
     if match := _HISTORICAL_NAME_RE.match(raw):
+        return match.group("name").strip(" ,")
+    match = _NAME_RE.match(raw)
+    if match:
         return match.group("name").strip(" ,")
     head = raw.split(",", 1)[0].strip()
     if re.match(r"^(?:Case\s+[‘\"“]|Advisory opinion|Decision on|Inter-State)", head, re.I):

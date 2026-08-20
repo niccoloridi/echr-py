@@ -4,6 +4,7 @@ from hudoc_py.citations import resolve_occurrence_paragraphs
 from hudoc_py.citations.models import (
     CitationOccurrence,
     CitationOccurrenceResult,
+    CitationSourceInvocation,
 )
 from hudoc_py.text import build_spine_from_html
 
@@ -91,6 +92,51 @@ def test_footnote_edges_retain_identity_invoking_paragraph_and_target_context():
     assert edge["source_invoking_para_ids"] == ["17"]
     assert edge["target_section"] == "the_law"
     assert edge["target_text"] == "42. The cited judgment paragraph."
+
+
+def test_footnote_paragraph_edges_expand_each_structured_invocation():
+    target = build_spine_from_html(
+        "<p>42. The cited judgment paragraph.</p>", document_id="001-target"
+    )
+    occurrence = _occurrence("footnote-multiple", ["42"])
+    occurrence.source_footnote_id = "ftn2"
+    occurrence.source_invocations = [
+        CitationSourceInvocation(
+            source_block_id="majority-17",
+            source_para_id="17",
+            source_para_num=17,
+            source_section="the_law",
+            source_component="majority",
+        ),
+        CitationSourceInvocation(
+            source_block_id="opinion-9",
+            source_para_id="9-2",
+            source_para_num=9,
+            source_section="separate_opinion",
+            source_component="opinion",
+            source_opinion_id="opinion:2",
+            source_opinion_ordinal=2,
+            source_opinion_authors=["SMITH"],
+        ),
+    ]
+
+    mapped = resolve_occurrence_paragraphs(
+        CitationOccurrenceResult(occurrences=[occurrence]), {"001-target": target}
+    )
+
+    assert len(mapped.paragraph_edges) == 2
+    assert {edge["source_block_id"] for edge in mapped.paragraph_edges} == {
+        "majority-17",
+        "opinion-9",
+    }
+    assert {edge["source_component"] for edge in mapped.paragraph_edges} == {
+        "majority",
+        "opinion",
+    }
+    assert all(
+        edge["citation_source_block_id"] == "source-footnote-multiple"
+        for edge in mapped.paragraph_edges
+    )
 
 
 def test_expands_full_and_abbreviated_ranges_without_cross_citation_leakage():

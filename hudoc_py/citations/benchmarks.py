@@ -838,22 +838,29 @@ def _identity_compatible(
     annotation: dict[str, Any], candidate: dict[str, Any]
 ) -> bool:
     """Require bibliographic evidence before accepting even an overlapping span."""
+    external_appnos = _string_values(annotation.get("citation_appnos"))
+    local_appnos = candidate.get("_benchmark_target_appnos")
+    if not isinstance(local_appnos, set):
+        local_appnos = _string_values(candidate.get("target_appnos") or candidate.get("appnos"))
+    if external_appnos and local_appnos and not external_appnos.intersection(local_appnos):
+        return False
 
-    expected = {
-        _normal(annotation.get("citation")),
-        _normal(annotation.get("exact_span")),
-    }
-    expected.discard("")
+    citation = _normal(annotation.get("citation"))
+    expected = {citation} if citation else set()
+    # The annotated span is coordinate evidence, not an authority identity: a
+    # broad span can contain several citations while its feature points to only
+    # one of them.  Fall back to it only when the reference supplies no parsed
+    # citation or application number at all.
+    if not expected and not external_appnos:
+        exact_span = _normal(annotation.get("exact_span"))
+        if exact_span:
+            expected.add(exact_span)
     for reference in expected:
         for observed in _identity_values(candidate):
             if min(len(reference), len(observed)) >= 4 and (
                 reference == observed or reference in observed or observed in reference
             ):
                 return True
-    external_appnos = _string_values(annotation.get("citation_appnos"))
-    local_appnos = candidate.get("_benchmark_target_appnos")
-    if not isinstance(local_appnos, set):
-        local_appnos = _string_values(candidate.get("target_appnos") or candidate.get("appnos"))
     if external_appnos and external_appnos & local_appnos:
         return True
     reference_target = _clean_text(annotation.get("target_itemid"))
@@ -1176,6 +1183,9 @@ def benchmark_citation_annotations(
         for row in document_reference
     )
     application_reference = [row for row in matched if row.get("citation_appnos")]
+    application_identified = [
+        row for row in application_reference if row.get("local_target_appnos")
+    ]
     application_correct = sum(
         bool(_string_values(row.get("citation_appnos")) & set(row["local_target_appnos"]))
         for row in application_reference
@@ -1234,6 +1244,22 @@ def benchmark_citation_annotations(
         },
         "application_identification": {
             "reference_identity_denominator": len(application_reference),
+            "automatically_identified": len(application_identified),
+            "matching_printed_appno": application_correct,
+            "conflicting_printed_appno": len(application_identified) - application_correct,
+            "not_identified": len(application_reference) - len(application_identified),
+            "identification_coverage": _ratio(
+                application_correct, len(application_reference)
+            ),
+            "agreement_given_identification": _ratio(
+                application_correct, len(application_identified)
+            ),
+            "metric_note": (
+                "Matching printed application numbers measure identification coverage "
+                "and conditional agreement, not exact procedural-document accuracy."
+            ),
+            # Compatibility fields retained for v2 report readers.  The rate
+            # is the same as identification_coverage, not a precision claim.
             "verified_correct": application_correct,
             "verified_accuracy": _ratio(application_correct, len(application_reference)),
         },
