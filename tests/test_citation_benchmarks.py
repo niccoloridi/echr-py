@@ -595,6 +595,9 @@ def test_published_mumford_audit_matches_code_and_documented_counts():
         "reporter_py_sha256": "hudoc_py/citations/reporter.py",
         "paragraphs_py_sha256": "hudoc_py/citations/paragraphs.py",
         "segmentation_py_sha256": "hudoc_py/text/segmentation.py",
+        "spine_py_sha256": "hudoc_py/text/spine.py",
+        "common_models_py_sha256": "hudoc_py/models/common.py",
+        "citation_models_py_sha256": "hudoc_py/citations/models.py",
         "comparison_example_sha256": "examples/benchmark_mumford_inclusive.py",
     }.items():
         assert software[field] == hashlib.sha256((root / relative).read_bytes()).hexdigest()

@@ -120,8 +120,10 @@ canonical target-document and target-paragraph gold data.
 On 20 August 2026, the final v3 deterministic inclusive pipeline aligned 4,535
 of the 5,425 selected ECHR-labelled annotations (83.6%) one-to-one after unique
 XMI-Sofa projection: 4,526 strict-span and nine identity/context matches. It
-abstained on 447 ambiguous annotations and left 443 unmatched. Of 8,507 local
-occurrences, 5,787 projected into the reference coordinate system and 2,720
+abstained on 447 ambiguous annotations and left 443 unmatched. The run produced
+8,507 authority-specific occurrence rows over 8,506 physical loci, including
+one two-row compound procedural group. Of those rows, 5,787 projected into the
+reference coordinate system and 2,720
 were explicit scope or mapping abstentions. Bibliographic identity is required
 in addition to span overlap: a broad reference span containing another case
 cannot substitute for the annotation's own cited-case feature. Names shared by
