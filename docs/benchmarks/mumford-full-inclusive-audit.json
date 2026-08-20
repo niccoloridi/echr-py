@@ -29,6 +29,18 @@
     "citation_models_py_sha256": "ce0aa0f702cb588fd71c7e60a17ec99ed6c2ca3b5107b4d670125e490f0cd7f3",
     "comparison_example_sha256": "748363c660e1978cdba094eb406731ad5a7297121bdbda1e1aec21f187f6a23d"
   },
+  "independent_reproduction": {
+    "date": "2026-08-20",
+    "git_commit": "078612571369f04750de8e2f86388310bc71a829",
+    "worktree_dirty_at_run": false,
+    "frozen_resolution_report_sha256": "2df928299a905a5b838367ddb56cef09a5595cebd329ffa2bda180b6ecf61cef",
+    "byte_identical_sha256": {
+      "occurrences_jsonl": "b3b9505659ce79fdd224e88c2c2361eda19fdea9a2e65e7b81d67c9bca1c248f",
+      "occurrence_report": "1d42bdae5f3299e07e385110a37304d70bbc07156259b7b04520c0945f5359c5",
+      "paragraph_edges_jsonl": "f6e024a4a92d95f3809fe6f3102d291c9bc1874758bc431ec556ec8e75e08ef0",
+      "comparison_json": "dd4b66c9a0e1eae4b31c4a7ae67d2168a47b0b4b586f9fd46a824c7e77c3b509"
+    }
+  },
   "selection": {
     "selection_schema": "hudoc-selection/v1",
     "selection_count": 115,
