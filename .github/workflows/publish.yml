@@ -125,12 +125,18 @@ jobs:
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.14"
+      - name: Check out the independently pinned release gate
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: trusted-release-gate-v2
+          path: .trusted-release-gate
+          persist-credentials: false
+          fetch-depth: 1
       - name: Install the checksummed build toolchain
         run: python -m pip install --require-hashes -r release-requirements.txt
       - name: Load the independently pinned release gate
         run: |
-          git fetch --no-tags origin trusted-release-gate-v2
-          test "$(git rev-parse FETCH_HEAD)" = "$TRUSTED_GATE_REVISION"
+          test "$(git -C .trusted-release-gate rev-parse HEAD)" = "$TRUSTED_GATE_REVISION"
           mkdir -p /tmp/echr-release-gate/scripts
           for path in \
             scripts/check_sdist.py \
@@ -139,7 +145,7 @@ jobs:
             scripts/public_payload_hashes.json \
             scripts/verify_release.py
           do
-            git show "$TRUSTED_GATE_REVISION:$path" > "/tmp/echr-release-gate/$path"
+            cp ".trusted-release-gate/$path" "/tmp/echr-release-gate/$path"
           done
       - name: Validate a publication ref before building
         env:
