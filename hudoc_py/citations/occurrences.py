@@ -107,6 +107,19 @@ _DISCOVERY_NAME_RE = re.compile(
     r"(?:\s+(?:and|et|the|of|de|du|des|la|le|Others|Autres|"
     rf"{_UNICODE_NAME_TOKEN})){{0,9}})",
 )
+_HISTORICAL_PARTY_TOKEN = (
+    rf"(?:and|et|Others|Autres|de|den|der|van|von|la|le|du|des|of|"
+    rf"{_UNICODE_NAME_TOKEN})"
+)
+_HISTORICAL_CASE_NAME = (
+    rf"{_UNICODE_NAME_TOKEN}"
+    rf"(?:\s*(?:,\s*|\s+){_HISTORICAL_PARTY_TOKEN}){{0,12}}"
+    r"\s*\[?\s*(?:v\.?|c\.?|contre|against)\s+(?:the\s+|la\s+|le\s+)?"
+    rf"{_UNICODE_NAME_TOKEN}"
+    r"(?:\s+(?:and|et|the|of|de|du|des|la|le|Others|Autres|"
+    rf"{_UNICODE_NAME_TOKEN})){{0,9}}"
+)
+_HISTORICAL_NAME_RE = re.compile(rf"(?P<name>{_HISTORICAL_CASE_NAME})")
 _EXTERNAL_NUMBER_RE = re.compile(
     r"(?:\bCase\s+C\s*[-‑–]?|\bDirective\s+|\bRegulation\s+|"
     r"\b(?:Commission|Council)\s+Decision\s+|\bDecision\s+\d{4}/\d+|"
@@ -131,6 +144,21 @@ _HISTORICAL_ENVELOPE_RE = re.compile(
     rf"\d{{1,2}}(?:er)?\s+{_MONTH_WORD}\s+(?:19|20)\d{{2}})"
     r"(?:[^.;\n]{0,160}?(?:Series|s[ée]rie)\s+A\s+n(?:o\.?|°|º)\s*\d+"
     r"(?:[-‑–]\s*[A-Z])?)?)",
+    re.I,
+)
+_HISTORICAL_FALLBACK_ENVELOPE_RE = re.compile(
+    r"(?P<raw>(?:"
+    r"(?:(?:the\s+)?(?:case\s+of\s+)?)"
+    rf"(?P<en_name>{_HISTORICAL_CASE_NAME})\s+\(?(?:judgment|decision)"
+    r"(?:\s+of)?\s+"
+    rf"\d{{1,2}}(?:er)?\s+{_MONTH_WORD}\s+(?:19|20)\d{{2}}"
+    r"|(?:arr[êe]t|d[ée]cision)\s+"
+    rf"(?P<fr_name>{_HISTORICAL_CASE_NAME})\s+du\s+"
+    rf"\d{{1,2}}(?:er)?\s+{_MONTH_WORD}\s+(?:19|20)\d{{2}})"
+    r"(?:[^.;\n]{0,160}?(?:(?:Series|s[ée]rie)\s+A\s+"
+    r"n(?:o\.?|°|º)\s*\d+(?:[-‑–]\s*[A-Z])?|"
+    r"(?:Reports(?:\s+of\s+Judgments\s+and\s+Decisions)?|ECHR|CEDH)\s+"
+    r"(?:19|20)\d{2}(?:[-‑–][IVX]+)?))?\)?)",
     re.I,
 )
 _SERIES_ONLY_RE = re.compile(
@@ -596,70 +624,89 @@ def discover_citation_mentions(
             found.append((block.char_start + start, mention))
             claimed_app_spans.append((start, end))
             ordinal += 1
-        occupied = [
-            (
-                _evidence_offset(value.discovery_evidence.get("block_start")),
-                _evidence_offset(value.discovery_evidence.get("block_end")),
-            )
-            for _, value in found
-            if value.source_block_id == block.block_id
-        ]
-        for match in _HISTORICAL_ENVELOPE_RE.finditer(block.text):
-            if any(match.start() < end and match.end() > start for start, end in occupied):
-                continue
-            raw = match.group("raw").strip(" ,")
-            printed_names = [
-                candidate for candidate in _DISCOVERY_NAME_RE.finditer(raw)
-                if _unicode_case_name_valid(candidate.group("name"))
+        for historical_pattern in (
+            _HISTORICAL_ENVELOPE_RE,
+            _HISTORICAL_FALLBACK_ENVELOPE_RE,
+        ):
+            occupied = [
+                (
+                    _evidence_offset(value.discovery_evidence.get("block_start")),
+                    _evidence_offset(value.discovery_evidence.get("block_end")),
+                )
+                for _, value in found
+                if value.source_block_id == block.block_id
             ]
-            if not printed_names:
-                continue
-            printed = printed_names[-1]
-            printed_name = printed.group("name")
-            leading = re.match(
-                r"(?:(?:See|Compare|Contrast|And|Voir)\s+)+(?:l['’])?(?:the\s+)?",
-                printed_name,
-                flags=re.I,
-            )
-            leading_chars = leading.end() if leading else 0
-            actual_start = match.start() + printed.start() + leading_chars
-            raw = block.text[actual_start:match.end()].strip(" ,")
-            parsed_case = case.model_copy(update={"scl": raw, "sclappnos": []})
-            parsed = parse_scl_mentions(parsed_case)
-            if not parsed or not parsed[0].cited_name:
-                continue
-            mention = parsed[0]
-            cited_name = printed_name[leading_chars:].strip()
-            if match.group("fr_name"):
-                cited_name = re.sub(r"\s+(?:du|de)$", "", cited_name, flags=re.I)
-            digest = hashlib.sha256(
-                f"{case.itemid}|{block.block_id}|{actual_start}|{match.end()}|"
-                f"{normalize_reference(raw).casefold()}".encode()
-            ).hexdigest()
-            mention = mention.model_copy(update={
-                "mention_id": digest,
-                "reference_hash": hashlib.sha256(
-                    normalize_reference(raw).casefold().encode()
-                ).hexdigest(),
-                "ordinal": ordinal,
-                "origin": "text_discovery",
-                "cited_name": cited_name,
-                "respondent": extract_respondent(cited_name),
-                "source_section": block.section,
-                "source_block_id": block.block_id,
-                "source_para_id": block.para_id,
-                "source_opinion_id": block.opinion_id,
-                "source_footnote_id": block.footnote_id,
-                "source_invoking_block_ids": list(block.referenced_by_block_ids),
-                "source_invoking_para_ids": list(block.referenced_by_para_ids),
-                "discovery_evidence": {
-                    "method": "historical_name_date",
-                    "block_start": actual_start,
-                    "block_end": match.end(),
-                },
-            })
-            found.append((block.char_start + actual_start, mention))
-            ordinal += 1
+            for match in historical_pattern.finditer(block.text):
+                if any(
+                    match.start() < end and match.end() > start
+                    for start, end in occupied
+                ):
+                    continue
+                raw = match.group("raw").strip(" ,")
+                printed_names = [
+                    candidate for candidate in _DISCOVERY_NAME_RE.finditer(raw)
+                    if _unicode_case_name_valid(candidate.group("name"))
+                ]
+                if not printed_names:
+                    continue
+                printed = printed_names[-1]
+                printed_name = printed.group("name")
+                actual_start = match.start() + printed.start()
+                en_name = match.group("en_name")
+                if en_name and "," in en_name:
+                    expanded_names = [
+                        candidate for candidate in _HISTORICAL_NAME_RE.finditer(en_name)
+                        if _unicode_case_name_valid(candidate.group("name"))
+                    ]
+                    if expanded_names:
+                        expanded = expanded_names[-1]
+                        printed_name = expanded.group("name")
+                        actual_start = match.start("en_name") + expanded.start()
+                leading = re.match(
+                    r"(?:(?:See|Compare|Contrast|And|Voir)\s+)+"
+                    r"(?:l['’])?(?:the\s+)?",
+                    printed_name,
+                    flags=re.I,
+                )
+                leading_chars = leading.end() if leading else 0
+                actual_start += leading_chars
+                raw = block.text[actual_start:match.end()].strip(" ,")
+                parsed_case = case.model_copy(update={"scl": raw, "sclappnos": []})
+                parsed = parse_scl_mentions(parsed_case)
+                if not parsed or not parsed[0].cited_name:
+                    continue
+                mention = parsed[0]
+                cited_name = printed_name[leading_chars:].strip()
+                if match.group("fr_name"):
+                    cited_name = re.sub(r"\s+(?:du|de)$", "", cited_name, flags=re.I)
+                digest = hashlib.sha256(
+                    f"{case.itemid}|{block.block_id}|{actual_start}|{match.end()}|"
+                    f"{normalize_reference(raw).casefold()}".encode()
+                ).hexdigest()
+                mention = mention.model_copy(update={
+                    "mention_id": digest,
+                    "reference_hash": hashlib.sha256(
+                        normalize_reference(raw).casefold().encode()
+                    ).hexdigest(),
+                    "ordinal": ordinal,
+                    "origin": "text_discovery",
+                    "cited_name": cited_name,
+                    "respondent": extract_respondent(cited_name),
+                    "source_section": block.section,
+                    "source_block_id": block.block_id,
+                    "source_para_id": block.para_id,
+                    "source_opinion_id": block.opinion_id,
+                    "source_footnote_id": block.footnote_id,
+                    "source_invoking_block_ids": list(block.referenced_by_block_ids),
+                    "source_invoking_para_ids": list(block.referenced_by_para_ids),
+                    "discovery_evidence": {
+                        "method": "historical_name_date",
+                        "block_start": actual_start,
+                        "block_end": match.end(),
+                    },
+                })
+                found.append((block.char_start + actual_start, mention))
+                ordinal += 1
         occupied = [
             (
                 _evidence_offset(value.discovery_evidence.get("block_start")),

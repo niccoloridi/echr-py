@@ -18,7 +18,7 @@
     "version": "0.2.0",
     "evaluation_identity": "content-addressed source files; the release tag identifies the packaging revision",
     "benchmarks_py_sha256": "acc7e5cc92976db109c76aa047d18834ee5036365b8d77889d7b6e945b4f6f0d",
-    "occurrences_py_sha256": "4a86f8b4af9037a06e92790e083d0b0a3bf589ff7fc8b508dc2e140d234ecbfb",
+    "occurrences_py_sha256": "f3587c3ff3d3cd209922a0688e65fa665771dca03ef61a3c399b95ba2bad4dcf",
     "comparison_example_sha256": "748363c660e1978cdba094eb406731ad5a7297121bdbda1e1aec21f187f6a23d"
   },
   "selection": {
@@ -49,45 +49,45 @@
     "report_sha256": "49049a4b9c5f49aae00c182579900f746106cd7f8c19c3cc9deb81cca3c4963c"
   },
   "inclusive_occurrences": {
-    "occurrences": 8163,
-    "scl_covered_occurrences": 5820,
-    "text_only_occurrences": 2343,
-    "majority_occurrences": 6944,
-    "opinion_occurrences": 1153,
+    "occurrences": 8139,
+    "scl_covered_occurrences": 5818,
+    "text_only_occurrences": 2321,
+    "majority_occurrences": 6926,
+    "opinion_occurrences": 1147,
     "appendix_occurrences": 66,
-    "pinpoint_occurrences": 5409,
+    "pinpoint_occurrences": 5407,
     "missing_source_html": 0,
-    "missing_target_html": 13,
+    "missing_target_html": 10,
     "offline_run_status": "partial_target_paragraph_hydration",
-    "occurrences_jsonl_sha256": "6febf2be772fad0524ba47946e72997f4568fc68b613bc1af5a9c27fe9683a2c",
-    "report_sha256": "798387d102d36a38e72648c8d6357bdf99d3d4b2883bbf5fd38e33770601d10f"
+    "occurrences_jsonl_sha256": "98db5ed34e6a1dbd0b318d960a96565915ca436fb3261ba62bf37e15a901bc28",
+    "report_sha256": "b8b78ac6ecb6ef5e020cea49d08de904bdfb139a81d7c46fc0683545ec8e7373"
   },
   "offset_projection": {
     "coordinate_system": "mumford_xmi_sofa",
-    "projected_occurrences": 5611,
-    "abstained_occurrences": 2552,
-    "projected_jsonl_sha256": "146e61240e52220da0b4c8bc2f7a835dd13e066295db4f5d3a4778602a8e4713",
-    "diagnostics_jsonl_sha256": "d1ee3c9d35b569f8cdb7436b75aec69a9aa86b3497b2d91c2b4fcfa0bd031c7e"
+    "projected_occurrences": 5614,
+    "abstained_occurrences": 2525,
+    "projected_jsonl_sha256": "3128ead395aeee17acb114355f2a23366f1201ccdc96dff0461b044a59142e80",
+    "diagnostics_jsonl_sha256": "f131f81e5c31bf78eb9011e8543b131c51f993285d6145237e7cc2360067c8eb"
   },
   "selected_annotation_recovery": {
     "denominator": 5425,
-    "aligned_one_to_one": 4445,
-    "rate": 0.8193548387096774,
-    "strict_source_span": 4437,
+    "aligned_one_to_one": 4444,
+    "rate": 0.8191705069124424,
+    "strict_source_span": 4436,
     "normalized_identity_context": 8,
-    "ambiguous_abstentions": 543,
-    "unmatched": 437
+    "ambiguous_abstentions": 539,
+    "unmatched": 442
   },
   "coverage_not_accuracy": {
-    "aligned_document_scope": 3264,
-    "aligned_denominator": 4445,
-    "printed_application_number_agreement": 1662,
+    "aligned_document_scope": 3281,
+    "aligned_denominator": 4444,
+    "printed_application_number_agreement": 1671,
     "printed_application_number_denominator": 2435,
-    "fully_mapped_local_pinpoints": 2612,
-    "local_pinpoint_denominator": 3791
+    "fully_mapped_local_pinpoints": 2625,
+    "local_pinpoint_denominator": 3790
   },
   "outputs": {
-    "comparison_json_sha256": "25fb78fb383d14dc7ce8f70b5dd1298c6fb27f964ce3b5bb84dddd3471e99b45"
+    "comparison_json_sha256": "f299feea3f84929f83f131d8cba740eeb94caf8b3014747a90b291e11fa2213b"
   },
   "qualifications": [
     "Mumford annotations are selective and do not supply exhaustive negatives, so this result does not estimate detector precision.",

@@ -27,6 +27,8 @@ semantic versioning during its alpha series.
   citation-owned pinpoints, and deterministic target-paragraph verification.
 - Conservative discovery diagnostics for ambiguous, unresolved, external,
   self-referential, and rejected candidates without forced graph promotion.
+- Historical text discovery covers parenthesised judgment dates, anonymised
+  single-letter applicants, and comma-separated multi-party case names.
 - English/French official-authority import support, with the current bilingual
   v2 authority packaged by default, plus a checksummed historical catalogue,
   reviewed overrides, and reproducible benchmark import/compare commands.

@@ -116,11 +116,11 @@ explicit abstentions. This corrects the coordinate-system mismatch but does
 not turn Mumford's selected annotations into exhaustive detector negatives or
 canonical target-document and target-paragraph gold data.
 
-On 20 August 2026, the final deterministic inclusive pipeline aligned 4,445 of
+On 20 August 2026, the final deterministic inclusive pipeline aligned 4,444 of
 the 5,425 selected ECHR-labelled annotations (81.9%) one-to-one after unique
-XMI-Sofa projection: 4,437 strict-span and eight identity/context matches. It
-abstained on 543 ambiguous annotations and left 437 unmatched. Of 8,163 local
-occurrences, 5,611 projected into the reference coordinate system and 2,552
+XMI-Sofa projection: 4,436 strict-span and eight identity/context matches. It
+abstained on 539 ambiguous annotations and left 442 unmatched. Of 8,139 local
+occurrences, 5,614 projected into the reference coordinate system and 2,525
 were explicit scope or mapping abstentions. Names shared by distinct
 judgments and decisions remain ambiguous unless local evidence identifies the
 procedural document; they are not coalesced merely to increase recovery. This

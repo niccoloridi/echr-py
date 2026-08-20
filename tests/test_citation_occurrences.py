@@ -635,6 +635,54 @@ def test_discovers_historical_name_date_without_application_number(text, name):
 
 
 @pytest.mark.parametrize(
+    ("text", "name"),
+    [
+        (
+            "THE LAW\n\n42. Assenov and Others v. Bulgaria (judgment of "
+            "28 October 1998, Reports of Judgments and Decisions 1998-VIII).",
+            "Assenov and Others v. Bulgaria",
+        ),
+        (
+            "THE LAW\n\n79. See the A. v. the United Kingdom judgment of "
+            "23 September 1998, Reports 1998-VI, p. 2702, § 37.",
+            "A. v. the United Kingdom",
+        ),
+        (
+            "THE LAW\n\n76. See the De Jong, Baljet and Van den Brink v. the "
+            "Netherlands judgment of 22 May 1984, Series A no. 77, § 65.",
+            "De Jong, Baljet and Van den Brink v. the Netherlands",
+        ),
+    ],
+)
+def test_discovers_historical_parentheses_initials_and_multi_party_names(text, name):
+    result = discover_citation_mentions(Case(itemid="001-source", text=text))
+
+    assert len(result.mentions) == 1
+    assert result.mentions[0].cited_name == name
+    assert result.mentions[0].discovery_evidence["method"] == "historical_name_date"
+
+
+def test_historical_text_discovery_seeds_later_short_forms_without_scl():
+    case = Case(
+        itemid="001-source",
+        text=(
+            "THE LAW\n\n"
+            "42. Assenov and Others v. Bulgaria (judgment of 28 October 1998, "
+            "Reports of Judgments and Decisions 1998-VIII).\n\n"
+            "50. The Court followed its Assenov and Others v. Bulgaria judgment.\n\n"
+            "58. See the Assenov and Others judgment cited above, §§ 144-50."
+        ),
+    )
+
+    result = extract_citation_occurrences(case, scope="inclusive")
+    assenov = [value for value in result.occurrences if "Assenov" in value.raw_text]
+
+    assert len(assenov) == 3
+    assert [value.source_para_id for value in assenov] == ["42", "50", "58"]
+    assert assenov[-1].target_paragraphs == ["144-50"]
+
+
+@pytest.mark.parametrize(
     ("name", "appno"),
     [
         ("Magee v. the United Kingdom", "28135/95"),
