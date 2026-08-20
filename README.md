@@ -151,6 +151,12 @@ different propositions; and a footnote may cite an authority that never appears
 in the judgment's SCL field. `echr-py` preserves those distinctions instead of
 collapsing them into one count.
 
+Occurrence v3 separates a target-independent printed `locus_id` from
+authority-specific `occurrence_id` rows. Compound references share a locus and
+`citation_group_id`; each authority row retains its ordinal and independently
+owned pinpoint. Footnote occurrences keep the physical footnote address and
+structured addresses for every invoking paragraph or opinion.
+
 <table>
   <tr>
     <td width="50%"><img src="https://raw.githubusercontent.com/niccoloridi/echr-py/main/docs/images/ocalan-citation-ledger.png" alt="Bilingual Öcalan citation ledger"></td>
@@ -172,11 +178,12 @@ catalogue.
 It does not zip the unordered `sclappnos` pool to SCL fragments or promote an
 ambiguous application to an arbitrary judgment.
 
-In the audited sample of the 100 most recent English HUDOC documents with SCL,
-it resolved **2,479 of 2,492 mentions (99.5%)** automatically to exact
-procedural documents. The remaining thirteen stayed reviewable rather than
-becoming false edges. The sample, denominators, failure classes, and
-reproduction details are in the
+In a fixed July 2026 audit using authority parser 6 and the 10 July English
+authority, the then-current resolver mapped **2,479 of 2,492 SCL mentions
+(99.5%)** automatically. This is dated automatic coverage, not current-code
+completeness or accuracy. Thirteen references remained outside the graph
+pending review or documented exclusion. The sample, denominators, failure
+classes, method, and qualifications are in the
 [citation-resolution audit](https://github.com/niccoloridi/echr-py/blob/main/docs/citation-resolution.md#release-validation-audit).
 
 ### Discovery beyond SCL
@@ -197,7 +204,8 @@ graph; only verified target paragraphs enter the paragraph graph.
 paragraph strings. It preserves:
 
 - procedure, facts, complaints, law, operative text, and appendices;
-- stable block and paragraph addresses, including repeated printed numbers;
+- stable physical-block and legal-paragraph addresses, including HTML
+  continuations and repeated printed numbers;
 - inline bold and italic runs with offsets;
 - linked footnote anchors and multi-block bodies;
 - separate-opinion boundaries, types, authors, joiners, and source spans;
@@ -276,9 +284,8 @@ echr-py study run citation-use.yaml --out runs/citation-use/
 
 Facts can be required to carry exact source quotations. Offsets are checked
 against the addressed source text; ambiguous repeated quotations and invalid
-evidence are rejected. Runs are resumable, model attempts remain
-distinguishable, and labels never feed back into deterministic citation
-artifacts.
+evidence are rejected. Runs are resumable and model attempts remain
+distinguishable.
 
 Supported structured-generation surfaces include Gemini, official OpenAI,
 OpenAI-compatible endpoints, and Anthropic. Native batch execution is explicit
@@ -315,7 +322,7 @@ panels, and explicit top-N pruning.
     <td width="50%"><img src="https://raw.githubusercontent.com/niccoloridi/echr-py/main/docs/images/most-cited-cases.png" alt="Most-cited authorities in the Article 3 Italy demonstration"></td>
   </tr>
   <tr>
-    <td>The complete one-hop network generated from ten source documents.</td>
+    <td>The complete reviewed SCL one-hop network for ten source documents.</td>
     <td>The same frozen artifacts summarized as the most-cited target authorities.</td>
   </tr>
 </table>

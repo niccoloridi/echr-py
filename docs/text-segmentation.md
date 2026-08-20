@@ -17,6 +17,8 @@ With `rich_sections=True`, the parser first builds a versioned
 - literal text and, for HTML, source tag, CSS classes, and relevant styles;
 - an exact paragraph number when the block starts with `N. `;
 - a stable local paragraph ID;
+- an optional legal-paragraph ID and number when HUDOC splits one printed
+  paragraph across adjacent physical blocks;
 - heading level, role, and the evidence supporting that classification;
 - the canonical section assigned to the block, if any.
 
@@ -25,6 +27,15 @@ deterministic suffixes such as `12-2`. Unnumbered material before the first
 numbered paragraph uses `pre-001`, while later unnumbered material uses
 `u-001`. These are local identifiers for one source record and parser version,
 not substitutes for an ECLI or HUDOC item ID.
+
+`block_id` and `para_id` always retain the physical source blocks. HUDOC
+occasionally represents one printed numbered paragraph with a numbered `<p>`
+followed by one or more unnumbered `<p>` elements. Those continuation blocks
+keep their own `u-*` IDs and offsets, while `legal_para_id` and
+`legal_para_num` point back to the owning numbered paragraph. Headings and
+other non-paragraph blocks end that relationship. This permits citation and
+pinpoint layers to use the printed legal paragraph without losing exact HTML
+provenance.
 
 HUDOC's Word conversion stores footnote references inline (for example
 `#_ftn1`) and bodies at the physical end of the document. The spine preserves
@@ -57,7 +68,13 @@ for span in sections.spans:
     print(span.section, span.start_block, span.end_block, span.paragraph_ids)
 
 for block in sections.spine.blocks:
-    print(block.block_id, block.para_id, block.type, block.section)
+    print(
+        block.block_id,
+        block.para_id,
+        block.legal_para_id,
+        block.type,
+        block.section,
+    )
 ```
 
 `SectionSpan.end_block` is exclusive. This makes

@@ -581,6 +581,39 @@ def test_benchmark_decodes_nested_parquet_style_json_columns():
     assert report["target_paragraph_resolution"]["complete_mapping_rate"] == 1.0
 
 
+def test_published_mumford_audit_matches_code_and_documented_counts():
+    root = Path(__file__).resolve().parents[1]
+    audit_path = root / "docs" / "benchmarks" / "mumford-full-inclusive-audit.json"
+    if not audit_path.is_file():
+        pytest.skip("published benchmark documentation is not in this source archive")
+    audit = json.loads(audit_path.read_text(encoding="utf-8"))
+    software = audit["software"]
+    for field, relative in {
+        "benchmarks_py_sha256": "hudoc_py/citations/benchmarks.py",
+        "occurrences_py_sha256": "hudoc_py/citations/occurrences.py",
+        "resolver_py_sha256": "hudoc_py/citations/resolver.py",
+        "reporter_py_sha256": "hudoc_py/citations/reporter.py",
+        "paragraphs_py_sha256": "hudoc_py/citations/paragraphs.py",
+        "segmentation_py_sha256": "hudoc_py/text/segmentation.py",
+        "comparison_example_sha256": "examples/benchmark_mumford_inclusive.py",
+    }.items():
+        assert software[field] == hashlib.sha256((root / relative).read_bytes()).hexdigest()
+
+    recovery = audit["selected_annotation_recovery"]
+    claim = (root / "docs" / "claim-audit.md").read_text(encoding="utf-8")
+    methodology = (root / "docs" / "mumford-methodology-audit.md").read_text(
+        encoding="utf-8"
+    )
+    documented = (
+        f"{recovery['aligned_one_to_one']:,}/{recovery['denominator']:,}"
+    )
+    assert documented in claim
+    assert (
+        f"{recovery['aligned_one_to_one']:,}\nof the "
+        f"{recovery['denominator']:,}"
+    ) in methodology
+
+
 def test_cli_projects_full_mumford_occurrences_before_comparison(tmp_path):
     sofa = "42.\u00a0 See Alpha v. State, no. 12/34."
     raw = "Alpha v. State, no. 12/34"

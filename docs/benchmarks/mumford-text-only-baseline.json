@@ -1,7 +1,8 @@
 {
-  "schema_version": "echr-py-published-benchmark/v2",
+  "schema_version": "echr-py-published-benchmark/v3",
   "run_date": "2026-08-20",
   "echr_py_version": "0.2.0",
+  "echr_py_commit": "818844a0f081d3560fe9f7e93732dc027314310b",
   "reference": {
     "name": "Mumford curated human annotations",
     "repository": "https://github.com/jamumford/ECHR-citation-context-v1",
@@ -16,11 +17,11 @@
     "excluded": [
       "HUDOC SCL-derived local gazetteers",
       "live or cached HUDOC target resolution",
-      "optional LLM citation-use labels"
+      "model-generated citation-use labels"
     ]
   },
   "results": {
-    "local_preliminary_occurrences": 3060,
+    "local_preliminary_occurrences": 3081,
     "historical_identity_context_proxy": {
       "matched_annotations_with_occurrence_reuse": 4286,
       "ambiguous_annotations": 771,
@@ -30,23 +31,26 @@
       "strict_source_span_metric": false
     },
     "one_to_one_occurrence_alignment": {
-      "aligned": 2684,
-      "ambiguous_abstentions": 2004,
-      "unmatched": 793,
-      "total_recall": 0.4896916621054552,
-      "strict_source_span": 2626,
-      "strict_source_span_recall": 0.47910965152344465,
-      "normalized_identity_context_only": 58,
-      "normalized_identity_context_only_recall": 0.010582010582010581
+      "aligned": 2576,
+      "ambiguous_abstentions": 1934,
+      "unmatched": 971,
+      "total_recall": 0.46998722860791825,
+      "strict_source_span": 2525,
+      "strict_source_span_recall": 0.46068235723408135,
+      "normalized_identity_context_only": 51,
+      "normalized_identity_context_only_recall": 0.009304871373836891
     },
-    "one_to_one_rerun_required": false,
-    "aligned_occurrences_with_printed_pinpoint_labels": 2253
+    "aligned_occurrences_with_printed_pinpoint_labels": 2224
+  },
+  "outputs": {
+    "occurrences_text_only_jsonl_sha256": "ca9944159a868057683d231e7b7cf20db426aa4cbff73e9336fe9c4cee82f3b2",
+    "comparison_json_sha256": "58a542ca46808e93ac39cb24d2793f16c03e8702cc972f63951481de142c1f19"
   },
   "interpretation": [
     "This is a deliberately incomplete text-only baseline, not the full inclusive echr-py pipeline.",
     "The historical 78.2% figure is a normalized identity/context annotation-alignment proxy that allowed one local occurrence to support more than one curated annotation; it is not strict one-to-one occurrence recall.",
-    "The identity-gated v2 run aligns 49.0% of selective annotations one-to-one; 47.9 percentage points are strict source-span matches and 1.1 points are identity/context-only matches.",
-    "A further 36.6% are retained as ambiguous abstentions rather than being reused or forced onto one printed occurrence.",
+    "The final identity-gated run aligns 47.0% of selective annotations one-to-one; 46.1 percentage points are strict source-span matches and 0.9 points are identity/context-only matches.",
+    "A further 35.3% are retained as ambiguous abstentions rather than being reused or forced onto one printed occurrence.",
     "The annotations are not exhaustive negatives, so this run does not estimate precision.",
     "No target documents were resolved in this text-only pass; printed pinpoint parsing is not target-paragraph mapping.",
     "Mumford treatment labels were not predicted, so no treatment F1 or agreement score is reported."

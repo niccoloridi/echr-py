@@ -418,6 +418,26 @@ def _make_blocks(
             unnumbered_count += 1
             block.para_id = f"u-{unnumbered_count:03d}"
 
+    # HUDOC sometimes serialises one numbered legal paragraph as several
+    # adjacent HTML ``<p>`` elements.  Keep each physical block and its local
+    # ``para_id`` intact, while giving consecutive unnumbered paragraph blocks
+    # the legal address of the preceding numbered paragraph.  A heading, a
+    # non-paragraph block, or the next numbered paragraph is a hard boundary.
+    legal_para_id: str | None = None
+    legal_para_num: int | None = None
+    for block in blocks:
+        if block.type == "paragraph" and block.para_num is not None:
+            legal_para_id = block.para_id
+            legal_para_num = block.para_num
+            block.legal_para_id = legal_para_id
+            block.legal_para_num = legal_para_num
+        elif block.type == "paragraph" and legal_para_id is not None:
+            block.legal_para_id = legal_para_id
+            block.legal_para_num = legal_para_num
+        else:
+            legal_para_id = None
+            legal_para_num = None
+
     return DocumentSpine(
         document_id=document_id,
         source_format=source_format,
@@ -508,7 +528,9 @@ def build_spine_from_html(html: str, *, document_id: str | None = None) -> Docum
             block for block in spine.blocks if block.block_id in set(invoking_ids)
         ]
         invoking_para_ids = list(dict.fromkeys(
-            block.para_id for block in invoking_blocks if block.para_id
+            para_id
+            for block in invoking_blocks
+            if (para_id := block.legal_para_id or block.para_id) is not None
         ))
         for block in bodies:
             block.referenced_by_block_ids = invoking_ids

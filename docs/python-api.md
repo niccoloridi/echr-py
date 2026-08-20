@@ -492,6 +492,6 @@ Records are Pydantic v2 models. Common models include:
 | `Sections` | segmented judgment text |
 | `BenchComposition` | deciding bench parsed from composition front matter |
 | `Citation` | one parsed case-law citation |
-| `CitationOccurrence` | one paragraph-addressed textual occurrence of an SCL authority |
+| `CitationOccurrence` | one authority-specific, source-addressed citation occurrence; compound rows may share a printed locus |
 | `ExecutionCase` | one HUDOC-EXEC case |
 | `ExecutionDocument` | one action plan, report, CM decision, communication, or resolution |

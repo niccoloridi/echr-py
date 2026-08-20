@@ -90,10 +90,11 @@ The historical [text-only baseline](benchmarks/mumford-text-only-baseline.json)
 associated 4,286 of 5,481 selected annotations (78.2%) with deterministic
 strong occurrences using normalized identity/paragraph context. It allowed
 occurrence reuse and was therefore neither strict source-span nor one-to-one
-recovery. The identity-gated v2 run aligns 2,684/5,481 annotations one-to-one
-(49.0%): 2,626 strict source-span matches, 58 identity/context-only matches,
-2,004 ambiguous abstentions, and 793 unmatched annotations. It deliberately excludes
-SCL-derived local gazetteers, HUDOC target lookup, and optional model labels.
+recovery. The final identity-gated run aligns 2,576/5,481 annotations one-to-one
+(47.0%): 2,525 strict source-span matches, 51 identity/context-only matches,
+1,934 ambiguous abstentions, and 971 unmatched annotations. It deliberately
+excludes SCL-derived local gazetteers, HUDOC target lookup, and model-generated
+labels.
 Because the reference annotations are selective rather than exhaustive
 negatives, none of these measures is precision. Printed pinpoints are also not
 the same as resolved target paragraphs.
@@ -116,18 +117,20 @@ explicit abstentions. This corrects the coordinate-system mismatch but does
 not turn Mumford's selected annotations into exhaustive detector negatives or
 canonical target-document and target-paragraph gold data.
 
-On 20 August 2026, the final deterministic inclusive pipeline aligned 4,444 of
-the 5,425 selected ECHR-labelled annotations (81.9%) one-to-one after unique
-XMI-Sofa projection: 4,436 strict-span and eight identity/context matches. It
-abstained on 539 ambiguous annotations and left 442 unmatched. Of 8,139 local
-occurrences, 5,614 projected into the reference coordinate system and 2,525
-were explicit scope or mapping abstentions. Names shared by distinct
-judgments and decisions remain ambiguous unless local evidence identifies the
-procedural document; they are not coalesced merely to increase recovery. This
-is selected-annotation recovery, not detector precision. The reference
-supplies neither canonical target documents nor structured target paragraphs,
-so the local resolution and paragraph-mapping values are coverage measures,
-not accuracy measures.
+On 20 August 2026, the final v3 deterministic inclusive pipeline aligned 4,535
+of the 5,425 selected ECHR-labelled annotations (83.6%) one-to-one after unique
+XMI-Sofa projection: 4,526 strict-span and nine identity/context matches. It
+abstained on 447 ambiguous annotations and left 443 unmatched. Of 8,507 local
+occurrences, 5,787 projected into the reference coordinate system and 2,720
+were explicit scope or mapping abstentions. Bibliographic identity is required
+in addition to span overlap: a broad reference span containing another case
+cannot substitute for the annotation's own cited-case feature. Names shared by
+distinct judgments and decisions remain ambiguous unless local evidence
+identifies the procedural document; they are not coalesced merely to increase
+recovery. This is selected-annotation recovery, not detector precision. The
+reference supplies neither canonical target documents nor structured target
+paragraphs, so local resolution and paragraph-mapping values are coverage
+measures, not accuracy measures.
 The compact [full-inclusive audit](benchmarks/mumford-full-inclusive-audit.json)
 records the inputs, hashes, denominators, and qualifications.
 

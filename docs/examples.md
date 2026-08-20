@@ -134,9 +134,10 @@ python examples/benchmark_mumford_discovery.py \
   --out benchmarks/mumford/text-only/
 ```
 
-The identity-gated v2 run aligned 2,684 of 5,481 selective annotations (49.0%)
-one-to-one: 2,626 were strict source-span matches and 58 used normalized
-identity/paragraph context. It abstained on 2,004 ambiguous annotations. An
+The final identity-gated run aligned 2,576 of 5,481 selective annotations
+(47.0%) one-to-one: 2,525 were strict source-span matches and 51 used
+normalized identity/paragraph context. It abstained on 1,934 ambiguous
+annotations. An
 older 78.2% proxy allowed one occurrence to support multiple annotations and
 is retained only in the result artifact for methodological provenance.
 It excludes SCL gazetteers, HUDOC target lookup, and optional labels; because
@@ -152,7 +153,7 @@ coordinates into the imported XMI text before alignment:
 ```bash
 python examples/benchmark_mumford_inclusive.py \
   --imported benchmarks/mumford/imported/ \
-  --occurrences corpus/citations/occurrences.parquet \
+  --occurrences corpus/citations/occurrences.jsonl \
   --out benchmarks/mumford/inclusive/
 ```
 

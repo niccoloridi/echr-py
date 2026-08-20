@@ -54,9 +54,10 @@ systems and project-specific converters.
 
 | Field group | Fields |
 | --- | --- |
-| Identity | `schema_version`, `occurrence_id`, `mention_id` |
+| Identity | `schema_version`, target-independent `locus_id`, authority-specific `occurrence_id`, `mention_id` |
+| Compound citation | `citation_group_id`, `group_ordinal`, `group_size` |
 | Source document | `source_itemid`, `source_language`, `source_section`, `source_component` |
-| Source address | `source_block_id`, `source_para_id`, `source_para_num`, `source_footnote_id`, invoking block/paragraph IDs |
+| Source address | `source_block_id`, `source_para_id`, `source_para_num`, `source_footnote_id`, invoking block/paragraph IDs, structured `source_invocations` |
 | Exact span | `block_start`, `block_end`, `document_start`, `document_end`, `raw_text`, `source_context` |
 | Typography | `italic`, `bold` |
 | Audit | `finder`, `evidence` |
@@ -67,23 +68,41 @@ systems and project-specific converters.
 
 Offsets are half-open. Block offsets address `DocumentBlock.text`; document
 offsets address the plain-text spine reconstructed with a blank line between
-blocks. `source_para_id` is the stable local paragraph address and may be
-suffixed when the printed number repeats. `target_paragraphs` preserves
-printed labels and bounded ranges such as `10-12`; it is not silently treated
-as a source-paragraph address.
+blocks. `source_block_id` always identifies the physical source block.
+`source_para_id` identifies its owning legal paragraph when HUDOC has split
+one printed paragraph across adjacent HTML blocks; continuation blocks can
+therefore share that address while retaining distinct block IDs and offsets.
+Repeated printed paragraph numbers still receive stable suffixed legal IDs.
+`target_paragraphs` preserves printed labels and bounded ranges such as
+`10-12`; it is not silently treated as a source-paragraph address.
+
+`citation-occurrence/v3` counts printed loci and authority uses separately.
+`locus_id` identifies one physical citation envelope independently of target
+resolution. A compound citation can therefore produce several occurrence rows
+that share `locus_id` and `citation_group_id`, while each row identifies its
+own procedural document and owns its own pinpoint. Count unique `locus_id`
+values for printed loci; count occurrence rows for authority-specific uses.
+Readers continue to accept v1 and v2 rows, whose `locus_id` may be absent.
 
 A citation printed inside a footnote keeps the footnote body as its exact
 source address and also records `source_invoking_block_ids` and
-`source_invoking_para_ids`. It therefore cannot collide with a same-numbered
-majority or opinion paragraph, while downstream studies can join the footnote
-text back to the paragraph(s) that invoked it. Its majority/opinion component
-comes from that invoking context when unambiguous.
+`source_invoking_para_ids`. The structured `source_invocations` list also
+retains each invoking paragraph's component, opinion identity, ordinal, type,
+authors, and joiners. It therefore cannot collide with a same-numbered majority
+or opinion paragraph, while downstream studies can join the footnote text back
+to every paragraph that invoked it.
 
 `paragraph-edges-inclusive.parquet`/JSONL is the additive source-paragraph to
 target-paragraph graph. It contains one row per mapped target paragraph, with
 the printed pinpoint, source component/opinion identity, exact target block
 and paragraph IDs, source footnote/invoking addresses, target section/text,
 mapping status, language, and target-HTML checksum.
+`target_block_id` is the first physical block for compatibility;
+`target_block_ids` lists every physical block belonging to the mapped legal
+paragraph, and `target_text` joins their text in source order.
+One physical footnote occurrence fans out into one edge per structured
+invocation and mapped target paragraph. `citation_source_block_id` continues
+to identify the physical footnote body.
 Application-level targets never create paragraph edges. Both a source
 majority and any source opinion may independently cite the same target
 paragraph. Mapping statuses make
@@ -151,22 +170,14 @@ pinpoints. The suite verifies exact identities and conservative abstention; it
 does not turn that deliberately selected regression set into a corpus-level
 accuracy estimate.
 
-HUDOC Researcher/ECHR Dashboard v1.0.0 reports a much larger deployed English
-snapshot (19,822 judgments and about 1.31 million paragraphs). Its archived
-`p29` citation table scans citing paragraphs for raw application-number forms
-and maps them to a case identifier. The archive also contains ECtHR-PCR and
-SCL/free-text name-resolution paths, so the project should not be described as
-having used only appnos throughout its history; it also retains the citing
-paragraph. The displayed application/case graph does not document exact
-procedural-document or cited-target-paragraph resolution. Its separate
-Case-Law-Guide retrieval evaluation (409 queries) reports document-hit@10 88%
-and paragraph-hit@10 73%; those search metrics are not comparable to the
-citation audit above. This package is stricter and broader in the citation model:
-multilingual public acquisition, name-and-namespace gates, exact
-procedural-document resolution, separate majority/opinion provenance, and
-source-paragraph-to-*cited-paragraph* edges. A superiority claim still requires
-the planned manually labelled, corpus-scale benchmark; architectural breadth
-is not a substitute for published precision/recall.
+Dated external-project descriptions are maintained in the claim audit. Their
+retrieval metrics are not comparable to citation extraction or resolution.
+`echr-py` documents a different citation contract: multilingual public
+acquisition, name-and-namespace gates, exact procedural-document resolution,
+separate majority/opinion/footnote provenance, independently owned pinpoints,
+and source-paragraph-to-*cited-paragraph* edges. A superiority claim still
+requires an exhaustive identical-scope benchmark; architectural breadth is not
+a substitute for measured precision and recall.
 
 The pinned Mumford comparison is useful for testing selected citation-use spans,
 but it is not a head-to-head detector benchmark. Its annotations deliberately

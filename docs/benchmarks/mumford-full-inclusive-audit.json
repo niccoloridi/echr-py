@@ -1,5 +1,5 @@
 {
-  "schema_version": "echr-py-benchmark-audit/v1",
+  "schema_version": "echr-py-benchmark-audit/v2",
   "created_at": "2026-08-20",
   "benchmark": {
     "name": "Mumford ECHR citation context v1",
@@ -16,16 +16,22 @@
   "software": {
     "name": "echr-py",
     "version": "0.2.0",
-    "evaluation_identity": "content-addressed source files; the release tag identifies the packaging revision",
-    "benchmarks_py_sha256": "acc7e5cc92976db109c76aa047d18834ee5036365b8d77889d7b6e945b4f6f0d",
-    "occurrences_py_sha256": "f3587c3ff3d3cd209922a0688e65fa665771dca03ef61a3c399b95ba2bad4dcf",
+    "git_commit": "818844a0f081d3560fe9f7e93732dc027314310b",
+    "worktree_dirty_at_run": false,
+    "benchmarks_py_sha256": "6a19cb77b64c6cc9336315a0626a7e142ba2d108c271cef4316e3fcab2d131a9",
+    "occurrences_py_sha256": "e312080a537c4dc9c47735827d88d6b0423aec43aa7cc2ff2671fa005f43dcc3",
+    "resolver_py_sha256": "baa894aa2461bdaab120f7427657cce4e8646a729cbd80f920ab59c462ce9d86",
+    "reporter_py_sha256": "7432471a81c1edef8cdc362834d07ca01017e48760890f9e2f93dfa406808f45",
+    "paragraphs_py_sha256": "00d94267982c33ffd848316692a5fa3b946d072d9f703064b2886f14f904b809",
+    "segmentation_py_sha256": "f080d3ccda8290278e6406dbd179578c47bb77eaaef73d8f80d5493b37ab1e96",
     "comparison_example_sha256": "748363c660e1978cdba094eb406731ad5a7297121bdbda1e1aec21f187f6a23d"
   },
   "selection": {
     "selection_schema": "hudoc-selection/v1",
     "selection_count": 115,
-    "selection_sha256": "34ff8fa4a4a4c6620ba00a8ff7ca5aab9d842cd922b5ea7456f7ea4fc86cd280",
+    "sorted_itemids_newline_sha256": "298d29682f3aa75d492859e9a956bc0cb56a413c73baa308622b0c871e730b3e",
     "selection_file_sha256": "f71e5c9fc666bc495e7a3ea55ea501869551a5c64f4e88ef4cf805ceeb4181ad",
+    "cases_parquet_sha256": "e1a41b7e9a7bdf53bdd025b124d6168e42d7d4b4f928506f7898dd7cc5683435",
     "input_source_documents": 112,
     "projected_source_documents": 110
   },
@@ -41,58 +47,68 @@
   },
   "scl_resolution": {
     "mentions": 2193,
-    "resolved": 2167,
-    "unresolved_or_ambiguous": 26,
-    "resolved_rate": 0.9881440948472412,
-    "target_documents": 1524,
+    "resolved": 1747,
+    "unresolved_or_ambiguous": 446,
+    "resolved_rate": 0.7966256269949841,
+    "target_documents": 1134,
     "lookup_errors": 0,
-    "report_sha256": "49049a4b9c5f49aae00c182579900f746106cd7f8c19c3cc9deb81cca3c4963c"
+    "report_sha256": "2df928299a905a5b838367ddb56cef09a5595cebd329ffa2bda180b6ecf61cef"
   },
   "inclusive_occurrences": {
-    "occurrences": 8139,
-    "scl_covered_occurrences": 5818,
-    "text_only_occurrences": 2321,
-    "majority_occurrences": 6926,
-    "opinion_occurrences": 1147,
-    "appendix_occurrences": 66,
-    "pinpoint_occurrences": 5407,
+    "schema_version": "citation-occurrence/v3",
+    "occurrences": 8507,
+    "scl_covered_occurrences": 5888,
+    "text_only_occurrences": 2619,
+    "majority_occurrences": 7227,
+    "opinion_occurrences": 1203,
+    "appendix_occurrences": 77,
+    "pinpoint_occurrences": 5636,
     "missing_source_html": 0,
-    "missing_target_html": 10,
+    "missing_target_html": 28,
     "offline_run_status": "partial_target_paragraph_hydration",
-    "occurrences_jsonl_sha256": "98db5ed34e6a1dbd0b318d960a96565915ca436fb3261ba62bf37e15a901bc28",
-    "report_sha256": "b8b78ac6ecb6ef5e020cea49d08de904bdfb139a81d7c46fc0683545ec8e7373"
+    "occurrences_jsonl_sha256": "866607f1362cda9f6942ca590e3b8f42a96754f964c13a1fc59ff048a80389f9",
+    "report_sha256": "1d42bdae5f3299e07e385110a37304d70bbc07156259b7b04520c0945f5359c5",
+    "paragraph_edges_jsonl_sha256": "e745adb2426a596eece0c1619e97bbf4dc713a15fbe485bd9c159ce66bc0c354"
   },
   "offset_projection": {
     "coordinate_system": "mumford_xmi_sofa",
-    "projected_occurrences": 5614,
-    "abstained_occurrences": 2525,
-    "projected_jsonl_sha256": "3128ead395aeee17acb114355f2a23366f1201ccdc96dff0461b044a59142e80",
-    "diagnostics_jsonl_sha256": "f131f81e5c31bf78eb9011e8543b131c51f993285d6145237e7cc2360067c8eb"
+    "projected_occurrences": 5787,
+    "abstained_occurrences": 2720,
+    "projected_jsonl_sha256": "47190b074925ad03a91a0cd70422460abd7bfbf973f612334af8cb327551a0f7",
+    "diagnostics_jsonl_sha256": "777a19342fd100fda6f4ffe4a8390f4c30e23220e0aa3a0811aca2c016780eb0"
   },
   "selected_annotation_recovery": {
     "denominator": 5425,
-    "aligned_one_to_one": 4444,
-    "rate": 0.8191705069124424,
-    "strict_source_span": 4436,
-    "normalized_identity_context": 8,
-    "ambiguous_abstentions": 539,
-    "unmatched": 442
+    "aligned_one_to_one": 4535,
+    "rate": 0.8359447004608295,
+    "strict_source_span": 4526,
+    "normalized_identity_context": 9,
+    "ambiguous_abstentions": 447,
+    "unmatched": 443
   },
   "coverage_not_accuracy": {
-    "aligned_document_scope": 3281,
-    "aligned_denominator": 4444,
-    "printed_application_number_agreement": 1671,
-    "printed_application_number_denominator": 2435,
-    "fully_mapped_local_pinpoints": 2625,
-    "local_pinpoint_denominator": 3790
+    "aligned_document_scope": 2667,
+    "aligned_denominator": 4535,
+    "printed_application_number_identified": 1302,
+    "printed_application_number_agreement": 1302,
+    "printed_application_number_conflicts": 0,
+    "printed_application_number_denominator": 2406,
+    "fully_mapped_local_pinpoints": 2116,
+    "local_pinpoint_denominator": 3872
   },
   "outputs": {
-    "comparison_json_sha256": "f299feea3f84929f83f131d8cba740eeb94caf8b3014747a90b291e11fa2213b"
+    "comparison_json_sha256": "2f6e68cb71d5e4424af86ec634eb678317aa2c8b64d2ea5364c04b7db6299eca"
   },
+  "commands": [
+    "echr-py citations resolve --in CASES --catalog CATALOG --out RESOLVED --offline",
+    "echr-py citations locate --in CASES --resolution-dir RESOLVED --out OCCURRENCES --html-dir SOURCE_HTML --target-html-dir TARGET_HTML --scope inclusive --offline --resolve-paragraphs",
+    "python examples/benchmark_mumford_inclusive.py --imported IMPORTED --occurrences OCCURRENCES/occurrences.jsonl --out COMPARISON"
+  ],
   "qualifications": [
     "Mumford annotations are selective and do not supply exhaustive negatives, so this result does not estimate detector precision.",
     "The reference supplies no canonical target item IDs or structured target-paragraph links; document and paragraph figures are coverage, not accuracy.",
-    "Names shared by distinct judgments and decisions remain ambiguous unless local evidence identifies the procedural document; they are not coalesced to improve recovery.",
+    "Application-number agreement is conditional on an automatic identification and does not establish exact procedural-document accuracy.",
+    "The comparator requires the annotation's bibliographic identity in addition to span overlap; another authority inside a broad annotation span is not a match.",
     "Opinions, footnotes, and sections outside the supplied THE LAW text are explicit projection abstentions rather than false positives.",
     "No third-party source archive, raw annotation row, HUDOC source document, lookup cache, or raw benchmark output is bundled with echr-py."
   ]

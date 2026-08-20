@@ -49,6 +49,53 @@ def test_maps_each_occurrence_pinpoint_independently_to_target_paragraphs():
     assert [edge["target_para_num"] for edge in mapped.paragraph_edges] == [42]
 
 
+def test_target_pinpoint_groups_physical_continuations_as_one_legal_paragraph():
+    target = build_spine_from_html(
+        """
+        <p>79. The target paragraph starts here.</p>
+        <p>Its decisive reasoning continues in a second physical block.</p>
+        <p>80. The next legal paragraph.</p>
+        """,
+        document_id="001-target",
+    )
+
+    mapped = resolve_occurrence_paragraphs(
+        CitationOccurrenceResult(occurrences=[_occurrence("continuation", ["79"])]),
+        {"001-target": target},
+    )
+
+    resolution = mapped.occurrences[0].target_paragraph_resolutions[0]
+    assert resolution.status == "exact"
+    assert resolution.target_para_ids == ["79"]
+    assert resolution.target_para_nums == [79]
+    assert resolution.target_block_ids == ["b000001"]
+    assert resolution.target_block_groups == [["b000001", "b000002"]]
+    assert len(mapped.paragraph_edges) == 1
+    edge = mapped.paragraph_edges[0]
+    assert edge["target_block_id"] == "b000001"
+    assert edge["target_block_ids"] == ["b000001", "b000002"]
+    assert edge["target_text"] == (
+        "79. The target paragraph starts here.\n\n"
+        "Its decisive reasoning continues in a second physical block."
+    )
+
+
+def test_continuation_blocks_do_not_make_a_repeated_number_ambiguous_by_themselves():
+    target = build_spine_from_html(
+        "<p>10. First.</p><p>Continuation of first.</p><p>11. Next.</p>",
+        document_id="001-target",
+    )
+
+    mapped = resolve_occurrence_paragraphs(
+        CitationOccurrenceResult(occurrences=[_occurrence("ten", ["10"])]),
+        {"001-target": target},
+    )
+
+    resolution = mapped.occurrences[0].target_paragraph_resolutions[0]
+    assert resolution.status == "exact"
+    assert resolution.target_block_groups == [["b000001", "b000002"]]
+
+
 def test_majority_and_source_opinion_may_cite_the_same_target_paragraph():
     target = build_spine_from_html(
         "<p>42. The cited judgment paragraph.</p>", document_id="001-target"

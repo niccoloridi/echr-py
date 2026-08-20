@@ -2,9 +2,10 @@
 
 Citation networks are only as defensible as their document identities. In
 HUDOC, an application number identifies an application, not necessarily one
-judgment or decision. The same application can have admissibility, merits,
-Article 50, just-satisfaction, revision, friendly-settlement, and striking-out
-documents. It can also have separate English and French HUDOC rows.
+judgment or decision. The same application can have admissibility, preliminary-
+objections, merits, Article 50, just-satisfaction, revision,
+friendly-settlement, and striking-out documents. It can also have separate
+English and French HUDOC rows.
 
 `echr-py` therefore treats SCL resolution as bibliographic entity resolution.
 It never zips `sclappnos` to SCL strings and never accepts an application
@@ -242,8 +243,10 @@ date is intentionally different from a genuinely under-specified citation.
 
 ## Measurement-grade graphs
 
-Metrics fail closed unless `resolution-report.json` says every mention is in
-one of the four resolved statuses:
+Metrics fail closed unless `resolution-report.json` has `complete=true`:
+`review_required`, `placeholder_nodes`, and `unidentified_source_documents`
+must all be zero. Resolved mentions and reviewed documented exclusions both
+count toward completeness; exclusions never become graph edges.
 
 ```bash
 echr-py graph metrics \
@@ -312,8 +315,8 @@ unpublished Commission material remains a documented coverage exclusion.
 
 ## Release validation audit
 
-The parser and resolver were tested on a fixed live-HUDOC sample, not only on
-synthetic fixtures. The sampling query selected the 100 most recent English
+The parser and then-current resolver were tested on a fixed live-HUDOC sample,
+not only on synthetic fixtures. The sampling query selected the 100 most recent English
 Court judgments, decisions, and advisory opinions for which `scl:*` was
 present, sorted by `kpdate Descending`. At collection time HUDOC reported
 19,900 matching source records; the selected sources ran from **3 March 2026**
@@ -374,13 +377,16 @@ ID**. Nine already-correct targets changed only their method classification
 between metadata and authority evidence.
 
 The earlier same-volume issue is important: the broad match was rejected and
-the acceptance rule tightened before release. In the final run there were no
+the acceptance rule tightened before release. In that audited run there were no
 metadata-only accepted appno or exact-date contradictions. The separately
 labelled Temeltasch authority mapping is the one reviewed exception to the
 HUDOC-date check.
 
-The 99.5% figure is **automatic coverage**, not measurement completeness. The
-13 held references do not enter `edges.parquet`: one remains ambiguous after a
+The dated 99.5% figure is **automatic coverage**, not current-code accuracy or
+measurement completeness. It used parser version 6 and the 10 July English
+authority; later parser, authority, and title/phase gates require their own
+fresh denominators. The 13 held references do not enter `edges.parquet`: one
+remains ambiguous after a
 printed-date conflict, eleven have explicit printed appno/date/document-kind
 conflicts with HUDOC, and one 2001 admissibility decision was expressly
 obtainable from the Registry but is not published as a HUDOC target. A reviewer

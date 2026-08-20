@@ -87,6 +87,41 @@ def test_inline_tags_do_not_invent_spaces_inside_citation_punctuation():
     assert all(block.text[run.start:run.end] == run.text for run in styled)
 
 
+def test_numbered_legal_paragraph_owns_adjacent_unnumbered_html_blocks():
+    spine = segment_html(
+        """
+        <p>79. The legal paragraph starts in this physical block.</p>
+        <p>Its reasoning continues in a separate physical block.</p>
+        <p>It has a second continuation.</p>
+        <h2>A NEW SUBSECTION</h2>
+        <p>This block is not part of paragraph 79.</p>
+        <p>80. The next legal paragraph starts here.</p>
+        """,
+        doctype="HEJUD",
+    ).spine
+
+    assert spine is not None
+    numbered = next(block for block in spine.blocks if block.para_num == 79)
+    continuations = [
+        block for block in spine.blocks
+        if block.text.startswith(("Its reasoning", "It has"))
+    ]
+    after_heading = next(
+        block for block in spine.blocks if block.text.startswith("This block")
+    )
+    next_numbered = next(block for block in spine.blocks if block.para_num == 80)
+
+    assert numbered.para_id == numbered.legal_para_id == "79"
+    assert numbered.legal_para_num == 79
+    assert [block.para_id for block in continuations] == ["u-001", "u-002"]
+    assert all(block.legal_para_id == "79" for block in continuations)
+    assert all(block.legal_para_num == 79 for block in continuations)
+    assert after_heading.legal_para_id is None
+    assert after_heading.legal_para_num is None
+    assert next_numbered.legal_para_id == "80"
+    assert next_numbered.legal_para_num == 80
+
+
 def test_hudoc_footnote_is_typed_linked_and_does_not_collide_with_opinion_paras():
     sections = segment_html(
         """

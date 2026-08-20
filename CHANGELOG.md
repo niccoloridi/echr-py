@@ -14,6 +14,10 @@ semantic versioning during its alpha series.
 - Source-aware document spines with stable paragraph addresses, canonical
   sections, deciding benches, individual opinions, linked footnotes,
   represented-by metadata, and individual dispositive rulings.
+- Physical block addresses remain distinct when HUDOC splits one numbered
+  legal paragraph across adjacent HTML elements; citation and target-pinpoint
+  outputs retain the shared legal paragraph identity and all constituent
+  blocks.
 - HUDOC-EXEC official case/document discovery, resumable source downloads,
   local text/Markdown conversion, opt-in OCR, browser fallback, and provenance
   manifests. Results remain unlabelled source records for downstream research.
@@ -25,10 +29,19 @@ semantic versioning during its alpha series.
   and linked footnotes.
 - Exact printed spans, source paragraphs, procedural target documents,
   citation-owned pinpoints, and deterministic target-paragraph verification.
+- `citation-occurrence/v3` separates resolution-independent printed loci from
+  authority-specific rows while retaining v1/v2 readers.
+- Grouped preliminary-objections/merits citations retain one shared locus,
+  target ordinals, procedural identities, and independently owned pinpoints.
+- Footnote citations retain structured multi-invocation paragraph/opinion
+  addresses and expand into distinct paragraph-graph edges where required.
 - Conservative discovery diagnostics for ambiguous, unresolved, external,
   self-referential, and rejected candidates without forced graph promotion.
 - Historical text discovery covers parenthesised judgment dates, anonymised
-  single-letter applicants, and comma-separated multi-party case names.
+  single-letter applicants, comma-separated multi-party case names,
+  accent-insensitive aliases, and name/date/unique-Series-A forms.
+- Exact application-number, title, date, document-kind, and procedural-phase
+  conflicts now fail closed before automatic document promotion.
 - English/French official-authority import support, with the current bilingual
   v2 authority packaged by default, plus a checksummed historical catalogue,
   reviewed overrides, and reproducible benchmark import/compare commands.

@@ -206,7 +206,9 @@ The current server exposes these read-only tools:
 - `get_case_citation_network` performs deterministic inclusive citation
   extraction and resolution, then returns a compact occurrence-weighted graph.
   Its source nodes preserve majority and individual-opinion identities. It
-  does not alter the authoritative SCL decision graph.
+  does not alter the authoritative SCL decision graph. In occurrence v3,
+  authority-specific rows can share one printed `locus_id`; count unique loci
+  when the research question concerns physical printed citation envelopes.
 - `list_document_versions(ecli=...)` is the exact-document route. Application
   number mode can include judgments, decisions, resolutions, and legal
   summaries from different procedural stages.

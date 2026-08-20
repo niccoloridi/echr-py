@@ -521,8 +521,12 @@ def _attach_source_invocations(
                 continue
             invocations.append(CitationSourceInvocation(
                 source_block_id=block.block_id,
-                source_para_id=block.para_id,
-                source_para_num=block.para_num,
+                source_para_id=block.legal_para_id or block.para_id,
+                source_para_num=(
+                    block.legal_para_num
+                    if block.legal_para_id is not None
+                    else block.para_num
+                ),
                 source_section=block.section,
                 source_component=_component(block),
                 source_opinion_id=block.opinion_id,
@@ -727,7 +731,7 @@ def discover_citation_mentions(
                     "target_paragraphs": [paragraph],
                     "source_section": block.section,
                     "source_block_id": block.block_id,
-                    "source_para_id": block.para_id,
+                    "source_para_id": block.legal_para_id or block.para_id,
                     "source_opinion_id": block.opinion_id,
                     "source_footnote_id": block.footnote_id,
                     "source_invoking_block_ids": list(block.referenced_by_block_ids),
@@ -836,7 +840,7 @@ def discover_citation_mentions(
                 "respondent": extract_respondent(cited_name),
                 "source_section": block.section,
                 "source_block_id": block.block_id,
-                "source_para_id": block.para_id,
+                "source_para_id": block.legal_para_id or block.para_id,
                 "source_opinion_id": block.opinion_id,
                 "source_footnote_id": block.footnote_id,
                 "source_invoking_block_ids": list(block.referenced_by_block_ids),
@@ -922,7 +926,7 @@ def discover_citation_mentions(
                     "respondent": extract_respondent(cited_name),
                     "source_section": block.section,
                     "source_block_id": block.block_id,
-                    "source_para_id": block.para_id,
+                    "source_para_id": block.legal_para_id or block.para_id,
                     "source_opinion_id": block.opinion_id,
                     "source_footnote_id": block.footnote_id,
                     "source_invoking_block_ids": list(block.referenced_by_block_ids),
@@ -978,7 +982,7 @@ def discover_citation_mentions(
                 "respondent": extract_respondent(cited_name),
                 "source_section": block.section,
                 "source_block_id": block.block_id,
-                "source_para_id": block.para_id,
+                "source_para_id": block.legal_para_id or block.para_id,
                 "source_opinion_id": block.opinion_id,
                 "source_footnote_id": block.footnote_id,
                 "source_invoking_block_ids": list(block.referenced_by_block_ids),
@@ -1021,7 +1025,7 @@ def discover_citation_mentions(
                     "origin": "text_discovery",
                     "source_section": block.section,
                     "source_block_id": block.block_id,
-                    "source_para_id": block.para_id,
+                    "source_para_id": block.legal_para_id or block.para_id,
                     "source_opinion_id": block.opinion_id,
                     "source_footnote_id": block.footnote_id,
                     "source_invoking_block_ids": list(block.referenced_by_block_ids),
@@ -1089,7 +1093,7 @@ def discover_citation_mentions(
                 "document_kind": getattr(entry, "document_kind", "unknown"),
                 "source_section": block.section,
                 "source_block_id": block.block_id,
-                "source_para_id": block.para_id,
+                "source_para_id": block.legal_para_id or block.para_id,
                 "source_opinion_id": block.opinion_id,
                 "source_footnote_id": block.footnote_id,
                 "source_invoking_block_ids": list(block.referenced_by_block_ids),
@@ -1137,8 +1141,12 @@ def discover_citation_mentions(
             source_language=case.language,
             source_section=source_block.section,
             source_block_id=source_block.block_id,
-            source_para_id=source_block.para_id,
-            source_para_num=source_block.para_num,
+            source_para_id=source_block.legal_para_id or source_block.para_id,
+            source_para_num=(
+                source_block.legal_para_num
+                if source_block.legal_para_id is not None
+                else source_block.para_num
+            ),
             block_start=start,
             block_end=end,
             document_start=source_block.char_start + start,
@@ -1370,8 +1378,12 @@ def _occurrence(
         source_language=case.language,
         source_section=block.section,
         source_block_id=block.block_id,
-        source_para_id=block.para_id,
-        source_para_num=block.para_num,
+        source_para_id=block.legal_para_id or block.para_id,
+        source_para_num=(
+            block.legal_para_num
+            if block.legal_para_id is not None
+            else block.para_num
+        ),
         block_start=start,
         block_end=end,
         document_start=block.char_start + start,

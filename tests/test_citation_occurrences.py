@@ -79,6 +79,36 @@ def test_locates_full_and_short_form_with_source_and_target_paragraphs():
     assert html is not None  # keeps this fixture visibly HTML-backed
 
 
+def test_citation_in_unnumbered_continuation_uses_owning_legal_paragraph():
+    case = Case(
+        itemid="001-nikolova-style",
+        languageisocode="ENG",
+        scl="Hood v. the United Kingdom [GC], no. 27267/95, ECHR 1999-I",
+    )
+    html = """
+    <p>79. The Court begins its assessment in this physical block.</p>
+    <p>That conclusion also follows from <em>Hood v. the United Kingdom</em>,
+    cited above, § 60.</p>
+    <p>80. The Court therefore finds a violation.</p>
+    """
+
+    result = extract_citation_occurrences(
+        case,
+        _resolved(case, [("ecli:hood", "Hood v. the United Kingdom")]),
+        html=html,
+    )
+
+    occurrence = next(
+        value for value in result.occurrences
+        if value.raw_text == "Hood v. the United Kingdom"
+    )
+    assert occurrence.source_block_id == "b000002"
+    assert occurrence.source_para_id == "79"
+    assert occurrence.source_para_num == 79
+    assert occurrence.source_context.startswith("That conclusion")
+    assert occurrence.target_paragraphs == ["60"]
+
+
 def test_inline_spacing_and_covered_discovery_resolutions_preserve_repeated_cites():
     case = Case(
         itemid="001-source",
@@ -292,6 +322,33 @@ def test_text_discovery_preserves_source_footnote_identity():
     assert len(occurrence.source_invocations) == 1
     assert occurrence.source_invocations[0].source_para_id == "10"
     assert occurrence.source_invocations[0].source_component == "majority"
+
+
+def test_footnote_invocation_from_continuation_uses_owning_legal_paragraph():
+    case = Case(itemid="001-source", languageisocode="ENG")
+    html = """
+    <p>THE LAW</p>
+    <p>79. The Court begins its assessment.</p>
+    <p>The reasoning continues here<a href="#_ftn1">[1]</a>.</p>
+    <p>80. The next paragraph.</p>
+    <div id="_ftn1"><p>[1] See Soering v. the United Kingdom,
+    no. 14038/88, § 88.</p></div>
+    """
+
+    discovery = discover_citation_mentions(case, html=html)
+    occurrence = next(
+        value for value in discovery.preliminary_occurrences
+        if "Soering" in value.raw_text
+    )
+
+    assert occurrence.source_invoking_block_ids == ["b000003"]
+    assert occurrence.source_invoking_para_ids == ["79"]
+    assert len(occurrence.source_invocations) == 1
+    invocation = occurrence.source_invocations[0]
+    assert invocation.source_block_id == "b000003"
+    assert invocation.source_para_id == "79"
+    assert invocation.source_para_num == 79
+    assert occurrence.source_component == "majority"
 
 
 def test_resolution_never_changes_detected_loci_or_occurrence_ids():

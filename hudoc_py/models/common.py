@@ -219,6 +219,8 @@ class DocumentBlock(BaseModel):
     char_end: int
     para_id: str | None = None
     para_num: int | None = None
+    legal_para_id: str | None = None
+    legal_para_num: int | None = None
     heading_level: int | None = None
     heading_role: HeadingRole | None = None
     heading_source: list[str] = Field(default_factory=list)

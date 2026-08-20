@@ -40,20 +40,37 @@ def _numbers(label: str) -> tuple[list[int], bool] | None:
     return list(range(start, end + 1)), True
 
 
-def _paragraph_index(spine: DocumentSpine) -> dict[int, list[DocumentBlock]]:
-    index: dict[int, list[DocumentBlock]] = defaultdict(list)
+def _paragraph_index(spine: DocumentSpine) -> dict[int, list[list[DocumentBlock]]]:
+    groups: dict[str, list[DocumentBlock]] = {}
     for block in spine.blocks:
         # A citation to a judgment paragraph addresses the judgment proper,
         # not a same-numbered paragraph in an appended separate opinion.
         # Opinion-specific target citations can later opt into an opinion ID;
         # absent that explicit evidence, majority is the conservative scope.
+        legal_para_num = (
+            block.legal_para_num
+            if block.legal_para_id is not None
+            else block.para_num
+        )
+        legal_para_id = block.legal_para_id or block.para_id
         if (
-            block.para_num is not None
+            legal_para_num is not None
+            and legal_para_id is not None
             and block.type != "heading"
             and block.opinion_id is None
             and block.section != "appendix"
         ):
-            index[block.para_num].append(block)
+            groups.setdefault(legal_para_id, []).append(block)
+    index: dict[int, list[list[DocumentBlock]]] = defaultdict(list)
+    for blocks in groups.values():
+        first = blocks[0]
+        number = (
+            first.legal_para_num
+            if first.legal_para_id is not None
+            else first.para_num
+        )
+        if number is not None:
+            index[number].append(blocks)
     return dict(index)
 
 
@@ -94,7 +111,7 @@ def _resolve_label(
         )
     numbers, is_range = parsed
     index = _paragraph_index(spine)
-    selected: list[DocumentBlock] = []
+    selected: list[list[DocumentBlock]] = []
     absent: list[int] = []
     duplicates: list[int] = []
     for number in numbers:
@@ -119,10 +136,32 @@ def _resolve_label(
         target_itemid=occurrence.target_itemid,
         target_ecli=occurrence.target_ecli,
         target_language=target_language,
-        target_block_ids=[block.block_id for block in selected],
-        target_para_ids=[block.para_id or block.block_id for block in selected],
-        target_para_nums=[block.para_num for block in selected if block.para_num is not None],
-        target_sections=list(dict.fromkeys(block.section for block in selected if block.section)),
+        target_block_ids=[blocks[0].block_id for blocks in selected],
+        target_block_groups=[
+            [block.block_id for block in blocks]
+            for blocks in selected
+        ],
+        target_para_ids=[
+            blocks[0].legal_para_id or blocks[0].para_id or blocks[0].block_id
+            for blocks in selected
+        ],
+        target_para_nums=[
+            para_num
+            for blocks in selected
+            if (
+                para_num := (
+                    blocks[0].legal_para_num
+                    if blocks[0].legal_para_id is not None
+                    else blocks[0].para_num
+                )
+            ) is not None
+        ],
+        target_sections=list(dict.fromkeys(
+            block.section
+            for blocks in selected
+            for block in blocks
+            if block.section
+        )),
         evidence={
             "requested_numbers": numbers,
             "missing_numbers": absent,
@@ -212,13 +251,23 @@ def resolve_occurrence_paragraphs(
                 for ordinal, invocation in enumerate(occurrence.source_invocations, 1)
             ]
         for resolution in resolutions:
-            for block_id, para_id, para_num in zip(
+            for group_ordinal, (block_id, para_id, para_num) in enumerate(zip(
                 resolution.target_block_ids,
                 resolution.target_para_ids,
                 resolution.target_para_nums,
                 strict=False,
-            ):
+            )):
                 target_block = target_blocks.get(block_id)
+                target_block_ids = (
+                    resolution.target_block_groups[group_ordinal]
+                    if group_ordinal < len(resolution.target_block_groups)
+                    else [block_id]
+                )
+                target_text = "\n\n".join(
+                    target_blocks[value].text
+                    for value in target_block_ids
+                    if value in target_blocks
+                )
                 for source_row in source_rows:
                     source_address = str(
                         source_row.get("source_block_id", occurrence.source_block_id)
@@ -246,10 +295,13 @@ def resolve_occurrence_paragraphs(
                         "target_itemid": occurrence.target_itemid,
                         "target_ecli": occurrence.target_ecli,
                         "target_block_id": block_id,
+                        "target_block_ids": target_block_ids,
                         "target_para_id": para_id,
                         "target_para_num": para_num,
                         "target_section": target_block.section if target_block else None,
-                        "target_text": target_block.text if target_block else None,
+                        "target_text": target_text or (
+                            target_block.text if target_block else None
+                        ),
                         "target_language": language,
                         "printed_pinpoint": resolution.printed_label,
                         "mapping_status": resolution.status,

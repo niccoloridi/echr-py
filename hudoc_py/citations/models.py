@@ -350,6 +350,7 @@ class CitationParagraphResolution(BaseModel):
     target_ecli: str | None = None
     target_language: str | None = None
     target_block_ids: list[str] = Field(default_factory=list)
+    target_block_groups: list[list[str]] = Field(default_factory=list)
     target_para_ids: list[str] = Field(default_factory=list)
     target_para_nums: list[int] = Field(default_factory=list)
     target_sections: list[str] = Field(default_factory=list)
