@@ -1,0 +1,13 @@
+{
+  "hudoc_py/data/citation_authority.csv": "b12ebea33e1b2a4446219372e91432bd24dfa65556ffca8e384b63c50f6774cd",
+  "hudoc_py/data/citation_authority.json": "dc70c23ca044b7a06a498377f3324eef3bc45fe11cabe0cb8eb31712d9781c59",
+  "hudoc_py/data/citation_authority_eng.csv": "bc8b885217fd00f50e75b5baf47c10d8cb1f5dcadb79593a285d58b58aa1aadc",
+  "hudoc_py/data/citation_authority_eng.json": "a59291b8930a163ed69c0faa6ad20e2549446a9277c613ddf8858a6ceab090a0",
+  "hudoc_py/data/citation_authority_supplements.json": "b270b7ab510aa41dfbb4bf98bb0b894563f2ef5d37d93d9173ea36edd9bb2783",
+  "hudoc_py/data/historical_citation_catalog.json": "a4cc4b76c690f7fbfdbb3b9692986307454b6a0489fb4cad10046946205789fc",
+  "hudoc_py/data/kpthesaurus_eng.json": "1692745df53e691864433bac84be2a4ddd7d2d164e9b059eace9653b2cfd6d5f",
+  "hudoc_py/graphs/assets/LICENSE-D3.txt": "68130c3098380dc27ac7fdf3ac6cb63648288396d93508d005b8881875503fac",
+  "hudoc_py/graphs/assets/d3.v7.min.js": "f2094bbf6141b359722c4fe454eb6c4b0f0e42cc10cc7af921fc158fceb86539",
+  "hudoc_py/studies/schemas/citation-use-minimal.json": "185daa7a4da6c37b0e6b4bb6c94d5b28775c04e6f880cd284fc928663f2f9d75",
+  "hudoc_py/studies/schemas/citation-use-multiaxial.json": "82731d8aecde0c75cfb49613ac4495afa4894aedd42152a1292087296789ddf0"
+}
