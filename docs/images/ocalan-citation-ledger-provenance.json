@@ -1,0 +1,26 @@
+{
+  "generator": "build_readme_showcase.py",
+  "generator_sha256": "504fbac811d104af23b29c70cfe3fecbbee55891c05e38b573c63fafd4a818dd",
+  "kind": "pinned-real-citation-ledger",
+  "outputs": [
+    {
+      "bytes": 128001,
+      "file": "ocalan-citation-ledger.png",
+      "sha256": "2fd1f36365b72eaaa031b93e80c03a5c85d96370d4cba47c4ddd539249f1b3c7"
+    },
+    {
+      "bytes": 87245,
+      "file": "ocalan-citation-ledger.svg",
+      "sha256": "3e8f6b033f83a4a871700774ca91fefb2ae489ad3d00d1ab026c995ca43412d0"
+    }
+  ],
+  "paragraph_edges": 4,
+  "package_version": "0.2.0",
+  "schema_version": "echr-py-figure/v1",
+  "source": "examples/data/ocalan-paragraph-edges.ndjson",
+  "source_documents": [
+    "001-69022",
+    "001-69023"
+  ],
+  "source_sha256": "f877dbf83a9f59d47aa17e9403a2430bd04ff2adce800007f7c28abf4380ebf8"
+}

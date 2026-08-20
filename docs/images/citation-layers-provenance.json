@@ -1,0 +1,20 @@
+{
+  "claim_scope": "artifact semantics",
+  "generator": "build_readme_showcase.py",
+  "generator_sha256": "504fbac811d104af23b29c70cfe3fecbbee55891c05e38b573c63fafd4a818dd",
+  "kind": "contract-diagram",
+  "outputs": [
+    {
+      "bytes": 84011,
+      "file": "citation-layers.png",
+      "sha256": "7a97f7858276036e15262d1e880e17f2a9ba8e1755e6cdb35ca9d30d27837bf5"
+    },
+    {
+      "bytes": 65531,
+      "file": "citation-layers.svg",
+      "sha256": "8430a2f6c83add8b2626da03602ac616df3220fed4aada98925d55fe28437d77"
+    }
+  ],
+  "package_version": "0.2.0",
+  "schema_version": "echr-py-figure/v1"
+}

@@ -1,0 +1,23 @@
+{
+  "title": "echr-py",
+  "version": "0.2.0",
+  "description": "A provenance-preserving Python, CLI, and MCP toolkit for public European Court of Human Rights research. This research forms part of the Human Rights Nudge project that has received funding from the European Research Council (ERC) under the European Union’s Horizon 2020 research and innovation programme (Grant agreement No. 803981).",
+  "creators": [
+    {
+      "name": "Ridi, Niccolo"
+    }
+  ],
+  "license": "MIT",
+  "keywords": [
+    "ECHR",
+    "HUDOC",
+    "legal research",
+    "citation analysis",
+    "computational law"
+  ],
+  "grants": [
+    {
+      "id": "10.13039/501100000780::803981"
+    }
+  ]
+}

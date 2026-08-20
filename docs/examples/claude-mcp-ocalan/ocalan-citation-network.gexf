@@ -1,0 +1,1077 @@
+<?xml version='1.0' encoding='utf-8'?>
+<gexf xmlns="http://www.gexf.net/1.2draft" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.gexf.net/1.2draft http://www.gexf.net/1.2draft/gexf.xsd" version="1.2">
+  <meta lastmodifieddate="2026-08-20">
+    <creator>NetworkX 3.6.1</creator>
+  </meta>
+  <graph defaultedgetype="directed" mode="static" name="">
+    <attributes mode="static" class="edge">
+      <attribute id="11" title="edge_id" type="string" />
+      <attribute id="12" title="occurrence_count" type="long" />
+      <attribute id="13" title="pinpoint_occurrence_count" type="long" />
+      <attribute id="14" title="footnote_occurrence_count" type="long" />
+      <attribute id="15" title="scl_covered_occurrence_count" type="long" />
+      <attribute id="16" title="text_only_occurrence_count" type="long" />
+      <attribute id="17" title="sections" type="string" />
+      <attribute id="18" title="pinpoints" type="string" />
+    </attributes>
+    <attributes mode="static" class="node">
+      <attribute id="0" title="side" type="string" />
+      <attribute id="1" title="itemid" type="string" />
+      <attribute id="2" title="component" type="string" />
+      <attribute id="3" title="opinion_authors" type="string" />
+      <attribute id="4" title="opinion_id" type="string" />
+      <attribute id="5" title="opinion_type" type="string" />
+      <attribute id="6" title="node_id" type="string" />
+      <attribute id="7" title="ecli" type="string" />
+      <attribute id="8" title="appnos" type="string" />
+      <attribute id="9" title="document_kind" type="string" />
+      <attribute id="10" title="procedural_phase" type="string" />
+    </attributes>
+    <nodes>
+      <node id="source:001-69022:majority" label="CASE OF ÖCALAN v. TURKEY – majority">
+        <attvalues>
+          <attvalue for="0" value="source" />
+          <attvalue for="1" value="001-69022" />
+          <attvalue for="2" value="majority" />
+          <attvalue for="3" value="[]" />
+        </attvalues>
+      </node>
+      <node id="source:001-69022:opinion:001-69022:opinion:3b90cc9f5956f9c05591" label="CASE OF ÖCALAN v. TURKEY – partly_dissenting (COSTA, CAFLISCH, TÜRMEN, BORREGO BORREGO)">
+        <attvalues>
+          <attvalue for="0" value="source" />
+          <attvalue for="1" value="001-69022" />
+          <attvalue for="2" value="opinion" />
+          <attvalue for="4" value="001-69022:opinion:3b90cc9f5956f9c05591" />
+          <attvalue for="5" value="partly_dissenting" />
+          <attvalue for="3" value="[&quot;COSTA&quot;, &quot;CAFLISCH&quot;, &quot;TÜRMEN&quot;, &quot;BORREGO BORREGO&quot;]" />
+        </attvalues>
+      </node>
+      <node id="source:001-69022:opinion:001-69022:opinion:49d8e01042a3c1cf4946" label="CASE OF ÖCALAN v. TURKEY – partly_concurring_partly_dissenting (GARLICKI)">
+        <attvalues>
+          <attvalue for="0" value="source" />
+          <attvalue for="1" value="001-69022" />
+          <attvalue for="2" value="opinion" />
+          <attvalue for="4" value="001-69022:opinion:49d8e01042a3c1cf4946" />
+          <attvalue for="5" value="partly_concurring_partly_dissenting" />
+          <attvalue for="3" value="[&quot;GARLICKI&quot;]" />
+        </attvalues>
+      </node>
+      <node id="source:001-69022:opinion:001-69022:opinion:5e12b1cb058381c012f9" label="CASE OF ÖCALAN v. TURKEY – partly_dissenting (WILDHABER, COSTA, CAFLISCH, TÜRMEN, GARLICKI, BORREGO BORREGO)">
+        <attvalues>
+          <attvalue for="0" value="source" />
+          <attvalue for="1" value="001-69022" />
+          <attvalue for="2" value="opinion" />
+          <attvalue for="4" value="001-69022:opinion:5e12b1cb058381c012f9" />
+          <attvalue for="5" value="partly_dissenting" />
+          <attvalue for="3" value="[&quot;WILDHABER&quot;, &quot;COSTA&quot;, &quot;CAFLISCH&quot;, &quot;TÜRMEN&quot;, &quot;GARLICKI&quot;, &quot;BORREGO BORREGO&quot;]" />
+        </attvalues>
+      </node>
+      <node id="target:ecli:ECLI:CE:ECHR:1961:0701JUD000033257" label="CASE OF LAWLESS v. IRELAND (No. 3)">
+        <attvalues>
+          <attvalue for="0" value="target" />
+          <attvalue for="6" value="ecli:ECLI:CE:ECHR:1961:0701JUD000033257" />
+          <attvalue for="1" value="001-57518" />
+          <attvalue for="7" value="ECLI:CE:ECHR:1961:0701JUD000033257" />
+          <attvalue for="8" value="[&quot;332/57&quot;]" />
+          <attvalue for="9" value="judgment" />
+          <attvalue for="10" value="unknown" />
+        </attvalues>
+      </node>
+      <node id="target:ecli:ECLI:CE:ECHR:1978:0118JUD000531071" label="CASE OF IRELAND v. THE UNITED KINGDOM">
+        <attvalues>
+          <attvalue for="0" value="target" />
+          <attvalue for="6" value="ecli:ECLI:CE:ECHR:1978:0118JUD000531071" />
+          <attvalue for="1" value="001-57506" />
+          <attvalue for="7" value="ECLI:CE:ECHR:1978:0118JUD000531071" />
+          <attvalue for="8" value="[&quot;5310/71&quot;]" />
+          <attvalue for="9" value="judgment" />
+          <attvalue for="10" value="unknown" />
+        </attvalues>
+      </node>
+      <node id="target:ecli:ECLI:CE:ECHR:1978:0425JUD000585672" label="AFFAIRE TYRER c. ROYAUME-UNI">
+        <attvalues>
+          <attvalue for="0" value="target" />
+          <attvalue for="6" value="ecli:ECLI:CE:ECHR:1978:0425JUD000585672" />
+          <attvalue for="1" value="001-62143" />
+          <attvalue for="7" value="ECLI:CE:ECHR:1978:0425JUD000585672" />
+          <attvalue for="8" value="[&quot;5856/72&quot;]" />
+          <attvalue for="9" value="judgment" />
+          <attvalue for="10" value="unknown" />
+        </attvalues>
+      </node>
+      <node id="target:ecli:ECLI:CE:ECHR:1978:0710DEC000800777" label="CYPRUS v. TURKEY">
+        <attvalues>
+          <attvalue for="0" value="target" />
+          <attvalue for="6" value="ecli:ECLI:CE:ECHR:1978:0710DEC000800777" />
+          <attvalue for="1" value="001-74150" />
+          <attvalue for="7" value="ECLI:CE:ECHR:1978:0710DEC000800777" />
+          <attvalue for="8" value="[&quot;8007/77&quot;]" />
+          <attvalue for="9" value="commission" />
+          <attvalue for="10" value="commission_decision" />
+        </attvalues>
+      </node>
+      <node id="target:ecli:ECLI:CE:ECHR:1979:1024JUD000630173" label="CASE OF WINTERWERP v. THE NETHERLANDS">
+        <attvalues>
+          <attvalue for="0" value="target" />
+          <attvalue for="6" value="ecli:ECLI:CE:ECHR:1979:1024JUD000630173" />
+          <attvalue for="1" value="001-57597" />
+          <attvalue for="7" value="ECLI:CE:ECHR:1979:1024JUD000630173" />
+          <attvalue for="8" value="[&quot;6301/73&quot;]" />
+          <attvalue for="9" value="judgment" />
+          <attvalue for="10" value="unknown" />
+        </attvalues>
+      </node>
+      <node id="target:ecli:ECLI:CE:ECHR:1980:0513JUD000669474" label="AFFAIRE ARTICO c. ITALIE">
+        <attvalues>
+          <attvalue for="0" value="target" />
+          <attvalue for="6" value="ecli:ECLI:CE:ECHR:1980:0513JUD000669474" />
+          <attvalue for="1" value="001-61982" />
+          <attvalue for="7" value="ECLI:CE:ECHR:1980:0513JUD000669474" />
+          <attvalue for="8" value="[&quot;6694/74&quot;]" />
+          <attvalue for="9" value="judgment" />
+          <attvalue for="10" value="unknown" />
+        </attvalues>
+      </node>
+      <node id="target:ecli:ECLI:CE:ECHR:1980:1007DEC000891680" label="FREDA v. ITALY">
+        <attvalues>
+          <attvalue for="0" value="target" />
+          <attvalue for="6" value="ecli:ECLI:CE:ECHR:1980:1007DEC000891680" />
+          <attvalue for="1" value="001-74311" />
+          <attvalue for="7" value="ECLI:CE:ECHR:1980:1007DEC000891680" />
+          <attvalue for="8" value="[&quot;8916/80&quot;]" />
+          <attvalue for="9" value="commission" />
+          <attvalue for="10" value="commission_decision" />
+        </attvalues>
+      </node>
+      <node id="target:ecli:ECLI:CE:ECHR:1980:1106JUD000653874" label="AFFAIRE SUNDAY TIMES c. ROYAUME-UNI (N° 1) (ARTICLE 50)">
+        <attvalues>
+          <attvalue for="0" value="target" />
+          <attvalue for="6" value="ecli:ECLI:CE:ECHR:1980:1106JUD000653874" />
+          <attvalue for="1" value="001-62139" />
+          <attvalue for="7" value="ECLI:CE:ECHR:1980:1106JUD000653874" />
+          <attvalue for="8" value="[&quot;6538/74&quot;]" />
+          <attvalue for="9" value="judgment" />
+          <attvalue for="10" value="unknown" />
+        </attvalues>
+      </node>
+      <node id="target:ecli:ECLI:CE:ECHR:1980:1106JUD000765476" label="AFFAIRE VAN OOSTERWIJCK c. BELGIQUE">
+        <attvalues>
+          <attvalue for="0" value="target" />
+          <attvalue for="6" value="ecli:ECLI:CE:ECHR:1980:1106JUD000765476" />
+          <attvalue for="1" value="001-62107" />
+          <attvalue for="7" value="ECLI:CE:ECHR:1980:1106JUD000765476" />
+          <attvalue for="8" value="[&quot;7654/76&quot;]" />
+          <attvalue for="9" value="judgment" />
+          <attvalue for="10" value="unknown" />
+        </attvalues>
+      </node>
+      <node id="target:ecli:ECLI:CE:ECHR:1982:0225JUD000751176" label="CASE OF CAMPBELL AND COSANS v. THE UNITED KINGDOM">
+        <attvalues>
+          <attvalue for="0" value="target" />
+          <attvalue for="6" value="ecli:ECLI:CE:ECHR:1982:0225JUD000751176" />
+          <attvalue for="1" value="001-57455" />
+          <attvalue for="7" value="ECLI:CE:ECHR:1982:0225JUD000751176" />
+          <attvalue for="8" value="[&quot;7511/76&quot;, &quot;7743/76&quot;]" />
+          <attvalue for="9" value="judgment" />
+          <attvalue for="10" value="unknown" />
+        </attvalues>
+      </node>
+      <node id="target:ecli:ECLI:CE:ECHR:1982:1001JUD000869279" label="AFFAIRE PIERSACK c. BELGIQUE">
+        <attvalues>
+          <attvalue for="0" value="target" />
+          <attvalue for="6" value="ecli:ECLI:CE:ECHR:1982:1001JUD000869279" />
+          <attvalue for="1" value="001-62115" />
+          <attvalue for="7" value="ECLI:CE:ECHR:1982:1001JUD000869279" />
+          <attvalue for="8" value="[&quot;8692/79&quot;]" />
+          <attvalue for="9" value="judgment" />
+          <attvalue for="10" value="unknown" />
+        </attvalues>
+      </node>
+      <node id="target:ecli:ECLI:CE:ECHR:1983:0210JUD000729975" label="CASE OF ALBERT AND LE COMPTE v. BELGIUM">
+        <attvalues>
+          <attvalue for="0" value="target" />
+          <attvalue for="6" value="ecli:ECLI:CE:ECHR:1983:0210JUD000729975" />
+          <attvalue for="1" value="001-57422" />
+          <attvalue for="7" value="ECLI:CE:ECHR:1983:0210JUD000729975" />
+          <attvalue for="8" value="[&quot;7299/75&quot;, &quot;7496/76&quot;]" />
+          <attvalue for="9" value="judgment" />
+          <attvalue for="10" value="unknown" />
+        </attvalues>
+      </node>
+      <node id="target:ecli:ECLI:CE:ECHR:1984:0704DEC001068983" label="ALTMANN (Barbie) v. FRANCE">
+        <attvalues>
+          <attvalue for="0" value="target" />
+          <attvalue for="6" value="ecli:ECLI:CE:ECHR:1984:0704DEC001068983" />
+          <attvalue for="1" value="001-73831" />
+          <attvalue for="7" value="ECLI:CE:ECHR:1984:0704DEC001068983" />
+          <attvalue for="8" value="[&quot;10689/83&quot;]" />
+          <attvalue for="9" value="commission" />
+          <attvalue for="10" value="commission_decision" />
+        </attvalues>
+      </node>
+      <node id="target:ecli:ECLI:CE:ECHR:1986:1218JUD000999082" label="CASE OF BOZANO v. FRANCE">
+        <attvalues>
+          <attvalue for="0" value="target" />
+          <attvalue for="6" value="ecli:ECLI:CE:ECHR:1986:1218JUD000999082" />
+          <attvalue for="1" value="001-57448" />
+          <attvalue for="7" value="ECLI:CE:ECHR:1986:1218JUD000999082" />
+          <attvalue for="8" value="[&quot;9990/82&quot;]" />
+          <attvalue for="9" value="judgment" />
+          <attvalue for="10" value="unknown" />
+        </attvalues>
+      </node>
+      <node id="target:ecli:ECLI:CE:ECHR:1987:0302JUD000978782" label="AFFAIRE WEEKS c. ROYAUME-UNI">
+        <attvalues>
+          <attvalue for="0" value="target" />
+          <attvalue for="6" value="ecli:ECLI:CE:ECHR:1987:0302JUD000978782" />
+          <attvalue for="1" value="001-62150" />
+          <attvalue for="7" value="ECLI:CE:ECHR:1987:0302JUD000978782" />
+          <attvalue for="8" value="[&quot;9787/82&quot;]" />
+          <attvalue for="9" value="judgment" />
+          <attvalue for="10" value="unknown" />
+        </attvalues>
+      </node>
+      <node id="target:ecli:ECLI:CE:ECHR:1988:0229JUD000910680" label="AFFAIRE BOUAMAR c. BELGIQUE">
+        <attvalues>
+          <attvalue for="0" value="target" />
+          <attvalue for="6" value="ecli:ECLI:CE:ECHR:1988:0229JUD000910680" />
+          <attvalue for="1" value="001-62003" />
+          <attvalue for="7" value="ECLI:CE:ECHR:1988:0229JUD000910680" />
+          <attvalue for="8" value="[&quot;9106/80&quot;]" />
+          <attvalue for="9" value="judgment" />
+          <attvalue for="10" value="unknown" />
+        </attvalues>
+      </node>
+      <node id="target:ecli:ECLI:CE:ECHR:1988:1129JUD001120984" label="CASE OF BROGAN AND OTHERS v. THE UNITED KINGDOM">
+        <attvalues>
+          <attvalue for="0" value="target" />
+          <attvalue for="6" value="ecli:ECLI:CE:ECHR:1988:1129JUD001120984" />
+          <attvalue for="1" value="001-57450" />
+          <attvalue for="7" value="ECLI:CE:ECHR:1988:1129JUD001120984" />
+          <attvalue for="8" value="[&quot;11209/84&quot;, &quot;11234/84&quot;, &quot;11266/84&quot;, &quot;11386/85&quot;]" />
+          <attvalue for="9" value="judgment" />
+          <attvalue for="10" value="unknown" />
+        </attvalues>
+      </node>
+      <node id="target:ecli:ECLI:CE:ECHR:1989:0524JUD001048683" label="AFFAIRE HAUSCHILDT c. DANEMARK">
+        <attvalues>
+          <attvalue for="0" value="target" />
+          <attvalue for="6" value="ecli:ECLI:CE:ECHR:1989:0524JUD001048683" />
+          <attvalue for="1" value="001-62058" />
+          <attvalue for="7" value="ECLI:CE:ECHR:1989:0524JUD001048683" />
+          <attvalue for="8" value="[&quot;10486/83&quot;]" />
+          <attvalue for="9" value="judgment" />
+          <attvalue for="10" value="unknown" />
+        </attvalues>
+      </node>
+      <node id="target:ecli:ECLI:CE:ECHR:1989:0707JUD001403888" label="CASE OF SOERING v. THE UNITED KINGDOM">
+        <attvalues>
+          <attvalue for="0" value="target" />
+          <attvalue for="6" value="ecli:ECLI:CE:ECHR:1989:0707JUD001403888" />
+          <attvalue for="1" value="001-57619" />
+          <attvalue for="7" value="ECLI:CE:ECHR:1989:0707JUD001403888" />
+          <attvalue for="8" value="[&quot;14038/88&quot;]" />
+          <attvalue for="9" value="judgment" />
+          <attvalue for="10" value="unknown" />
+        </attvalues>
+      </node>
+      <node id="target:ecli:ECLI:CE:ECHR:1989:1002DEC001400988" label="REINETTE v. FRANCE">
+        <attvalues>
+          <attvalue for="0" value="target" />
+          <attvalue for="6" value="ecli:ECLI:CE:ECHR:1989:1002DEC001400988" />
+          <attvalue for="1" value="001-82156" />
+          <attvalue for="7" value="ECLI:CE:ECHR:1989:1002DEC001400988" />
+          <attvalue for="8" value="[&quot;14009/88&quot;]" />
+          <attvalue for="9" value="commission" />
+          <attvalue for="10" value="commission_decision" />
+        </attvalues>
+      </node>
+      <node id="target:ecli:ECLI:CE:ECHR:1989:1219JUD000978382" label="CASE OF KAMASINSKI v. AUSTRIA">
+        <attvalues>
+          <attvalue for="0" value="target" />
+          <attvalue for="6" value="ecli:ECLI:CE:ECHR:1989:1219JUD000978382" />
+          <attvalue for="1" value="001-57614" />
+          <attvalue for="7" value="ECLI:CE:ECHR:1989:1219JUD000978382" />
+          <attvalue for="8" value="[&quot;9783/82&quot;]" />
+          <attvalue for="9" value="judgment" />
+          <attvalue for="10" value="unknown" />
+        </attvalues>
+      </node>
+      <node id="target:ecli:ECLI:CE:ECHR:1990:0927JUD001253586" label="CASE OF WASSINK v. THE NETHERLANDS">
+        <attvalues>
+          <attvalue for="0" value="target" />
+          <attvalue for="6" value="ecli:ECLI:CE:ECHR:1990:0927JUD001253586" />
+          <attvalue for="1" value="001-57635" />
+          <attvalue for="7" value="ECLI:CE:ECHR:1990:0927JUD001253586" />
+          <attvalue for="8" value="[&quot;12535/86&quot;]" />
+          <attvalue for="9" value="judgment" />
+          <attvalue for="10" value="unknown" />
+        </attvalues>
+      </node>
+      <node id="target:ecli:ECLI:CE:ECHR:1991:0319JUD001175585" label="AFFAIRE STOCKÉ c. ALLEMAGNE">
+        <attvalues>
+          <attvalue for="0" value="target" />
+          <attvalue for="6" value="ecli:ECLI:CE:ECHR:1991:0319JUD001175585" />
+          <attvalue for="1" value="001-62229" />
+          <attvalue for="7" value="ECLI:CE:ECHR:1991:0319JUD001175585" />
+          <attvalue for="8" value="[&quot;11755/85&quot;]" />
+          <attvalue for="9" value="judgment" />
+          <attvalue for="10" value="unknown" />
+        </attvalues>
+      </node>
+      <node id="target:ecli:ECLI:CE:ECHR:1991:0524JUD001274487" label="AFFAIRE QUARANTA c. SUISSE">
+        <attvalues>
+          <attvalue for="0" value="target" />
+          <attvalue for="6" value="ecli:ECLI:CE:ECHR:1991:0524JUD001274487" />
+          <attvalue for="1" value="001-62233" />
+          <attvalue for="7" value="ECLI:CE:ECHR:1991:0524JUD001274487" />
+          <attvalue for="8" value="[&quot;12744/87&quot;]" />
+          <attvalue for="9" value="judgment" />
+          <attvalue for="10" value="unknown" />
+        </attvalues>
+      </node>
+      <node id="target:ecli:ECLI:CE:ECHR:1991:0828JUD001117084" label="CASE OF BRANDSTETTER v. AUSTRIA">
+        <attvalues>
+          <attvalue for="0" value="target" />
+          <attvalue for="6" value="ecli:ECLI:CE:ECHR:1991:0828JUD001117084" />
+          <attvalue for="1" value="001-57683" />
+          <attvalue for="7" value="ECLI:CE:ECHR:1991:0828JUD001117084" />
+          <attvalue for="8" value="[&quot;11170/84&quot;, &quot;12876/87&quot;, &quot;13468/87&quot;]" />
+          <attvalue for="9" value="judgment" />
+          <attvalue for="10" value="unknown" />
+        </attvalues>
+      </node>
+      <node id="target:ecli:ECLI:CE:ECHR:1991:1030JUD001316387" label="CASE OF VILVARAJAH AND OTHERS v. THE UNITED KINGDOM">
+        <attvalues>
+          <attvalue for="0" value="target" />
+          <attvalue for="6" value="ecli:ECLI:CE:ECHR:1991:1030JUD001316387" />
+          <attvalue for="1" value="001-57713" />
+          <attvalue for="7" value="ECLI:CE:ECHR:1991:1030JUD001316387" />
+          <attvalue for="8" value="[&quot;13163/87&quot;, &quot;13164/87&quot;, &quot;13165/87&quot;, &quot;13447/87&quot;, &quot;13448/87&quot;]" />
+          <attvalue for="9" value="judgment" />
+          <attvalue for="10" value="unknown" />
+        </attvalues>
+      </node>
+      <node id="target:ecli:ECLI:CE:ECHR:1991:1128JUD001262987" label="CASE OF S. v. SWITZERLAND">
+        <attvalues>
+          <attvalue for="0" value="target" />
+          <attvalue for="6" value="ecli:ECLI:CE:ECHR:1991:1128JUD001262987" />
+          <attvalue for="1" value="001-57709" />
+          <attvalue for="7" value="ECLI:CE:ECHR:1991:1128JUD001262987" />
+          <attvalue for="8" value="[&quot;12629/87&quot;, &quot;13965/88&quot;]" />
+          <attvalue for="9" value="judgment" />
+          <attvalue for="10" value="unknown" />
+        </attvalues>
+      </node>
+      <node id="target:ecli:ECLI:CE:ECHR:1992:0225JUD001080284" label="CASE OF PFEIFER AND PLANKL v. AUSTRIA">
+        <attvalues>
+          <attvalue for="0" value="target" />
+          <attvalue for="6" value="ecli:ECLI:CE:ECHR:1992:0225JUD001080284" />
+          <attvalue for="1" value="001-57753" />
+          <attvalue for="7" value="ECLI:CE:ECHR:1992:0225JUD001080284" />
+          <attvalue for="8" value="[&quot;10802/84&quot;]" />
+          <attvalue for="9" value="judgment" />
+          <attvalue for="10" value="unknown" />
+        </attvalues>
+      </node>
+      <node id="target:ecli:ECLI:CE:ECHR:1992:0626JUD001274787" label="CASE OF DROZD AND JANOUSEK v. FRANCE AND SPAIN">
+        <attvalues>
+          <attvalue for="0" value="target" />
+          <attvalue for="6" value="ecli:ECLI:CE:ECHR:1992:0626JUD001274787" />
+          <attvalue for="1" value="001-57774" />
+          <attvalue for="7" value="ECLI:CE:ECHR:1992:0626JUD001274787" />
+          <attvalue for="8" value="[&quot;12747/87&quot;]" />
+          <attvalue for="9" value="judgment" />
+          <attvalue for="10" value="unknown" />
+        </attvalues>
+      </node>
+      <node id="target:ecli:ECLI:CE:ECHR:1993:0526JUD001455389" label="CASE OF BRANNIGAN AND McBRIDE v. THE UNITED KINGDOM">
+        <attvalues>
+          <attvalue for="0" value="target" />
+          <attvalue for="6" value="ecli:ECLI:CE:ECHR:1993:0526JUD001455389" />
+          <attvalue for="1" value="001-57819" />
+          <attvalue for="7" value="ECLI:CE:ECHR:1993:0526JUD001455389" />
+          <attvalue for="8" value="[&quot;14553/89&quot;, &quot;14554/89&quot;]" />
+          <attvalue for="9" value="judgment" />
+          <attvalue for="10" value="unknown" />
+        </attvalues>
+      </node>
+      <node id="target:ecli:ECLI:CE:ECHR:1993:0921JUD001235086" label="CASE OF KREMZOW v. AUSTRIA">
+        <attvalues>
+          <attvalue for="0" value="target" />
+          <attvalue for="6" value="ecli:ECLI:CE:ECHR:1993:0921JUD001235086" />
+          <attvalue for="1" value="001-57829" />
+          <attvalue for="7" value="ECLI:CE:ECHR:1993:0921JUD001235086" />
+          <attvalue for="8" value="[&quot;12350/86&quot;]" />
+          <attvalue for="9" value="judgment" />
+          <attvalue for="10" value="unknown" />
+        </attvalues>
+      </node>
+      <node id="target:ecli:ECLI:CE:ECHR:1993:1124JUD001397288" label="AFFAIRE IMBRIOSCIA c. SUISSE">
+        <attvalues>
+          <attvalue for="0" value="target" />
+          <attvalue for="6" value="ecli:ECLI:CE:ECHR:1993:1124JUD001397288" />
+          <attvalue for="1" value="001-62409" />
+          <attvalue for="7" value="ECLI:CE:ECHR:1993:1124JUD001397288" />
+          <attvalue for="8" value="[&quot;13972/88&quot;]" />
+          <attvalue for="9" value="judgment" />
+          <attvalue for="10" value="unknown" />
+        </attvalues>
+      </node>
+      <node id="target:ecli:ECLI:CE:ECHR:1994:0905DEC001786491" label="CINAR v. TURKEY">
+        <attvalues>
+          <attvalue for="0" value="target" />
+          <attvalue for="6" value="ecli:ECLI:CE:ECHR:1994:0905DEC001786491" />
+          <attvalue for="1" value="001-86411" />
+          <attvalue for="7" value="ECLI:CE:ECHR:1994:0905DEC001786491" />
+          <attvalue for="8" value="[&quot;17864/91&quot;]" />
+          <attvalue for="9" value="commission" />
+          <attvalue for="10" value="commission_decision" />
+        </attvalues>
+      </node>
+      <node id="target:ecli:ECLI:CE:ECHR:1996:0624DEC002878095" label="RAMIREZ SANCHEZ v. FRANCE">
+        <attvalues>
+          <attvalue for="0" value="target" />
+          <attvalue for="6" value="ecli:ECLI:CE:ECHR:1996:0624DEC002878095" />
+          <attvalue for="1" value="001-82811" />
+          <attvalue for="7" value="ECLI:CE:ECHR:1996:0624DEC002878095" />
+          <attvalue for="8" value="[&quot;28780/95&quot;]" />
+          <attvalue for="9" value="commission" />
+          <attvalue for="10" value="commission_decision" />
+        </attvalues>
+      </node>
+      <node id="target:ecli:ECLI:CE:ECHR:1996:1115JUD002241493" label="CASE OF CHAHAL v. THE UNITED KINGDOM">
+        <attvalues>
+          <attvalue for="0" value="target" />
+          <attvalue for="6" value="ecli:ECLI:CE:ECHR:1996:1115JUD002241493" />
+          <attvalue for="1" value="001-58004" />
+          <attvalue for="7" value="ECLI:CE:ECHR:1996:1115JUD002241493" />
+          <attvalue for="8" value="[&quot;22414/93&quot;]" />
+          <attvalue for="9" value="judgment" />
+          <attvalue for="10" value="unknown" />
+        </attvalues>
+      </node>
+      <node id="target:ecli:ECLI:CE:ECHR:1997:1216JUD002097292" label="CASE OF RANINEN v. FINLAND">
+        <attvalues>
+          <attvalue for="0" value="target" />
+          <attvalue for="6" value="ecli:ECLI:CE:ECHR:1997:1216JUD002097292" />
+          <attvalue for="1" value="001-58123" />
+          <attvalue for="7" value="ECLI:CE:ECHR:1997:1216JUD002097292" />
+          <attvalue for="8" value="[&quot;20972/92&quot;]" />
+          <attvalue for="9" value="judgment" />
+          <attvalue for="10" value="unknown" />
+        </attvalues>
+      </node>
+      <node id="target:ecli:ECLI:CE:ECHR:1998:0609JUD002267893" label="CASE OF INCAL v. TURKEY">
+        <attvalues>
+          <attvalue for="0" value="target" />
+          <attvalue for="6" value="ecli:ECLI:CE:ECHR:1998:0609JUD002267893" />
+          <attvalue for="1" value="001-58197" />
+          <attvalue for="7" value="ECLI:CE:ECHR:1998:0609JUD002267893" />
+          <attvalue for="8" value="[&quot;22678/93&quot;]" />
+          <attvalue for="9" value="judgment" />
+          <attvalue for="10" value="unknown" />
+        </attvalues>
+      </node>
+      <node id="target:ecli:ECLI:CE:ECHR:1998:1028JUD001960192" label="CASE OF ÇIRAKLAR v. TURKEY">
+        <attvalues>
+          <attvalue for="0" value="target" />
+          <attvalue for="6" value="ecli:ECLI:CE:ECHR:1998:1028JUD001960192" />
+          <attvalue for="1" value="001-58253" />
+          <attvalue for="7" value="ECLI:CE:ECHR:1998:1028JUD001960192" />
+          <attvalue for="8" value="[&quot;19601/92&quot;]" />
+          <attvalue for="9" value="judgment" />
+          <attvalue for="10" value="unknown" />
+        </attvalues>
+      </node>
+      <node id="target:ecli:ECLI:CE:ECHR:2003:0128DEC005717500" label="IMREK contre la TURQUIE">
+        <attvalues>
+          <attvalue for="0" value="target" />
+          <attvalue for="6" value="ecli:ECLI:CE:ECHR:2003:0128DEC005717500" />
+          <attvalue for="1" value="001-44051" />
+          <attvalue for="7" value="ECLI:CE:ECHR:2003:0128DEC005717500" />
+          <attvalue for="8" value="[&quot;57175/00&quot;]" />
+          <attvalue for="9" value="decision" />
+          <attvalue for="10" value="admissibility" />
+        </attvalues>
+      </node>
+      <node id="target:ecli:ECLI:CE:ECHR:2003:1211DEC007711301" label="SERTKAYA v. TURKEY">
+        <attvalues>
+          <attvalue for="0" value="target" />
+          <attvalue for="6" value="ecli:ECLI:CE:ECHR:2003:1211DEC007711301" />
+          <attvalue for="1" value="001-23624" />
+          <attvalue for="7" value="ECLI:CE:ECHR:2003:1211DEC007711301" />
+          <attvalue for="8" value="[&quot;77113/01&quot;]" />
+          <attvalue for="9" value="decision" />
+          <attvalue for="10" value="admissibility" />
+        </attvalues>
+      </node>
+    </nodes>
+    <edges>
+      <edge source="source:001-69022:majority" target="target:ecli:ECLI:CE:ECHR:1961:0701JUD000033257" id="0" weight="1.0">
+        <attvalues>
+          <attvalue for="11" value="mcp-citation-edge-0" />
+          <attvalue for="12" value="1" />
+          <attvalue for="13" value="0" />
+          <attvalue for="14" value="0" />
+          <attvalue for="15" value="0" />
+          <attvalue for="16" value="1" />
+          <attvalue for="17" value="[&quot;facts&quot;]" />
+          <attvalue for="18" value="[]" />
+        </attvalues>
+      </edge>
+      <edge source="source:001-69022:majority" target="target:ecli:ECLI:CE:ECHR:1978:0118JUD000531071" id="1" weight="1.0">
+        <attvalues>
+          <attvalue for="11" value="mcp-citation-edge-1" />
+          <attvalue for="12" value="1" />
+          <attvalue for="13" value="1" />
+          <attvalue for="14" value="0" />
+          <attvalue for="15" value="1" />
+          <attvalue for="16" value="0" />
+          <attvalue for="17" value="[&quot;the_law&quot;]" />
+          <attvalue for="18" value="[&quot;162&quot;]" />
+        </attvalues>
+      </edge>
+      <edge source="source:001-69022:majority" target="target:ecli:ECLI:CE:ECHR:1978:0425JUD000585672" id="2" weight="1.0">
+        <attvalues>
+          <attvalue for="11" value="mcp-citation-edge-2" />
+          <attvalue for="12" value="1" />
+          <attvalue for="13" value="1" />
+          <attvalue for="14" value="0" />
+          <attvalue for="15" value="1" />
+          <attvalue for="16" value="0" />
+          <attvalue for="17" value="[&quot;the_law&quot;]" />
+          <attvalue for="18" value="[&quot;32&quot;]" />
+        </attvalues>
+      </edge>
+      <edge source="source:001-69022:majority" target="target:ecli:ECLI:CE:ECHR:1978:0710DEC000800777" id="3" weight="1.0">
+        <attvalues>
+          <attvalue for="11" value="mcp-citation-edge-3" />
+          <attvalue for="12" value="1" />
+          <attvalue for="13" value="0" />
+          <attvalue for="14" value="0" />
+          <attvalue for="15" value="1" />
+          <attvalue for="16" value="0" />
+          <attvalue for="17" value="[&quot;the_law&quot;]" />
+          <attvalue for="18" value="[]" />
+        </attvalues>
+      </edge>
+      <edge source="source:001-69022:majority" target="target:ecli:ECLI:CE:ECHR:1979:1024JUD000630173" id="4" weight="1.0">
+        <attvalues>
+          <attvalue for="11" value="mcp-citation-edge-4" />
+          <attvalue for="12" value="1" />
+          <attvalue for="13" value="1" />
+          <attvalue for="14" value="0" />
+          <attvalue for="15" value="1" />
+          <attvalue for="16" value="0" />
+          <attvalue for="17" value="[&quot;the_law&quot;]" />
+          <attvalue for="18" value="[&quot;60&quot;]" />
+        </attvalues>
+      </edge>
+      <edge source="source:001-69022:majority" target="target:ecli:ECLI:CE:ECHR:1980:0513JUD000669474" id="5" weight="1.0">
+        <attvalues>
+          <attvalue for="11" value="mcp-citation-edge-5" />
+          <attvalue for="12" value="1" />
+          <attvalue for="13" value="1" />
+          <attvalue for="14" value="0" />
+          <attvalue for="15" value="0" />
+          <attvalue for="16" value="1" />
+          <attvalue for="17" value="[&quot;the_law&quot;]" />
+          <attvalue for="18" value="[&quot;33&quot;]" />
+        </attvalues>
+      </edge>
+      <edge source="source:001-69022:majority" target="target:ecli:ECLI:CE:ECHR:1980:1007DEC000891680" id="6" weight="2.0">
+        <attvalues>
+          <attvalue for="11" value="mcp-citation-edge-6" />
+          <attvalue for="12" value="2" />
+          <attvalue for="13" value="0" />
+          <attvalue for="14" value="0" />
+          <attvalue for="15" value="1" />
+          <attvalue for="16" value="1" />
+          <attvalue for="17" value="[&quot;the_law&quot;]" />
+          <attvalue for="18" value="[]" />
+        </attvalues>
+      </edge>
+      <edge source="source:001-69022:majority" target="target:ecli:ECLI:CE:ECHR:1980:1106JUD000653874" id="7" weight="1.0">
+        <attvalues>
+          <attvalue for="11" value="mcp-citation-edge-7" />
+          <attvalue for="12" value="1" />
+          <attvalue for="13" value="1" />
+          <attvalue for="14" value="0" />
+          <attvalue for="15" value="1" />
+          <attvalue for="16" value="0" />
+          <attvalue for="17" value="[&quot;the_law&quot;]" />
+          <attvalue for="18" value="[&quot;23&quot;]" />
+        </attvalues>
+      </edge>
+      <edge source="source:001-69022:majority" target="target:ecli:ECLI:CE:ECHR:1980:1106JUD000765476" id="8" weight="1.0">
+        <attvalues>
+          <attvalue for="11" value="mcp-citation-edge-8" />
+          <attvalue for="12" value="1" />
+          <attvalue for="13" value="1" />
+          <attvalue for="14" value="0" />
+          <attvalue for="15" value="1" />
+          <attvalue for="16" value="0" />
+          <attvalue for="17" value="[&quot;the_law&quot;]" />
+          <attvalue for="18" value="[&quot;36-40&quot;]" />
+        </attvalues>
+      </edge>
+      <edge source="source:001-69022:majority" target="target:ecli:ECLI:CE:ECHR:1982:1001JUD000869279" id="9" weight="1.0">
+        <attvalues>
+          <attvalue for="11" value="mcp-citation-edge-9" />
+          <attvalue for="12" value="1" />
+          <attvalue for="13" value="1" />
+          <attvalue for="14" value="0" />
+          <attvalue for="15" value="1" />
+          <attvalue for="16" value="0" />
+          <attvalue for="17" value="[&quot;the_law&quot;]" />
+          <attvalue for="18" value="[&quot;30&quot;]" />
+        </attvalues>
+      </edge>
+      <edge source="source:001-69022:majority" target="target:ecli:ECLI:CE:ECHR:1983:0210JUD000729975" id="10" weight="1.0">
+        <attvalues>
+          <attvalue for="11" value="mcp-citation-edge-10" />
+          <attvalue for="12" value="1" />
+          <attvalue for="13" value="1" />
+          <attvalue for="14" value="0" />
+          <attvalue for="15" value="1" />
+          <attvalue for="16" value="0" />
+          <attvalue for="17" value="[&quot;the_law&quot;]" />
+          <attvalue for="18" value="[&quot;22&quot;]" />
+        </attvalues>
+      </edge>
+      <edge source="source:001-69022:majority" target="target:ecli:ECLI:CE:ECHR:1984:0704DEC001068983" id="11" weight="1.0">
+        <attvalues>
+          <attvalue for="11" value="mcp-citation-edge-11" />
+          <attvalue for="12" value="1" />
+          <attvalue for="13" value="0" />
+          <attvalue for="14" value="0" />
+          <attvalue for="15" value="1" />
+          <attvalue for="16" value="0" />
+          <attvalue for="17" value="[&quot;the_law&quot;]" />
+          <attvalue for="18" value="[]" />
+        </attvalues>
+      </edge>
+      <edge source="source:001-69022:majority" target="target:ecli:ECLI:CE:ECHR:1986:1218JUD000999082" id="12" weight="4.0">
+        <attvalues>
+          <attvalue for="11" value="mcp-citation-edge-12" />
+          <attvalue for="12" value="4" />
+          <attvalue for="13" value="3" />
+          <attvalue for="14" value="0" />
+          <attvalue for="15" value="4" />
+          <attvalue for="16" value="0" />
+          <attvalue for="17" value="[&quot;the_law&quot;]" />
+          <attvalue for="18" value="[&quot;54&quot;]" />
+        </attvalues>
+      </edge>
+      <edge source="source:001-69022:majority" target="target:ecli:ECLI:CE:ECHR:1987:0302JUD000978782" id="13" weight="1.0">
+        <attvalues>
+          <attvalue for="11" value="mcp-citation-edge-13" />
+          <attvalue for="12" value="1" />
+          <attvalue for="13" value="1" />
+          <attvalue for="14" value="0" />
+          <attvalue for="15" value="1" />
+          <attvalue for="16" value="0" />
+          <attvalue for="17" value="[&quot;the_law&quot;]" />
+          <attvalue for="18" value="[&quot;61&quot;]" />
+        </attvalues>
+      </edge>
+      <edge source="source:001-69022:majority" target="target:ecli:ECLI:CE:ECHR:1988:0229JUD000910680" id="14" weight="1.0">
+        <attvalues>
+          <attvalue for="11" value="mcp-citation-edge-14" />
+          <attvalue for="12" value="1" />
+          <attvalue for="13" value="1" />
+          <attvalue for="14" value="0" />
+          <attvalue for="15" value="1" />
+          <attvalue for="16" value="0" />
+          <attvalue for="17" value="[&quot;the_law&quot;]" />
+          <attvalue for="18" value="[&quot;49&quot;]" />
+        </attvalues>
+      </edge>
+      <edge source="source:001-69022:majority" target="target:ecli:ECLI:CE:ECHR:1988:1129JUD001120984" id="15" weight="4.0">
+        <attvalues>
+          <attvalue for="11" value="mcp-citation-edge-15" />
+          <attvalue for="12" value="4" />
+          <attvalue for="13" value="3" />
+          <attvalue for="14" value="0" />
+          <attvalue for="15" value="4" />
+          <attvalue for="16" value="0" />
+          <attvalue for="17" value="[&quot;the_law&quot;]" />
+          <attvalue for="18" value="[&quot;58&quot;, &quot;61&quot;, &quot;62&quot;]" />
+        </attvalues>
+      </edge>
+      <edge source="source:001-69022:majority" target="target:ecli:ECLI:CE:ECHR:1989:0524JUD001048683" id="16" weight="1.0">
+        <attvalues>
+          <attvalue for="11" value="mcp-citation-edge-16" />
+          <attvalue for="12" value="1" />
+          <attvalue for="13" value="0" />
+          <attvalue for="14" value="0" />
+          <attvalue for="15" value="0" />
+          <attvalue for="16" value="1" />
+          <attvalue for="17" value="[&quot;the_law&quot;]" />
+          <attvalue for="18" value="[]" />
+        </attvalues>
+      </edge>
+      <edge source="source:001-69022:majority" target="target:ecli:ECLI:CE:ECHR:1989:0707JUD001403888" id="17" weight="9.0">
+        <attvalues>
+          <attvalue for="11" value="mcp-citation-edge-17" />
+          <attvalue for="12" value="9" />
+          <attvalue for="13" value="5" />
+          <attvalue for="14" value="0" />
+          <attvalue for="15" value="1" />
+          <attvalue for="16" value="8" />
+          <attvalue for="17" value="[&quot;the_law&quot;]" />
+          <attvalue for="18" value="[&quot;102&quot;, &quot;103&quot;, &quot;104&quot;, &quot;88&quot;, &quot;89&quot;]" />
+        </attvalues>
+      </edge>
+      <edge source="source:001-69022:majority" target="target:ecli:ECLI:CE:ECHR:1989:1002DEC001400988" id="18" weight="1.0">
+        <attvalues>
+          <attvalue for="11" value="mcp-citation-edge-18" />
+          <attvalue for="12" value="1" />
+          <attvalue for="13" value="0" />
+          <attvalue for="14" value="0" />
+          <attvalue for="15" value="1" />
+          <attvalue for="16" value="0" />
+          <attvalue for="17" value="[&quot;the_law&quot;]" />
+          <attvalue for="18" value="[]" />
+        </attvalues>
+      </edge>
+      <edge source="source:001-69022:majority" target="target:ecli:ECLI:CE:ECHR:1989:1219JUD000978382" id="19" weight="4.0">
+        <attvalues>
+          <attvalue for="11" value="mcp-citation-edge-19" />
+          <attvalue for="12" value="4" />
+          <attvalue for="13" value="1" />
+          <attvalue for="14" value="0" />
+          <attvalue for="15" value="4" />
+          <attvalue for="16" value="0" />
+          <attvalue for="17" value="[&quot;the_law&quot;]" />
+          <attvalue for="18" value="[&quot;88&quot;]" />
+        </attvalues>
+      </edge>
+      <edge source="source:001-69022:majority" target="target:ecli:ECLI:CE:ECHR:1990:0927JUD001253586" id="20" weight="1.0">
+        <attvalues>
+          <attvalue for="11" value="mcp-citation-edge-20" />
+          <attvalue for="12" value="1" />
+          <attvalue for="13" value="1" />
+          <attvalue for="14" value="0" />
+          <attvalue for="15" value="1" />
+          <attvalue for="16" value="0" />
+          <attvalue for="17" value="[&quot;the_law&quot;]" />
+          <attvalue for="18" value="[&quot;24&quot;]" />
+        </attvalues>
+      </edge>
+      <edge source="source:001-69022:majority" target="target:ecli:ECLI:CE:ECHR:1991:0319JUD001175585" id="21" weight="2.0">
+        <attvalues>
+          <attvalue for="11" value="mcp-citation-edge-21" />
+          <attvalue for="12" value="2" />
+          <attvalue for="13" value="2" />
+          <attvalue for="14" value="0" />
+          <attvalue for="15" value="1" />
+          <attvalue for="16" value="1" />
+          <attvalue for="17" value="[&quot;the_law&quot;]" />
+          <attvalue for="18" value="[&quot;167&quot;, &quot;54&quot;]" />
+        </attvalues>
+      </edge>
+      <edge source="source:001-69022:majority" target="target:ecli:ECLI:CE:ECHR:1991:0524JUD001274487" id="22" weight="1.0">
+        <attvalues>
+          <attvalue for="11" value="mcp-citation-edge-22" />
+          <attvalue for="12" value="1" />
+          <attvalue for="13" value="1" />
+          <attvalue for="14" value="0" />
+          <attvalue for="15" value="0" />
+          <attvalue for="16" value="1" />
+          <attvalue for="17" value="[&quot;the_law&quot;]" />
+          <attvalue for="18" value="[&quot;30&quot;]" />
+        </attvalues>
+      </edge>
+      <edge source="source:001-69022:majority" target="target:ecli:ECLI:CE:ECHR:1991:0828JUD001117084" id="23" weight="1.0">
+        <attvalues>
+          <attvalue for="11" value="mcp-citation-edge-23" />
+          <attvalue for="12" value="1" />
+          <attvalue for="13" value="1" />
+          <attvalue for="14" value="0" />
+          <attvalue for="15" value="1" />
+          <attvalue for="16" value="0" />
+          <attvalue for="17" value="[&quot;the_law&quot;]" />
+          <attvalue for="18" value="[&quot;66-67&quot;]" />
+        </attvalues>
+      </edge>
+      <edge source="source:001-69022:majority" target="target:ecli:ECLI:CE:ECHR:1991:1128JUD001262987" id="24" weight="1.0">
+        <attvalues>
+          <attvalue for="11" value="mcp-citation-edge-24" />
+          <attvalue for="12" value="1" />
+          <attvalue for="13" value="1" />
+          <attvalue for="14" value="0" />
+          <attvalue for="15" value="0" />
+          <attvalue for="16" value="1" />
+          <attvalue for="17" value="[&quot;the_law&quot;]" />
+          <attvalue for="18" value="[&quot;48&quot;]" />
+        </attvalues>
+      </edge>
+      <edge source="source:001-69022:majority" target="target:ecli:ECLI:CE:ECHR:1992:0225JUD001080284" id="25" weight="1.0">
+        <attvalues>
+          <attvalue for="11" value="mcp-citation-edge-25" />
+          <attvalue for="12" value="1" />
+          <attvalue for="13" value="1" />
+          <attvalue for="14" value="0" />
+          <attvalue for="15" value="1" />
+          <attvalue for="16" value="0" />
+          <attvalue for="17" value="[&quot;the_law&quot;]" />
+          <attvalue for="18" value="[&quot;37&quot;]" />
+        </attvalues>
+      </edge>
+      <edge source="source:001-69022:majority" target="target:ecli:ECLI:CE:ECHR:1992:0626JUD001274787" id="26" weight="2.0">
+        <attvalues>
+          <attvalue for="11" value="mcp-citation-edge-26" />
+          <attvalue for="12" value="2" />
+          <attvalue for="13" value="1" />
+          <attvalue for="14" value="0" />
+          <attvalue for="15" value="2" />
+          <attvalue for="16" value="0" />
+          <attvalue for="17" value="[&quot;the_law&quot;]" />
+          <attvalue for="18" value="[&quot;91&quot;]" />
+        </attvalues>
+      </edge>
+      <edge source="source:001-69022:majority" target="target:ecli:ECLI:CE:ECHR:1993:0526JUD001455389" id="27" weight="1.0">
+        <attvalues>
+          <attvalue for="11" value="mcp-citation-edge-27" />
+          <attvalue for="12" value="1" />
+          <attvalue for="13" value="1" />
+          <attvalue for="14" value="0" />
+          <attvalue for="15" value="1" />
+          <attvalue for="16" value="0" />
+          <attvalue for="17" value="[&quot;the_law&quot;]" />
+          <attvalue for="18" value="[&quot;62-63&quot;]" />
+        </attvalues>
+      </edge>
+      <edge source="source:001-69022:majority" target="target:ecli:ECLI:CE:ECHR:1993:0921JUD001235086" id="28" weight="5.0">
+        <attvalues>
+          <attvalue for="11" value="mcp-citation-edge-28" />
+          <attvalue for="12" value="5" />
+          <attvalue for="13" value="2" />
+          <attvalue for="14" value="0" />
+          <attvalue for="15" value="2" />
+          <attvalue for="16" value="3" />
+          <attvalue for="17" value="[&quot;the_law&quot;]" />
+          <attvalue for="18" value="[&quot;52&quot;, &quot;63&quot;]" />
+        </attvalues>
+      </edge>
+      <edge source="source:001-69022:majority" target="target:ecli:ECLI:CE:ECHR:1993:1124JUD001397288" id="29" weight="2.0">
+        <attvalues>
+          <attvalue for="11" value="mcp-citation-edge-29" />
+          <attvalue for="12" value="2" />
+          <attvalue for="13" value="2" />
+          <attvalue for="14" value="0" />
+          <attvalue for="15" value="0" />
+          <attvalue for="16" value="2" />
+          <attvalue for="17" value="[&quot;the_law&quot;]" />
+          <attvalue for="18" value="[&quot;36&quot;, &quot;38&quot;]" />
+        </attvalues>
+      </edge>
+      <edge source="source:001-69022:majority" target="target:ecli:ECLI:CE:ECHR:1994:0905DEC001786491" id="30" weight="4.0">
+        <attvalues>
+          <attvalue for="11" value="mcp-citation-edge-30" />
+          <attvalue for="12" value="4" />
+          <attvalue for="13" value="0" />
+          <attvalue for="14" value="0" />
+          <attvalue for="15" value="3" />
+          <attvalue for="16" value="1" />
+          <attvalue for="17" value="[&quot;the_law&quot;]" />
+          <attvalue for="18" value="[]" />
+        </attvalues>
+      </edge>
+      <edge source="source:001-69022:majority" target="target:ecli:ECLI:CE:ECHR:1996:0624DEC002878095" id="31" weight="3.0">
+        <attvalues>
+          <attvalue for="11" value="mcp-citation-edge-36" />
+          <attvalue for="12" value="3" />
+          <attvalue for="13" value="0" />
+          <attvalue for="14" value="0" />
+          <attvalue for="15" value="1" />
+          <attvalue for="16" value="2" />
+          <attvalue for="17" value="[&quot;the_law&quot;]" />
+          <attvalue for="18" value="[]" />
+        </attvalues>
+      </edge>
+      <edge source="source:001-69022:majority" target="target:ecli:ECLI:CE:ECHR:1996:1115JUD002241493" id="32" weight="2.0">
+        <attvalues>
+          <attvalue for="11" value="mcp-citation-edge-37" />
+          <attvalue for="12" value="2" />
+          <attvalue for="13" value="2" />
+          <attvalue for="14" value="0" />
+          <attvalue for="15" value="2" />
+          <attvalue for="16" value="0" />
+          <attvalue for="17" value="[&quot;the_law&quot;]" />
+          <attvalue for="18" value="[&quot;79&quot;, &quot;86&quot;]" />
+        </attvalues>
+      </edge>
+      <edge source="source:001-69022:majority" target="target:ecli:ECLI:CE:ECHR:1997:1216JUD002097292" id="33" weight="2.0">
+        <attvalues>
+          <attvalue for="11" value="mcp-citation-edge-40" />
+          <attvalue for="12" value="2" />
+          <attvalue for="13" value="2" />
+          <attvalue for="14" value="0" />
+          <attvalue for="15" value="2" />
+          <attvalue for="16" value="0" />
+          <attvalue for="17" value="[&quot;the_law&quot;]" />
+          <attvalue for="18" value="[&quot;55&quot;, &quot;56&quot;]" />
+        </attvalues>
+      </edge>
+      <edge source="source:001-69022:majority" target="target:ecli:ECLI:CE:ECHR:1998:0609JUD002267893" id="34" weight="3.0">
+        <attvalues>
+          <attvalue for="11" value="mcp-citation-edge-42" />
+          <attvalue for="12" value="3" />
+          <attvalue for="13" value="2" />
+          <attvalue for="14" value="0" />
+          <attvalue for="15" value="3" />
+          <attvalue for="16" value="0" />
+          <attvalue for="17" value="[&quot;the_law&quot;]" />
+          <attvalue for="18" value="[&quot;68&quot;, &quot;72&quot;]" />
+        </attvalues>
+      </edge>
+      <edge source="source:001-69022:majority" target="target:ecli:ECLI:CE:ECHR:1998:1028JUD001960192" id="35" weight="2.0">
+        <attvalues>
+          <attvalue for="11" value="mcp-citation-edge-43" />
+          <attvalue for="12" value="2" />
+          <attvalue for="13" value="1" />
+          <attvalue for="14" value="0" />
+          <attvalue for="15" value="2" />
+          <attvalue for="16" value="0" />
+          <attvalue for="17" value="[&quot;the_law&quot;]" />
+          <attvalue for="18" value="[&quot;39&quot;]" />
+        </attvalues>
+      </edge>
+      <edge source="source:001-69022:majority" target="target:ecli:ECLI:CE:ECHR:2003:0128DEC005717500" id="36" weight="2.0">
+        <attvalues>
+          <attvalue for="11" value="mcp-citation-edge-62" />
+          <attvalue for="12" value="2" />
+          <attvalue for="13" value="0" />
+          <attvalue for="14" value="0" />
+          <attvalue for="15" value="2" />
+          <attvalue for="16" value="0" />
+          <attvalue for="17" value="[&quot;the_law&quot;]" />
+          <attvalue for="18" value="[]" />
+        </attvalues>
+      </edge>
+      <edge source="source:001-69022:majority" target="target:ecli:ECLI:CE:ECHR:2003:1211DEC007711301" id="37" weight="2.0">
+        <attvalues>
+          <attvalue for="11" value="mcp-citation-edge-68" />
+          <attvalue for="12" value="2" />
+          <attvalue for="13" value="0" />
+          <attvalue for="14" value="0" />
+          <attvalue for="15" value="2" />
+          <attvalue for="16" value="0" />
+          <attvalue for="17" value="[&quot;the_law&quot;]" />
+          <attvalue for="18" value="[]" />
+        </attvalues>
+      </edge>
+      <edge source="source:001-69022:opinion:001-69022:opinion:3b90cc9f5956f9c05591" target="target:ecli:ECLI:CE:ECHR:1982:0225JUD000751176" id="38" weight="1.0">
+        <attvalues>
+          <attvalue for="11" value="mcp-citation-edge-74" />
+          <attvalue for="12" value="1" />
+          <attvalue for="13" value="1" />
+          <attvalue for="14" value="0" />
+          <attvalue for="15" value="0" />
+          <attvalue for="16" value="1" />
+          <attvalue for="17" value="[&quot;separate_opinion&quot;]" />
+          <attvalue for="18" value="[&quot;26&quot;]" />
+        </attvalues>
+      </edge>
+      <edge source="source:001-69022:opinion:001-69022:opinion:3b90cc9f5956f9c05591" target="target:ecli:ECLI:CE:ECHR:1989:0707JUD001403888" id="39" weight="2.0">
+        <attvalues>
+          <attvalue for="11" value="mcp-citation-edge-75" />
+          <attvalue for="12" value="2" />
+          <attvalue for="13" value="1" />
+          <attvalue for="14" value="0" />
+          <attvalue for="15" value="1" />
+          <attvalue for="16" value="1" />
+          <attvalue for="17" value="[&quot;separate_opinion&quot;]" />
+          <attvalue for="18" value="[&quot;111&quot;]" />
+        </attvalues>
+      </edge>
+      <edge source="source:001-69022:opinion:001-69022:opinion:3b90cc9f5956f9c05591" target="target:ecli:ECLI:CE:ECHR:1991:1030JUD001316387" id="40" weight="1.0">
+        <attvalues>
+          <attvalue for="11" value="mcp-citation-edge-76" />
+          <attvalue for="12" value="1" />
+          <attvalue for="13" value="1" />
+          <attvalue for="14" value="0" />
+          <attvalue for="15" value="0" />
+          <attvalue for="16" value="1" />
+          <attvalue for="17" value="[&quot;separate_opinion&quot;]" />
+          <attvalue for="18" value="[&quot;111&quot;]" />
+        </attvalues>
+      </edge>
+      <edge source="source:001-69022:opinion:001-69022:opinion:3b90cc9f5956f9c05591" target="target:ecli:ECLI:CE:ECHR:1994:0905DEC001786491" id="41" weight="2.0">
+        <attvalues>
+          <attvalue for="11" value="mcp-citation-edge-77" />
+          <attvalue for="12" value="2" />
+          <attvalue for="13" value="0" />
+          <attvalue for="14" value="0" />
+          <attvalue for="15" value="1" />
+          <attvalue for="16" value="1" />
+          <attvalue for="17" value="[&quot;separate_opinion&quot;]" />
+          <attvalue for="18" value="[]" />
+        </attvalues>
+      </edge>
+      <edge source="source:001-69022:opinion:001-69022:opinion:3b90cc9f5956f9c05591" target="target:ecli:ECLI:CE:ECHR:1998:0609JUD002267893" id="42" weight="1.0">
+        <attvalues>
+          <attvalue for="11" value="mcp-citation-edge-78" />
+          <attvalue for="12" value="1" />
+          <attvalue for="13" value="1" />
+          <attvalue for="14" value="0" />
+          <attvalue for="15" value="1" />
+          <attvalue for="16" value="0" />
+          <attvalue for="17" value="[&quot;separate_opinion&quot;]" />
+          <attvalue for="18" value="[&quot;71&quot;]" />
+        </attvalues>
+      </edge>
+      <edge source="source:001-69022:opinion:001-69022:opinion:3b90cc9f5956f9c05591" target="target:ecli:ECLI:CE:ECHR:1998:1028JUD001960192" id="43" weight="1.0">
+        <attvalues>
+          <attvalue for="11" value="mcp-citation-edge-79" />
+          <attvalue for="12" value="1" />
+          <attvalue for="13" value="1" />
+          <attvalue for="14" value="0" />
+          <attvalue for="15" value="1" />
+          <attvalue for="16" value="0" />
+          <attvalue for="17" value="[&quot;separate_opinion&quot;]" />
+          <attvalue for="18" value="[&quot;38&quot;, &quot;40&quot;]" />
+        </attvalues>
+      </edge>
+      <edge source="source:001-69022:opinion:001-69022:opinion:49d8e01042a3c1cf4946" target="target:ecli:ECLI:CE:ECHR:1989:0707JUD001403888" id="44" weight="7.0">
+        <attvalues>
+          <attvalue for="11" value="mcp-citation-edge-81" />
+          <attvalue for="12" value="7" />
+          <attvalue for="13" value="1" />
+          <attvalue for="14" value="0" />
+          <attvalue for="15" value="1" />
+          <attvalue for="16" value="6" />
+          <attvalue for="17" value="[&quot;separate_opinion&quot;]" />
+          <attvalue for="18" value="[&quot;164-65&quot;]" />
+        </attvalues>
+      </edge>
+      <edge source="source:001-69022:opinion:001-69022:opinion:5e12b1cb058381c012f9" target="target:ecli:ECLI:CE:ECHR:1998:0609JUD002267893" id="45" weight="6.0">
+        <attvalues>
+          <attvalue for="11" value="mcp-citation-edge-82" />
+          <attvalue for="12" value="6" />
+          <attvalue for="13" value="1" />
+          <attvalue for="14" value="0" />
+          <attvalue for="15" value="6" />
+          <attvalue for="16" value="0" />
+          <attvalue for="17" value="[&quot;separate_opinion&quot;]" />
+          <attvalue for="18" value="[&quot;116&quot;]" />
+        </attvalues>
+      </edge>
+      <edge source="source:001-69022:opinion:001-69022:opinion:5e12b1cb058381c012f9" target="target:ecli:ECLI:CE:ECHR:2003:0128DEC005717500" id="46" weight="1.0">
+        <attvalues>
+          <attvalue for="11" value="mcp-citation-edge-84" />
+          <attvalue for="12" value="1" />
+          <attvalue for="13" value="0" />
+          <attvalue for="14" value="0" />
+          <attvalue for="15" value="1" />
+          <attvalue for="16" value="0" />
+          <attvalue for="17" value="[&quot;separate_opinion&quot;]" />
+          <attvalue for="18" value="[]" />
+        </attvalues>
+      </edge>
+    </edges>
+  </graph>
+</gexf>

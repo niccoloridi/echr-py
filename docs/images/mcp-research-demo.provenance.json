@@ -1,0 +1,59 @@
+{
+  "schema_version": "echr-py-mcp-research-demo/v1",
+  "created_at": "2026-07-22T20:16:43.994467+00:00",
+  "live_public_hudoc_request": true,
+  "package_version": "0.2.0",
+  "script_sha256_at_generation": "d5a59bf3566b9afde3df57a0fa249a197beff22992854a8e2142eafe6d750553",
+  "current_reproducer_sha256": "d6d9000f9591aacd01230c0031620be70aaed07a1d835b4b70293c6ff5542fd5",
+  "server": "echr-py",
+  "tool_count_at_generation": 15,
+  "selected_itemid": "001-69022",
+  "selected_title": "CASE OF ÖCALAN v. TURKEY",
+  "tool_calls": [
+    {
+      "name": "search_cases",
+      "arguments": {
+        "ecli": "ECLI:CE:ECHR:2005:0512JUD004622199",
+        "sort": "date-desc",
+        "limit": 10
+      },
+      "elapsed_seconds": 0.21042283400311135
+    },
+    {
+      "name": "get_case_segments",
+      "arguments": {
+        "itemid": "001-69022",
+        "sections": [
+          "the_law",
+          "separate_opinion"
+        ],
+        "include_spine": true
+      },
+      "elapsed_seconds": 1.141724916989915
+    },
+    {
+      "name": "get_case_citations",
+      "arguments": {
+        "itemid": "001-69022",
+        "max_refs": 200,
+        "resolve": true,
+        "include_occurrences": true,
+        "citation_scope": "inclusive"
+      },
+      "elapsed_seconds": 27.66461983299814
+    }
+  ],
+  "results": {
+    "spine_blocks": 553,
+    "opinions": 3,
+    "bench_members": 17,
+    "citation_occurrences": 139,
+    "resolved_mentions": 140,
+    "target_documents": 78,
+    "majority_occurrences": 115,
+    "opinion_occurrences": 24,
+    "pinpoint_occurrences": 79,
+    "total_elapsed_seconds": 29.016767583991168
+  },
+  "gif_sha256": "33c8c916caf7deac9e314a94d1df5f92e4a4303f79065ba069e4c06143f984ab"
+}

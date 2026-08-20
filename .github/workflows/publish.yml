@@ -1,0 +1,218 @@
+name: Publish trusted release
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      target:
+        description: Build-only or trusted-publishing target
+        type: choice
+        options: [artifact, testpypi, pypi]
+        default: artifact
+        required: true
+
+permissions:
+  contents: read
+
+env:
+  # This commit contains the independently audited gate and package manifests.
+  # The release commit changes only this workflow to pin that immutable baseline.
+  TRUSTED_GATE_REVISION: 6d3db39366717573d89b6f8680aac8b19eb78b7d
+
+jobs:
+  source-verification:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 2
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.14"
+          cache: pip
+      - run: python -m pip install --upgrade pip
+      - run: python -m pip install -e ".[all,dev]"
+      - run: ruff check .
+      - run: mypy hudoc_py
+      - run: pytest -q
+
+  gemini-canary:
+    if: >-
+      github.event.repository.private == false &&
+      (github.event_name == 'release' ||
+      (github.event_name == 'workflow_dispatch' && inputs.target != 'artifact'))
+    runs-on: ubuntu-latest
+    needs: source-verification
+    environment: release-canaries
+    env:
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      CANARY_MODEL: ${{ vars.GEMINI_CANARY_MODEL }}
+      CANARY_INPUT_PRICE: ${{ vars.GEMINI_CANARY_INPUT_PER_MILLION }}
+      CANARY_OUTPUT_PRICE: ${{ vars.GEMINI_CANARY_OUTPUT_PER_MILLION }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.13"
+          cache: pip
+      - run: python -m pip install --upgrade pip
+      - run: python -m pip install ".[research-agent,llm]"
+      - name: Require explicit canary configuration
+        run: test -n "$GEMINI_API_KEY" && test -n "$CANARY_MODEL" && test -n "$CANARY_INPUT_PRICE" && test -n "$CANARY_OUTPUT_PRICE"
+      - run: >-
+          python scripts/live_study_canary.py --provider gemini --mode realtime
+          --model "$CANARY_MODEL" --input-per-million "$CANARY_INPUT_PRICE"
+          --output-per-million "$CANARY_OUTPUT_PRICE" --out /tmp/gemini-realtime
+      - run: >-
+          python scripts/live_study_canary.py --provider gemini --mode batch
+          --model "$CANARY_MODEL" --input-per-million "$CANARY_INPUT_PRICE"
+          --output-per-million "$CANARY_OUTPUT_PRICE" --out /tmp/gemini-batch
+
+  openai-canary:
+    if: >-
+      github.event.repository.private == false &&
+      (github.event_name == 'release' ||
+      (github.event_name == 'workflow_dispatch' && inputs.target != 'artifact'))
+    runs-on: ubuntu-latest
+    needs: source-verification
+    environment: release-canaries
+    env:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      CANARY_MODEL: ${{ vars.OPENAI_CANARY_MODEL }}
+      CANARY_INPUT_PRICE: ${{ vars.OPENAI_CANARY_INPUT_PER_MILLION }}
+      CANARY_OUTPUT_PRICE: ${{ vars.OPENAI_CANARY_OUTPUT_PER_MILLION }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.13"
+          cache: pip
+      - run: python -m pip install --upgrade pip
+      - run: python -m pip install ".[research-agent,llm-openai]"
+      - name: Require explicit canary configuration
+        run: test -n "$OPENAI_API_KEY" && test -n "$CANARY_MODEL" && test -n "$CANARY_INPUT_PRICE" && test -n "$CANARY_OUTPUT_PRICE"
+      - run: >-
+          python scripts/live_study_canary.py --provider openai --mode realtime
+          --model "$CANARY_MODEL" --input-per-million "$CANARY_INPUT_PRICE"
+          --output-per-million "$CANARY_OUTPUT_PRICE" --out /tmp/openai-realtime
+      - run: >-
+          python scripts/live_study_canary.py --provider openai --mode batch
+          --model "$CANARY_MODEL" --input-per-million "$CANARY_INPUT_PRICE"
+          --output-per-million "$CANARY_OUTPUT_PRICE" --out /tmp/openai-batch
+
+  build:
+    needs: [source-verification, gemini-canary, openai-canary]
+    if: >-
+      always() &&
+      !contains(needs.*.result, 'failure') &&
+      !contains(needs.*.result, 'cancelled')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.14"
+      - name: Install the checksummed build toolchain
+        run: python -m pip install --require-hashes -r release-requirements.txt
+      - name: Load the independently pinned release gate
+        run: |
+          git fetch --no-tags origin trusted-release-gate-v2
+          test "$(git rev-parse FETCH_HEAD)" = "$TRUSTED_GATE_REVISION"
+          mkdir -p /tmp/echr-release-gate/scripts
+          for path in \
+            scripts/check_sdist.py \
+            scripts/check_wheel.py \
+            scripts/public_package_files.txt \
+            scripts/public_payload_hashes.json \
+            scripts/verify_release.py
+          do
+            git show "$TRUSTED_GATE_REVISION:$path" > "/tmp/echr-release-gate/$path"
+          done
+      - name: Validate a publication ref before building
+        env:
+          RELEASE_EVENT_TAG: ${{ github.event.release.tag_name }}
+        run: >-
+          python /tmp/echr-release-gate/scripts/verify_release.py
+          --event-tag "$RELEASE_EVENT_TAG"
+          ${{ (github.event_name == 'release' || inputs.target == 'pypi') && '--require-tag' || '' }}
+      - run: python -m build --no-isolation
+      - name: Verify artifact versions
+        env:
+          RELEASE_EVENT_TAG: ${{ github.event.release.tag_name }}
+        run: >-
+          python /tmp/echr-release-gate/scripts/verify_release.py
+          --event-tag "$RELEASE_EVENT_TAG"
+          ${{ (github.event_name == 'release' || inputs.target == 'pypi') && '--require-tag' || '' }}
+          dist/echr_py-*.whl dist/echr_py-*.tar.gz
+      - name: Enforce the public boundary in both distributions
+        run: |
+          python /tmp/echr-release-gate/scripts/check_sdist.py dist/echr_py-*.tar.gz
+          python /tmp/echr-release-gate/scripts/check_wheel.py dist/echr_py-*.whl
+      - name: Verify wheel in an isolated environment
+        run: |
+          python -m venv /tmp/hudoc-release-check
+          /tmp/hudoc-release-check/bin/python -m pip install dist/echr_py-*.whl
+          cd /tmp
+          /tmp/hudoc-release-check/bin/python -c \
+            "import hudoc_py; from importlib.metadata import version; assert hudoc_py.__version__ == version('echr-py')"
+          /tmp/hudoc-release-check/bin/echr-py --version
+      - if: github.event.repository.private == false
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: "dist/*"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: python-package-distributions
+          path: dist/
+
+  publish-pypi:
+    if: >-
+      github.event.repository.private == false &&
+      (github.event_name == 'release' || inputs.target == 'pypi')
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/echr-py
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: python-package-distributions
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # release/v1
+
+  publish-testpypi:
+    if: >-
+      github.event.repository.private == false &&
+      github.event_name == 'workflow_dispatch' &&
+      inputs.target == 'testpypi'
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: testpypi
+      url: https://test.pypi.org/p/echr-py
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: python-package-distributions
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/

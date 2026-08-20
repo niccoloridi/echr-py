@@ -1,0 +1,54 @@
+{
+  "schema_version": "echr-py-published-benchmark/v2",
+  "run_date": "2026-08-20",
+  "echr_py_version": "0.2.0",
+  "reference": {
+    "name": "Mumford curated human annotations",
+    "repository": "https://github.com/jamumford/ECHR-citation-context-v1",
+    "revision": "166b15c31276bfa8c8775e7e7def575e916aced7",
+    "license": "CC0-1.0",
+    "archive_sha256": "665c7606baa0ff3c37ff193daee362b83733b832ea0d957d65f5aca74a1e444e"
+  },
+  "scope": {
+    "documents": 115,
+    "curated_annotations": 5481,
+    "mode": "deterministic strong-envelope discovery over the source text bundled with the curated annotations",
+    "excluded": [
+      "HUDOC SCL-derived local gazetteers",
+      "live or cached HUDOC target resolution",
+      "optional LLM citation-use labels"
+    ]
+  },
+  "results": {
+    "local_preliminary_occurrences": 3060,
+    "historical_identity_context_proxy": {
+      "matched_annotations_with_occurrence_reuse": 4286,
+      "ambiguous_annotations": 771,
+      "unmatched_annotations": 424,
+      "rate": 0.7819740923189199,
+      "one_to_one": false,
+      "strict_source_span_metric": false
+    },
+    "one_to_one_occurrence_alignment": {
+      "aligned": 2684,
+      "ambiguous_abstentions": 2004,
+      "unmatched": 793,
+      "total_recall": 0.4896916621054552,
+      "strict_source_span": 2626,
+      "strict_source_span_recall": 0.47910965152344465,
+      "normalized_identity_context_only": 58,
+      "normalized_identity_context_only_recall": 0.010582010582010581
+    },
+    "one_to_one_rerun_required": false,
+    "aligned_occurrences_with_printed_pinpoint_labels": 2253
+  },
+  "interpretation": [
+    "This is a deliberately incomplete text-only baseline, not the full inclusive echr-py pipeline.",
+    "The historical 78.2% figure is a normalized identity/context annotation-alignment proxy that allowed one local occurrence to support more than one curated annotation; it is not strict one-to-one occurrence recall.",
+    "The identity-gated v2 run aligns 49.0% of selective annotations one-to-one; 47.9 percentage points are strict source-span matches and 1.1 points are identity/context-only matches.",
+    "A further 36.6% are retained as ambiguous abstentions rather than being reused or forced onto one printed occurrence.",
+    "The annotations are not exhaustive negatives, so this run does not estimate precision.",
+    "No target documents were resolved in this text-only pass; printed pinpoint parsing is not target-paragraph mapping.",
+    "Mumford treatment labels were not predicted, so no treatment F1 or agreement score is reported."
+  ]
+}

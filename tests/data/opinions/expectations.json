@@ -1,0 +1,185 @@
+[
+  {
+    "itemid": "synthetic-en-single",
+    "file": "synthetic-en-single.txt",
+    "language": "ENG",
+    "doctype": "HEJUD",
+    "doctype_branch": "GRANDCHAMBER",
+    "text_chars": 454,
+    "separate_opinion_chars": 141,
+    "opinions": [
+      {
+        "opinion_type": "dissenting",
+        "authors": ["VILLIGER", "MAHONEY", "SILVIS"],
+        "joined_by": [],
+        "joint": true,
+        "text_chars": 141,
+        "body_chars": 76
+      }
+    ]
+  },
+  {
+    "itemid": "synthetic-en-multi",
+    "file": "synthetic-en-multi.txt",
+    "language": "ENG",
+    "doctype": "HEJUD",
+    "doctype_branch": "GRANDCHAMBER",
+    "text_chars": 963,
+    "separate_opinion_chars": 670,
+    "opinions": [
+      {
+        "opinion_type": "partly_concurring",
+        "authors": ["LEMMENS", "VEHABOVIĆ", "BOŠNJAK"],
+        "joined_by": [],
+        "joint": true,
+        "text_chars": 151,
+        "body_chars": 77
+      },
+      {
+        "opinion_type": "partly_concurring_partly_dissenting",
+        "authors": ["PINTO DE ALBUQUERQUE"],
+        "joined_by": [],
+        "joint": false,
+        "text_chars": 137,
+        "body_chars": 58
+      },
+      {
+        "opinion_type": "partly_dissenting",
+        "authors": ["BONELLO"],
+        "joined_by": ["MARUSTE"],
+        "joint": true,
+        "text_chars": 142,
+        "body_chars": 74
+      },
+      {
+        "opinion_type": "partly_dissenting",
+        "authors": ["FISCHBACH"],
+        "joined_by": ["KŪRIS", "CASADEVALL"],
+        "joint": true,
+        "text_chars": 126,
+        "body_chars": 42
+      },
+      {
+        "opinion_type": "declaration",
+        "authors": ["BOTOUCHAROVA"],
+        "joined_by": [],
+        "joint": false,
+        "text_chars": 106,
+        "body_chars": 71
+      }
+    ]
+  },
+  {
+    "itemid": "synthetic-en-comma-form",
+    "file": "synthetic-en-comma-form.txt",
+    "language": "ENG",
+    "doctype": "HEJUD",
+    "doctype_branch": "GRANDCHAMBER",
+    "text_chars": 654,
+    "separate_opinion_chars": 455,
+    "opinions": [
+      {
+        "opinion_type": "partly_concurring_partly_dissenting",
+        "authors": ["GARLICKI"],
+        "joined_by": [],
+        "joint": false,
+        "text_chars": 142,
+        "body_chars": 78
+      },
+      {
+        "opinion_type": "partly_dissenting",
+        "authors": ["WILDHABER", "COSTA", "CAFLISCH", "TÜRMEN", "GARLICKI", "BORREGO BORREGO"],
+        "joined_by": [],
+        "joint": true,
+        "text_chars": 181,
+        "body_chars": 73
+      },
+      {
+        "opinion_type": "partly_dissenting",
+        "authors": ["COSTA", "CAFLISCH", "TÜRMEN", "BORREGO BORREGO"],
+        "joined_by": [],
+        "joint": true,
+        "text_chars": 128,
+        "body_chars": 41
+      }
+    ]
+  },
+  {
+    "itemid": "synthetic-fr-multi",
+    "file": "synthetic-fr-multi.txt",
+    "language": "FRE",
+    "doctype": "HFJUD",
+    "doctype_branch": "CHAMBER",
+    "text_chars": 823,
+    "separate_opinion_chars": 608,
+    "opinions": [
+      {
+        "opinion_type": "dissenting",
+        "authors": ["MATSCHER"],
+        "joined_by": ["BINDSCHEDLER-ROBERT", "GÖLCÜKLÜ"],
+        "joint": true,
+        "text_chars": 184,
+        "body_chars": 80
+      },
+      {
+        "opinion_type": "concurring",
+        "authors": ["WALSH", "RUSSO", "SPIELMANN", "DE MEYER", "LOIZOU", "BIGI"],
+        "joined_by": [],
+        "joint": true,
+        "text_chars": 141,
+        "body_chars": 46
+      },
+      {
+        "opinion_type": "dissenting",
+        "authors": ["PALM"],
+        "joined_by": ["THÓR VILHJÁLMSSON", "BERNHARDT", "MARTENS", "PEKKANEN"],
+        "joint": true,
+        "text_chars": 158,
+        "body_chars": 41
+      },
+      {
+        "opinion_type": "dissenting",
+        "authors": ["MORENILLA"],
+        "joined_by": [],
+        "joint": false,
+        "text_chars": 119,
+        "body_chars": 75
+      }
+    ]
+  },
+  {
+    "itemid": "synthetic-fr-partly",
+    "file": "synthetic-fr-partly.txt",
+    "language": "FRE",
+    "doctype": "HFJUD",
+    "doctype_branch": "GRANDCHAMBER",
+    "text_chars": 665,
+    "separate_opinion_chars": 450,
+    "opinions": [
+      {
+        "opinion_type": "partly_concurring_partly_dissenting",
+        "authors": ["GARLICKI"],
+        "joined_by": [],
+        "joint": false,
+        "text_chars": 133,
+        "body_chars": 47
+      },
+      {
+        "opinion_type": "partly_dissenting",
+        "authors": ["WILDHABER", "COSTA", "CAFLISCH", "TÜRMEN", "GARLICKI", "BORREGO BORREGO"],
+        "joined_by": [],
+        "joint": true,
+        "text_chars": 163,
+        "body_chars": 42
+      },
+      {
+        "opinion_type": "partly_dissenting",
+        "authors": ["COSTA", "CAFLISCH", "TÜRMEN", "BORREGO BORREGO"],
+        "joined_by": [],
+        "joint": true,
+        "text_chars": 150,
+        "body_chars": 49
+      }
+    ]
+  }
+]

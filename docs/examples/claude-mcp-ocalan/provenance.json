@@ -1,0 +1,105 @@
+{
+  "schema_version": "echr-py-claude-mcp-demo/v1",
+  "created_at": "2026-07-22T21:02:05.374374+00:00",
+  "orchestration": "claude-code-model-driven",
+  "reasoning_model": "claude-sonnet-5",
+  "auxiliary_models_reported_by_claude_code": [
+    "claude-haiku-4-5-20251001"
+  ],
+  "package_version_at_export": "0.2.0",
+  "source_stream_sha256": "47a5b8af8a76d25d538f85bc3cabefe2f883cd8df99dc46aaf33651ef906a8bc",
+  "source_stream_retained": false,
+  "source_stream_retention_note": "The raw Claude protocol stream is not tracked because it duplicates large public tool payloads. This record retains its checksum, calls, model usage, final response, and graph artifacts.",
+  "tool_calls": [
+    {
+      "name": "mcp__echr-py__search_cases",
+      "arguments": {
+        "ecli": "ECLI:CE:ECHR:2005:0512JUD004622199"
+      }
+    },
+    {
+      "name": "mcp__echr-py__get_case_segments",
+      "arguments": {
+        "itemid": "001-69022",
+        "sections": [
+          "the_law",
+          "separate_opinion"
+        ],
+        "include_text": false,
+        "include_spine": false
+      }
+    },
+    {
+      "name": "mcp__echr-py__get_case_citation_network",
+      "arguments": {
+        "itemid": "001-69022",
+        "max_refs": 200,
+        "citation_scope": "inclusive",
+        "top_targets": 40
+      }
+    }
+  ],
+  "result": {
+    "status": "success",
+    "duration_ms": 53322,
+    "reported_cost_usd": 0.2652875,
+    "model_usage": {
+      "claude-haiku-4-5-20251001": {
+        "inputTokens": 780,
+        "outputTokens": 25,
+        "cacheReadInputTokens": 0,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 0.000905,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000
+      },
+      "claude-sonnet-5": {
+        "inputTokens": 8,
+        "outputTokens": 2355,
+        "cacheReadInputTokens": 52245,
+        "cacheCreationInputTokens": 35560,
+        "webSearchRequests": 0,
+        "costUSD": 0.2643825,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 64000
+      }
+    }
+  },
+  "network_summary": {
+    "mentions": 146,
+    "resolved_mentions": 140,
+    "target_documents": 78,
+    "occurrences": 139,
+    "majority_occurrences": 115,
+    "opinion_occurrences": 24,
+    "appendix_occurrences": 0,
+    "pinpoint_occurrences": 79,
+    "text_only_occurrences": 49,
+    "unresolved_occurrences": 4,
+    "included_target_nodes": 40,
+    "included_aggregate_edges": 47
+  },
+  "artifacts": {
+    "gif": {
+      "path": "docs/images/claude-mcp-network-demo.gif",
+      "sha256": "6081f533d7471dc59ee34f66c03b32ff5793c99e6d2d94f0ab437824b71a47b0"
+    },
+    "final_response": {
+      "path": "docs/examples/claude-mcp-ocalan/claude-result.json",
+      "sha256": "6ba6e2ef2171539b7319d0316ff0e6b4ebbf825a757b57e5c5d0dfb687eb27fd"
+    },
+    "json": {
+      "path": "docs/examples/claude-mcp-ocalan/ocalan-citation-network.json",
+      "sha256": "10b1bc38d25c9729cb7982cf3419c0f9c6db2b6cba76bb077aee3eea54f223d0"
+    },
+    "gexf": {
+      "path": "docs/examples/claude-mcp-ocalan/ocalan-citation-network.gexf",
+      "sha256": "aa3af9ed3c20b7a5308b699f2c230b24d1ef481be39b8ea44893907216cc3253"
+    },
+    "html": {
+      "path": "docs/examples/claude-mcp-ocalan/ocalan-citation-network.html",
+      "sha256": "d2b7f47949d35767dbac0edf46a6fc30323c9a2b219cc2bf3945824ce24228a3"
+    }
+  }
+}

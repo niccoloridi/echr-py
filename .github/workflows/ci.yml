@@ -1,0 +1,183 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  compatibility:
+    name: Python ${{ matrix.python-version }} compatibility
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      - run: python -m pip install --upgrade pip
+      # Citation graph integration uses NetworkX and the shared analysis extra.
+      - run: python -m pip install -e ".[analysis,dev]"
+      - run: pytest -q
+
+  quality-and-all-extras:
+    name: Python 3.14 quality and all extras
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.14"
+          cache: pip
+      - run: python -m pip install --upgrade pip
+      - run: python -m pip install -e ".[all,dev]"
+      - run: ruff check .
+      - run: mypy hudoc_py
+      - run: pytest -q
+
+  capability-extras:
+    name: ${{ matrix.extra }} capability
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        extra: [research-agent, embeddings, llm-anthropic]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.13"
+          cache: pip
+      - run: python -m pip install --upgrade pip
+      - run: python -m pip install -e ".[${{ matrix.extra }},dev]"
+      - run: python -c "import hudoc_py.retrieval, hudoc_py.studies; from hudoc_py.llm import AnthropicProvider"
+
+  minimum-provider-versions:
+    name: Minimum provider and MCP versions
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: python -m pip install --upgrade pip
+      - run: >-
+          python -m pip install -e ".[llm,llm-openai,mcp,citations,research-agent,dev]"
+          "aiohttp==3.14.3" "google-genai==1.0.0" "openai==1.55.3"
+          "mcp==1.29.0" "pypdf==6.15.0"
+      - name: Verify APIs required by the advertised minimums
+        run: |
+          python - <<'PY'
+          from google import genai
+          from mcp.server.fastmcp import FastMCP
+          from openai import OpenAI
+          from pypdf import PdfReader
+
+          gemini = genai.Client(api_key="minimum-version-smoke-test")
+          openai = OpenAI(api_key="minimum-version-smoke-test")
+          assert callable(gemini.files.download)
+          assert callable(gemini.batches.create)
+          assert callable(openai.batches.create)
+          assert FastMCP and PdfReader
+          PY
+      - run: pytest -q tests/test_llm.py tests/test_llm_providers.py tests/test_study_batch.py tests/test_mcp.py
+
+  minimum-core-versions:
+    name: Minimum core and analysis versions
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: python -m pip install --upgrade pip
+      - run: >-
+          python -m pip install -e ".[analysis,citations,research-agent,embeddings,dev]"
+          "aiohttp==3.14.3" "beautifulsoup4==4.12.0" "lxml==4.9.2"
+          "html2text==2024.2.26" "pydantic==2.5.0" "pandas==2.0.0"
+          "pyarrow==14.0.1" "tqdm==4.66.0" "python-dateutil==2.8.2"
+          "numpy==1.26.0" "scipy==1.11.1" "scikit-learn==1.3.0"
+          "networkx==3.2" "PyYAML==6.0" "jsonschema==4.21.0"
+      - run: pytest -q
+
+  release-package:
+    name: Build and install release package
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.14"
+      - name: Install the checksummed build toolchain
+        run: python -m pip install --require-hashes -r release-requirements.txt
+      - run: python -m build --no-isolation
+      - run: python scripts/verify_release.py dist/echr_py-*.whl dist/echr_py-*.tar.gz
+      - name: Reject stale or incomplete release contents
+        run: |
+          python scripts/check_sdist.py dist/echr_py-*.tar.gz
+          python scripts/check_wheel.py dist/echr_py-*.whl
+      - name: Install wheel outside the checkout
+        run: |
+          python -m venv /tmp/hudoc-wheel-check
+          /tmp/hudoc-wheel-check/bin/python -m pip install dist/echr_py-*.whl
+      - name: Verify isolated API and public-module boundary
+        working-directory: /tmp
+        run: |
+          /tmp/hudoc-wheel-check/bin/python - <<'PY'
+          from pathlib import Path
+          from importlib.metadata import version
+
+          import hudoc_py
+          from hudoc_py.citations import (
+              discover_citation_mentions,
+              load_historical_catalog,
+              verify_historical_catalog,
+          )
+          from hudoc_py.models import Case
+          from hudoc_py.models import DocumentVersion, FormatOutcome
+          from hudoc_py.graphs import export_graph
+          from hudoc_py.studies import citation_taxonomy_schema
+          from hudoc_py.text import extract_bench_composition, extract_dispositive_paragraphs
+
+          assert hudoc_py.__version__ == version("echr-py")
+          package_root = Path(hudoc_py.__file__).parent
+          assert not (package_root / "names").exists()
+          assert {path.name for path in package_root.glob("*.py")} == {
+              "__init__.py", "_aio.py", "_sync.py", "cli.py", "config.py",
+              "thesaurus.py", "versions.py",
+          }
+          assert {path.name for path in (package_root / "extractors").glob("*.py")} == {
+              "__init__.py", "base.py"
+          }
+          assert {path.name for path in (package_root / "execution").glob("*.py")} == {
+              "__init__.py", "_sync.py", "aio.py", "bridge.py", "client.py",
+              "collections.py", "downloader.py", "imports.py", "queries.py",
+              "raw_download.py", "related_scraper.py", "textract.py",
+          }
+          from hudoc_py.execution import parse_exec_export, search_documents
+          assert callable(parse_exec_export) and callable(search_documents)
+          assert DocumentVersion and FormatOutcome and extract_dispositive_paragraphs
+          assert extract_bench_composition and export_graph
+          assert citation_taxonomy_schema("minimal")["type"] == "object"
+          catalog = load_historical_catalog()
+          assert verify_historical_catalog(catalog) and catalog.entries
+          discovery = discover_citation_mentions(Case(
+              itemid="wheel-check",
+              text="THE LAW\nMagee v. the United Kingdom, no. 28135/95, § 44.",
+          ))
+          assert len(discovery.mentions) == 1
+          PY
+          /tmp/hudoc-wheel-check/bin/echr-py --version

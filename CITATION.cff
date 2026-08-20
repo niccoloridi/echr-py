@@ -1,0 +1,31 @@
+cff-version: 1.2.0
+message: "If you use echr-py in research, please cite this software."
+title: "echr-py"
+type: software
+authors:
+  - family-names: Ridi
+    given-names: Niccolo
+version: 0.2.0
+date-released: 2026-08-20
+license: MIT
+repository-code: "https://github.com/niccoloridi/echr-py"
+url: "https://github.com/niccoloridi/echr-py"
+abstract: >-
+  A provenance-preserving Python, CLI, and MCP toolkit for acquiring,
+  structuring, searching, and analysing public European Court of Human Rights
+  case-law and HUDOC-EXEC source material.
+keywords:
+  - ECHR
+  - HUDOC
+  - legal research
+  - citation analysis
+  - computational law
+references:
+  - type: grant
+    title: "Human Rights Nudge"
+    authors:
+      - name: "European Research Council"
+    identifiers:
+      - type: other
+        value: "803981"
+        description: "European Research Council grant agreement"

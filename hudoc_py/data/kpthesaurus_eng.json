@@ -1,0 +1,2350 @@
+{
+ "293": {
+  "label": "(Art. 1) Obligation to respect human rights",
+  "parent": null
+ },
+ "176": {
+  "label": "(Art. 1) High Contracting Party",
+  "parent": "293"
+ },
+ "210": {
+  "label": "(Art. 1) Jurisdiction of States",
+  "parent": "293"
+ },
+ "430": {
+  "label": "(Art. 1) Responsibility of States",
+  "parent": "293"
+ },
+ "449": {
+  "label": "(Art. 2) Right to life",
+  "parent": null
+ },
+ "624": {
+  "label": "(Art. 2) Expulsion",
+  "parent": "449"
+ },
+ "625": {
+  "label": "(Art. 2) Extradition",
+  "parent": "449"
+ },
+ "632": {
+  "label": "(Art. 2) Positive obligations",
+  "parent": "449"
+ },
+ "77": {
+  "label": "(Art. 2-1) Death penalty",
+  "parent": "449"
+ },
+ "553": {
+  "label": "(Art. 2-1) Accessibility",
+  "parent": "77"
+ },
+ "50": {
+  "label": "(Art. 2-1) Competent court",
+  "parent": "77"
+ },
+ "554": {
+  "label": "(Art. 2-1) Foreseeability",
+  "parent": "77"
+ },
+ "318": {
+  "label": "(Art. 2-1) Prescribed by law",
+  "parent": "77"
+ },
+ "555": {
+  "label": "(Art. 2-1) Safeguards against abuse",
+  "parent": "77"
+ },
+ "595": {
+  "label": "(Art. 2-1) Effective investigation",
+  "parent": "449"
+ },
+ "231": {
+  "label": "(Art. 2-1) Life",
+  "parent": "449"
+ },
+ "4": {
+  "label": "(Art. 2-2) Absolutely necessary",
+  "parent": "449"
+ },
+ "84": {
+  "label": "(Art. 2-2) Defence from unlawful violence",
+  "parent": "4"
+ },
+ "111": {
+  "label": "(Art. 2-2) Effect lawful arrest",
+  "parent": "4"
+ },
+ "335": {
+  "label": "(Art. 2-2) Prevent escape",
+  "parent": "4"
+ },
+ "394": {
+  "label": "(Art. 2-2) Quell riot or insurrection",
+  "parent": "4"
+ },
+ "496": {
+  "label": "(Art. 2-2) Use of force",
+  "parent": "449"
+ },
+ "350": {
+  "label": "(Art. 3) Prohibition of torture",
+  "parent": null
+ },
+ "89": {
+  "label": "(Art. 3) Degrading punishment",
+  "parent": "350"
+ },
+ "90": {
+  "label": "(Art. 3) Degrading treatment",
+  "parent": "350"
+ },
+ "596": {
+  "label": "(Art. 3) Effective investigation",
+  "parent": "350"
+ },
+ "620": {
+  "label": "(Art. 3) Expulsion",
+  "parent": "350"
+ },
+ "618": {
+  "label": "(Art. 3) Extradition",
+  "parent": "350"
+ },
+ "192": {
+  "label": "(Art. 3) Inhuman punishment",
+  "parent": "350"
+ },
+ "193": {
+  "label": "(Art. 3) Inhuman treatment",
+  "parent": "350"
+ },
+ "633": {
+  "label": "(Art. 3) Positive obligations",
+  "parent": "350"
+ },
+ "492": {
+  "label": "(Art. 3) Torture",
+  "parent": "350"
+ },
+ "349": {
+  "label": "(Art. 4) Prohibition of slavery and forced labour",
+  "parent": null
+ },
+ "657": {
+  "label": "(Art. 4) Effective investigation",
+  "parent": "349"
+ },
+ "644": {
+  "label": "(Art. 4) Positive obligations",
+  "parent": "349"
+ },
+ "463": {
+  "label": "(Art. 4-1) Servitude",
+  "parent": "349"
+ },
+ "472": {
+  "label": "(Art. 4-1) Slavery",
+  "parent": "349"
+ },
+ "641": {
+  "label": "(Art. 4-1) Trafficking in human beings",
+  "parent": "349"
+ },
+ "54": {
+  "label": "(Art. 4-2) Compulsory labour",
+  "parent": "349"
+ },
+ "139": {
+  "label": "(Art. 4-2) Forced labour",
+  "parent": "349"
+ },
+ "503": {
+  "label": "(Art. 4-3-a) Work required of detainees",
+  "parent": "349"
+ },
+ "504": {
+  "label": "(Art. 4-3-a) Work required to be done during conditional release",
+  "parent": "349"
+ },
+ "20": {
+  "label": "(Art. 4-3-b) Alternative civil service",
+  "parent": "349"
+ },
+ "462": {
+  "label": "(Art. 4-3-b) Service of military character",
+  "parent": "349"
+ },
+ "460": {
+  "label": "(Art. 4-3-c) Service exacted in case of calamity",
+  "parent": "349"
+ },
+ "461": {
+  "label": "(Art. 4-3-c) Service exacted in case of emergency",
+  "parent": "349"
+ },
+ "284": {
+  "label": "(Art. 4-3-d) Normal civic obligations",
+  "parent": "349"
+ },
+ "448": {
+  "label": "(Art. 5) Right to liberty and security",
+  "parent": null
+ },
+ "93": {
+  "label": "(Art. 5-1) Deprivation of liberty",
+  "parent": "448"
+ },
+ "220": {
+  "label": "(Art. 5-1) Lawful arrest or detention",
+  "parent": "448"
+ },
+ "228": {
+  "label": "(Art. 5-1) Liberty of person",
+  "parent": "448"
+ },
+ "339": {
+  "label": "(Art. 5-1) Procedure prescribed by law",
+  "parent": "448"
+ },
+ "459": {
+  "label": "(Art. 5-1) Security of person",
+  "parent": "448"
+ },
+ "18": {
+  "label": "(Art. 5-1-a) After conviction",
+  "parent": "448"
+ },
+ "552": {
+  "label": "(Art. 5-1-a) Competent court",
+  "parent": "448"
+ },
+ "63": {
+  "label": "(Art. 5-1-a) Conviction",
+  "parent": "448"
+ },
+ "221": {
+  "label": "(Art. 5-1-b) Lawful order of a court",
+  "parent": "448"
+ },
+ "275": {
+  "label": "(Art. 5-1-b) Non-compliance with court order",
+  "parent": "448"
+ },
+ "456": {
+  "label": "(Art. 5-1-b) Secure fulfilment of obligation prescribed by law",
+  "parent": "448"
+ },
+ "29": {
+  "label": "(Art. 5-1-c) Bringing before competent legal authority",
+  "parent": "448"
+ },
+ "71": {
+  "label": "(Art. 5-1-c) Criminal offence",
+  "parent": "448"
+ },
+ "405": {
+  "label": "(Art. 5-1-c) Reasonable suspicion",
+  "parent": "448"
+ },
+ "407": {
+  "label": "(Art. 5-1-c) Reasonably necessary to prevent fleeing",
+  "parent": "448"
+ },
+ "408": {
+  "label": "(Art. 5-1-c) Reasonably necessary to prevent offence",
+  "parent": "448"
+ },
+ "28": {
+  "label": "(Art. 5-1-d) Bringing before competent authority",
+  "parent": "448"
+ },
+ "108": {
+  "label": "(Art. 5-1-d) Educational supervision",
+  "parent": "448"
+ },
+ "250": {
+  "label": "(Art. 5-1-d) Minors",
+  "parent": "448"
+ },
+ "19": {
+  "label": "(Art. 5-1-e) Alcoholics",
+  "parent": "448"
+ },
+ "103": {
+  "label": "(Art. 5-1-e) Drug addicts",
+  "parent": "448"
+ },
+ "307": {
+  "label": "(Art. 5-1-e) Persons of unsound mind",
+  "parent": "448"
+ },
+ "334": {
+  "label": "(Art. 5-1-e) Prevention of spreading of infectious diseases",
+  "parent": "448"
+ },
+ "497": {
+  "label": "(Art. 5-1-e) Vagrants",
+  "parent": "448"
+ },
+ "130": {
+  "label": "(Art. 5-1-f) Expulsion",
+  "parent": "448"
+ },
+ "135": {
+  "label": "(Art. 5-1-f) Extradition",
+  "parent": "448"
+ },
+ "336": {
+  "label": "(Art. 5-1-f) Prevent unauthorised entry into country",
+  "parent": "448"
+ },
+ "187": {
+  "label": "(Art. 5-2) Information in language understood",
+  "parent": "448"
+ },
+ "189": {
+  "label": "(Art. 5-2) Information on charge",
+  "parent": "448"
+ },
+ "191": {
+  "label": "(Art. 5-2) Information on reasons for arrest",
+  "parent": "448"
+ },
+ "351": {
+  "label": "(Art. 5-2) Prompt information",
+  "parent": "448"
+ },
+ "30": {
+  "label": "(Art. 5-3) Brought promptly before judge or other officer",
+  "parent": "448"
+ },
+ "55": {
+  "label": "(Art. 5-3) Conditional release",
+  "parent": "448"
+ },
+ "171": {
+  "label": "(Art. 5-3) Guarantees to appear for trial",
+  "parent": "448"
+ },
+ "209": {
+  "label": "(Art. 5-3) Judge or other officer exercising judicial power",
+  "parent": "448"
+ },
+ "227": {
+  "label": "(Art. 5-3) Length of pre-trial detention",
+  "parent": "448"
+ },
+ "404": {
+  "label": "(Art. 5-3) Reasonableness of pre-trial detention",
+  "parent": "448"
+ },
+ "411": {
+  "label": "(Art. 5-3) Release pending trial",
+  "parent": "448"
+ },
+ "494": {
+  "label": "(Art. 5-3) Trial within a reasonable time",
+  "parent": "448"
+ },
+ "297": {
+  "label": "(Art. 5-4) Order release",
+  "parent": "448"
+ },
+ "337": {
+  "label": "(Art. 5-4) Procedural guarantees of review",
+  "parent": "448"
+ },
+ "435": {
+  "label": "(Art. 5-4) Review by a court",
+  "parent": "448"
+ },
+ "438": {
+  "label": "(Art. 5-4) Review of lawfulness of detention",
+  "parent": "448"
+ },
+ "474": {
+  "label": "(Art. 5-4) Speediness of review",
+  "parent": "448"
+ },
+ "481": {
+  "label": "(Art. 5-4) Take proceedings",
+  "parent": "448"
+ },
+ "45": {
+  "label": "(Art. 5-5) Compensation",
+  "parent": "448"
+ },
+ "445": {
+  "label": "(Art. 6) Right to a fair trial",
+  "parent": null
+ },
+ "13": {
+  "label": "(Art. 6) Administrative proceedings",
+  "parent": "445"
+ },
+ "40": {
+  "label": "(Art. 6) Civil proceedings",
+  "parent": "445"
+ },
+ "57": {
+  "label": "(Art. 6) Constitutional proceedings",
+  "parent": "445"
+ },
+ "76": {
+  "label": "(Art. 6) Criminal proceedings",
+  "parent": "445"
+ },
+ "99": {
+  "label": "(Art. 6) Disciplinary proceedings",
+  "parent": "445"
+ },
+ "113": {
+  "label": "(Art. 6) Enforcement proceedings",
+  "parent": "445"
+ },
+ "627": {
+  "label": "(Art. 6) Expulsion",
+  "parent": "445"
+ },
+ "626": {
+  "label": "(Art. 6) Extradition",
+  "parent": "445"
+ },
+ "7": {
+  "label": "(Art. 6-1) Access to court",
+  "parent": "445"
+ },
+ "41": {
+  "label": "(Art. 6-1) Civil rights and obligations",
+  "parent": "445"
+ },
+ "98": {
+  "label": "(Art. 6-1) Determination (civil)",
+  "parent": "41"
+ },
+ "101": {
+  "label": "(Art. 6-1) Dispute",
+  "parent": "41"
+ },
+ "70": {
+  "label": "(Art. 6-1) Criminal charge",
+  "parent": "445"
+ },
+ "606": {
+  "label": "(Art. 6-1) Determination (criminal)",
+  "parent": "70"
+ },
+ "136": {
+  "label": "(Art. 6-1) Fair hearing",
+  "parent": "445"
+ },
+ "15": {
+  "label": "(Art. 6-1) Adversarial trial",
+  "parent": "136"
+ },
+ "119": {
+  "label": "(Art. 6-1) Equality of arms",
+  "parent": "136"
+ },
+ "223": {
+  "label": "(Art. 6-1) Legal aid",
+  "parent": "136"
+ },
+ "180": {
+  "label": "(Art. 6-1) Impartial tribunal",
+  "parent": "445"
+ },
+ "181": {
+  "label": "(Art. 6-1) Independent tribunal",
+  "parent": "445"
+ },
+ "267": {
+  "label": "(Art. 6-1) Necessary in a democratic society",
+  "parent": "445"
+ },
+ "133": {
+  "label": "(Art. 6-1) Extent strictly necessary",
+  "parent": "267"
+ },
+ "261": {
+  "label": "(Art. 6-1) National security",
+  "parent": "267"
+ },
+ "314": {
+  "label": "(Art. 6-1) Prejudice interests of justice",
+  "parent": "267"
+ },
+ "361": {
+  "label": "(Art. 6-1) Protection of juveniles",
+  "parent": "267"
+ },
+ "364": {
+  "label": "(Art. 6-1) Protection of morals",
+  "parent": "267"
+ },
+ "368": {
+  "label": "(Art. 6-1) Protection of private life of the parties",
+  "parent": "267"
+ },
+ "370": {
+  "label": "(Art. 6-1) Protection of public order",
+  "parent": "267"
+ },
+ "385": {
+  "label": "(Art. 6-1) Public hearing",
+  "parent": "445"
+ },
+ "124": {
+  "label": "(Art. 6-1) Exclusion of press",
+  "parent": "385"
+ },
+ "125": {
+  "label": "(Art. 6-1) Exclusion of public",
+  "parent": "385"
+ },
+ "296": {
+  "label": "(Art. 6-1) Oral hearing",
+  "parent": "385"
+ },
+ "388": {
+  "label": "(Art. 6-1) Public judgment",
+  "parent": "445"
+ },
+ "406": {
+  "label": "(Art. 6-1) Reasonable time",
+  "parent": "445"
+ },
+ "495": {
+  "label": "(Art. 6-1) Tribunal established by law",
+  "parent": "445"
+ },
+ "38": {
+  "label": "(Art. 6-2) Charged with a criminal offence",
+  "parent": "445"
+ },
+ "325": {
+  "label": "(Art. 6-2) Presumption of innocence",
+  "parent": "445"
+ },
+ "380": {
+  "label": "(Art. 6-2) Proved guilty according to law",
+  "parent": "445"
+ },
+ "440": {
+  "label": "(Art. 6-3) Rights of defence",
+  "parent": "445"
+ },
+ "647": {
+  "label": "(Art. 6-3) Charged with a criminal offence",
+  "parent": "445"
+ },
+ "186": {
+  "label": "(Art. 6-3-a) Information in detail",
+  "parent": "445"
+ },
+ "551": {
+  "label": "(Art. 6-3-a) Information in language understood",
+  "parent": "445"
+ },
+ "190": {
+  "label": "(Art. 6-3-a) Information on nature and cause of accusation",
+  "parent": "445"
+ },
+ "550": {
+  "label": "(Art. 6-3-a) Prompt information",
+  "parent": "445"
+ },
+ "8": {
+  "label": "(Art. 6-3-b) Access to relevant files",
+  "parent": "445"
+ },
+ "11": {
+  "label": "(Art. 6-3-b) Adequate facilities",
+  "parent": "445"
+ },
+ "12": {
+  "label": "(Art. 6-3-b) Adequate time",
+  "parent": "445"
+ },
+ "315": {
+  "label": "(Art. 6-3-b) Preparation of defence",
+  "parent": "445"
+ },
+ "85": {
+  "label": "(Art. 6-3-c) Defence in person",
+  "parent": "445"
+ },
+ "86": {
+  "label": "(Art. 6-3-c) Defence through legal assistance",
+  "parent": "445"
+ },
+ "164": {
+  "label": "(Art. 6-3-c) Free legal assistance",
+  "parent": "445"
+ },
+ "196": {
+  "label": "(Art. 6-3-c) Insufficient means",
+  "parent": "445"
+ },
+ "224": {
+  "label": "(Art. 6-3-c) Legal assistance of own choosing",
+  "parent": "445"
+ },
+ "422": {
+  "label": "(Art. 6-3-c) Required by interests of justice",
+  "parent": "445"
+ },
+ "122": {
+  "label": "(Art. 6-3-d) Examination of witnesses",
+  "parent": "445"
+ },
+ "295": {
+  "label": "(Art. 6-3-d) Obtain attendance of witnesses",
+  "parent": "445"
+ },
+ "455": {
+  "label": "(Art. 6-3-d) Same conditions",
+  "parent": "445"
+ },
+ "502": {
+  "label": "(Art. 6-3-d) Witnesses",
+  "parent": "445"
+ },
+ "162": {
+  "label": "(Art. 6-3-e) Free assistance of interpreter",
+  "parent": "445"
+ },
+ "288": {
+  "label": "(Art. 7) No punishment without law",
+  "parent": null
+ },
+ "535": {
+  "label": "(Art. 7-1) Conviction",
+  "parent": "288"
+ },
+ "536": {
+  "label": "(Art. 7-1) Criminal offence",
+  "parent": "288"
+ },
+ "172": {
+  "label": "(Art. 7-1) Heavier penalty",
+  "parent": "288"
+ },
+ "290": {
+  "label": "(Art. 7-1) Nulla poena sine lege",
+  "parent": "288"
+ },
+ "291": {
+  "label": "(Art. 7-1) Nullum crimen sine lege",
+  "parent": "288"
+ },
+ "434": {
+  "label": "(Art. 7-1) Retroactivity",
+  "parent": "288"
+ },
+ "491": {
+  "label": "(Art. 7-1) Time when act or ommission was committed",
+  "parent": "288"
+ },
+ "607": {
+  "label": "(Art. 7-2) Criminal offence",
+  "parent": "288"
+ },
+ "169": {
+  "label": "(Art. 7-2) General principles of law recognised by civilised nations",
+  "parent": "288"
+ },
+ "451": {
+  "label": "(Art. 8) Right to respect for private and family life",
+  "parent": null
+ },
+ "628": {
+  "label": "(Art. 8) Expulsion",
+  "parent": "451"
+ },
+ "629": {
+  "label": "(Art. 8) Extradition",
+  "parent": "451"
+ },
+ "634": {
+  "label": "(Art. 8) Positive obligations",
+  "parent": "451"
+ },
+ "424": {
+  "label": "(Art. 8-1) Respect for correspondence",
+  "parent": "451"
+ },
+ "425": {
+  "label": "(Art. 8-1) Respect for family life",
+  "parent": "451"
+ },
+ "426": {
+  "label": "(Art. 8-1) Respect for home",
+  "parent": "451"
+ },
+ "429": {
+  "label": "(Art. 8-1) Respect for private life",
+  "parent": "451"
+ },
+ "203": {
+  "label": "(Art. 8-2) Interference",
+  "parent": "451"
+ },
+ "268": {
+  "label": "(Art. 8-2) Necessary in a democratic society",
+  "parent": "451"
+ },
+ "107": {
+  "label": "(Art. 8-2) Economic well-being of the country",
+  "parent": "268"
+ },
+ "262": {
+  "label": "(Art. 8-2) National security",
+  "parent": "268"
+ },
+ "329": {
+  "label": "(Art. 8-2) Prevention of crime",
+  "parent": "268"
+ },
+ "333": {
+  "label": "(Art. 8-2) Prevention of disorder",
+  "parent": "268"
+ },
+ "358": {
+  "label": "(Art. 8-2) Protection of health",
+  "parent": "268"
+ },
+ "365": {
+  "label": "(Art. 8-2) Protection of morals",
+  "parent": "268"
+ },
+ "376": {
+  "label": "(Art. 8-2) Protection of the rights and freedoms of others",
+  "parent": "268"
+ },
+ "391": {
+  "label": "(Art. 8-2) Public safety",
+  "parent": "268"
+ },
+ "319": {
+  "label": "(Art. 8-2) In accordance with the law",
+  "parent": "451"
+ },
+ "557": {
+  "label": "(Art. 8-2) Accessibility",
+  "parent": "319"
+ },
+ "558": {
+  "label": "(Art. 8-2) Foreseeability",
+  "parent": "319"
+ },
+ "556": {
+  "label": "(Art. 8-2) Safeguards against abuse",
+  "parent": "319"
+ },
+ "559": {
+  "label": "(Art. 8-2) Public authority",
+  "parent": "451"
+ },
+ "154": {
+  "label": "(Art. 9) Freedom of thought, conscience and religion",
+  "parent": null
+ },
+ "643": {
+  "label": "(Art. 9) Positive obligations",
+  "parent": "154"
+ },
+ "37": {
+  "label": "(Art. 9-1) Change religion or belief",
+  "parent": "154"
+ },
+ "147": {
+  "label": "(Art. 9-1) Freedom of conscience",
+  "parent": "154"
+ },
+ "152": {
+  "label": "(Art. 9-1) Freedom of religion",
+  "parent": "154"
+ },
+ "153": {
+  "label": "(Art. 9-1) Freedom of thought",
+  "parent": "154"
+ },
+ "237": {
+  "label": "(Art. 9-1) Manifest religion or belief",
+  "parent": "154"
+ },
+ "294": {
+  "label": "(Art. 9-1) Observance",
+  "parent": "237"
+ },
+ "313": {
+  "label": "(Art. 9-1) Practice",
+  "parent": "237"
+ },
+ "482": {
+  "label": "(Art. 9-1) Teaching",
+  "parent": "237"
+ },
+ "505": {
+  "label": "(Art. 9-1) Worship",
+  "parent": "237"
+ },
+ "204": {
+  "label": "(Art. 9-2) Interference",
+  "parent": "154"
+ },
+ "269": {
+  "label": "(Art. 9-2) Necessary in a democratic society",
+  "parent": "154"
+ },
+ "359": {
+  "label": "(Art. 9-2) Protection of health",
+  "parent": "269"
+ },
+ "366": {
+  "label": "(Art. 9-2) Protection of morals",
+  "parent": "269"
+ },
+ "371": {
+  "label": "(Art. 9-2) Protection of public order",
+  "parent": "269"
+ },
+ "377": {
+  "label": "(Art. 9-2) Protection of the rights and freedoms of others",
+  "parent": "269"
+ },
+ "392": {
+  "label": "(Art. 9-2) Public safety",
+  "parent": "269"
+ },
+ "320": {
+  "label": "(Art. 9-2) Prescribed by law",
+  "parent": "154"
+ },
+ "530": {
+  "label": "(Art. 9-2) Accessibility",
+  "parent": "320"
+ },
+ "531": {
+  "label": "(Art. 9-2) Foreseeability",
+  "parent": "320"
+ },
+ "532": {
+  "label": "(Art. 9-2) Safeguards against abuse",
+  "parent": "320"
+ },
+ "149": {
+  "label": "(Art. 10) Freedom of expression-{general}",
+  "parent": null
+ },
+ "640": {
+  "label": "(Art. 10) Positive obligations",
+  "parent": "149"
+ },
+ "148": {
+  "label": "(Art. 10-1) Freedom of expression",
+  "parent": "149"
+ },
+ "156": {
+  "label": "(Art. 10-1) Freedom to hold opinions",
+  "parent": "149"
+ },
+ "157": {
+  "label": "(Art. 10-1) Freedom to impart ideas",
+  "parent": "149"
+ },
+ "158": {
+  "label": "(Art. 10-1) Freedom to impart information",
+  "parent": "149"
+ },
+ "160": {
+  "label": "(Art. 10-1) Freedom to receive ideas",
+  "parent": "149"
+ },
+ "161": {
+  "label": "(Art. 10-1) Freedom to receive information",
+  "parent": "149"
+ },
+ "608": {
+  "label": "(Art. 10-1) Old public authority",
+  "parent": "149"
+ },
+ "230": {
+  "label": "(Art. 10-1) Licensing of broadcasting enterprises",
+  "parent": "149"
+ },
+ "382": {
+  "label": "(Art. 10-1) Interference of public authority",
+  "parent": "149"
+ },
+ "409": {
+  "label": "(Art. 10-1) Regardless of frontiers",
+  "parent": "149"
+ },
+ "105": {
+  "label": "(Art. 10-2) Duties and responsibilities",
+  "parent": "149"
+ },
+ "201": {
+  "label": "(Art. 10-2) Interference",
+  "parent": "149"
+ },
+ "265": {
+  "label": "(Art. 10-2) Necessary in a democratic society",
+  "parent": "149"
+ },
+ "235": {
+  "label": "(Art. 10-2) Maintaining the authority and impartiality of the judiciary",
+  "parent": "265"
+ },
+ "259": {
+  "label": "(Art. 10-2) National security",
+  "parent": "265"
+ },
+ "326": {
+  "label": "(Art. 10-2) Preventing the disclosure of information received in confidence",
+  "parent": "265"
+ },
+ "327": {
+  "label": "(Art. 10-2) Prevention of crime",
+  "parent": "265"
+ },
+ "331": {
+  "label": "(Art. 10-2) Prevention of disorder",
+  "parent": "265"
+ },
+ "356": {
+  "label": "(Art. 10-2) Protection of health",
+  "parent": "265"
+ },
+ "362": {
+  "label": "(Art. 10-2) Protection of morals",
+  "parent": "265"
+ },
+ "579": {
+  "label": "(Art. 10-2) Protection of the reputation of others",
+  "parent": "265"
+ },
+ "379": {
+  "label": "(Art. 10-2) Protection of the rights of others",
+  "parent": "265"
+ },
+ "389": {
+  "label": "(Art. 10-2) Public safety",
+  "parent": "265"
+ },
+ "488": {
+  "label": "(Art. 10-2) Territorial integrity",
+  "parent": "265"
+ },
+ "316": {
+  "label": "(Art. 10-2) Prescribed by law",
+  "parent": "149"
+ },
+ "6": {
+  "label": "(Art. 10-2) Accessibility",
+  "parent": "316"
+ },
+ "140": {
+  "label": "(Art. 10-2) Foreseeability",
+  "parent": "316"
+ },
+ "452": {
+  "label": "(Art. 10-2) Safeguards against abuse",
+  "parent": "316"
+ },
+ "145": {
+  "label": "(Art. 11) Freedom of assembly and association",
+  "parent": null
+ },
+ "645": {
+  "label": "(Art. 11) Positive obligations",
+  "parent": "145"
+ },
+ "141": {
+  "label": "(Art. 11-1) Form and join trade unions",
+  "parent": "145"
+ },
+ "198": {
+  "label": "(Art. 11-1) Interests of members",
+  "parent": "141"
+ },
+ "287": {
+  "label": "(Art. 11-1) Not join trade unions",
+  "parent": "141"
+ },
+ "146": {
+  "label": "(Art. 11-1) Freedom of association",
+  "parent": "145"
+ },
+ "151": {
+  "label": "(Art. 11-1) Freedom of peaceful assembly",
+  "parent": "145"
+ },
+ "202": {
+  "label": "(Art. 11-2) Interference",
+  "parent": "145"
+ },
+ "246": {
+  "label": "(Art. 11-2) Members of administration",
+  "parent": "145"
+ },
+ "247": {
+  "label": "(Art. 11-2) Members of armed forces",
+  "parent": "145"
+ },
+ "248": {
+  "label": "(Art. 11-2) Members of police",
+  "parent": "145"
+ },
+ "266": {
+  "label": "(Art. 11-2) Necessary in a democratic society",
+  "parent": "145"
+ },
+ "260": {
+  "label": "(Art. 11-2) National security",
+  "parent": "266"
+ },
+ "328": {
+  "label": "(Art. 11-2) Prevention of crime",
+  "parent": "266"
+ },
+ "332": {
+  "label": "(Art. 11-2) Prevention of disorder",
+  "parent": "266"
+ },
+ "357": {
+  "label": "(Art. 11-2) Protection of health",
+  "parent": "266"
+ },
+ "363": {
+  "label": "(Art. 11-2) Protection of morals",
+  "parent": "266"
+ },
+ "375": {
+  "label": "(Art. 11-2) Protection of the rights and freedoms of others",
+  "parent": "266"
+ },
+ "390": {
+  "label": "(Art. 11-2) Public safety",
+  "parent": "266"
+ },
+ "317": {
+  "label": "(Art. 11-2) Prescribed by law",
+  "parent": "145"
+ },
+ "524": {
+  "label": "(Art. 11-2) Accessibility",
+  "parent": "317"
+ },
+ "525": {
+  "label": "(Art. 11-2) Foreseeability",
+  "parent": "317"
+ },
+ "526": {
+  "label": "(Art. 11-2) Safeguards against abuse",
+  "parent": "317"
+ },
+ "450": {
+  "label": "(Art. 12) Right to marry",
+  "parent": null
+ },
+ "142": {
+  "label": "(Art. 12) Found a family",
+  "parent": "450"
+ },
+ "239": {
+  "label": "(Art. 12) Marriageable age",
+  "parent": "450"
+ },
+ "240": {
+  "label": "(Art. 12) Marry",
+  "parent": "450"
+ },
+ "249": {
+  "label": "(Art. 12) Men and women",
+  "parent": "450"
+ },
+ "254": {
+  "label": "(Art. 12) National law",
+  "parent": "450"
+ },
+ "444": {
+  "label": "(Art. 13) Right to an effective remedy",
+  "parent": null
+ },
+ "23": {
+  "label": "(Art. 13) Arguable claim",
+  "parent": "444"
+ },
+ "110": {
+  "label": "(Art. 13) Effective remedy",
+  "parent": "444"
+ },
+ "253": {
+  "label": "(Art. 13) National authority",
+  "parent": "444"
+ },
+ "343": {
+  "label": "(Art. 14) Prohibition of discrimination",
+  "parent": null
+ },
+ "44": {
+  "label": "(Art. 14) Comparable situation",
+  "parent": "343"
+ },
+ "100": {
+  "label": "(Art. 14) Discrimination",
+  "parent": "343"
+ },
+ "27": {
+  "label": "(Art. 14) Birth",
+  "parent": "100"
+ },
+ "42": {
+  "label": "(Art. 14) Colour",
+  "parent": "100"
+ },
+ "217": {
+  "label": "(Art. 14) Language",
+  "parent": "100"
+ },
+ "257": {
+  "label": "(Art. 14) National minority",
+  "parent": "100"
+ },
+ "258": {
+  "label": "(Art. 14) National origin",
+  "parent": "100"
+ },
+ "298": {
+  "label": "(Art. 14) Other status",
+  "parent": "100"
+ },
+ "309": {
+  "label": "(Art. 14) Political or other opinion",
+  "parent": "100"
+ },
+ "353": {
+  "label": "(Art. 14) Property",
+  "parent": "100"
+ },
+ "395": {
+  "label": "(Art. 14) Race",
+  "parent": "100"
+ },
+ "413": {
+  "label": "(Art. 14) Religion",
+  "parent": "100"
+ },
+ "464": {
+  "label": "(Art. 14) Sex",
+  "parent": "100"
+ },
+ "473": {
+  "label": "(Art. 14) Social origin",
+  "parent": "100"
+ },
+ "292": {
+  "label": "(Art. 14) Objective and reasonable justification",
+  "parent": "343"
+ },
+ "96": {
+  "label": "(Art. 15) Derogation in time of emergency",
+  "parent": null
+ },
+ "95": {
+  "label": "(Art. 15-1) Derogation",
+  "parent": "96"
+ },
+ "134": {
+  "label": "(Art. 15-1) Extent strictly required by situation",
+  "parent": "96"
+ },
+ "206": {
+  "label": "(Art. 15-1) International obligations",
+  "parent": "96"
+ },
+ "384": {
+  "label": "(Art. 15-1) Public emergency",
+  "parent": "96"
+ },
+ "489": {
+  "label": "(Art. 15-1) Threat to the life of the nation",
+  "parent": "96"
+ },
+ "500": {
+  "label": "(Art. 15-1) War",
+  "parent": "96"
+ },
+ "285": {
+  "label": "(Art. 15-3) Notification of a derogation",
+  "parent": "96"
+ },
+ "571": {
+  "label": "(Art. 16) Restrictions on political activity of aliens-{general}",
+  "parent": null
+ },
+ "433": {
+  "label": "(Art. 16) Restrictions on political activity of aliens",
+  "parent": "571"
+ },
+ "340": {
+  "label": "(Art. 17) Prohibition of abuse of rights",
+  "parent": null
+ },
+ "97": {
+  "label": "(Art. 17) Destruction of rights and freedoms",
+  "parent": "340"
+ },
+ "123": {
+  "label": "(Art. 17) Excessive limitations on rights and freedoms",
+  "parent": "340"
+ },
+ "232": {
+  "label": "(Art. 18) Limitation on use of restrictions on rights",
+  "parent": null
+ },
+ "431": {
+  "label": "(Art. 18) Restrictions for unauthorised purposes",
+  "parent": "232"
+ },
+ "120": {
+  "label": "(Art. 19) Establishment of the Court",
+  "parent": null
+ },
+ "114": {
+  "label": "(Art. 19) Engagements undertaken by Parties",
+  "parent": "120"
+ },
+ "115": {
+  "label": "(Art. 19) Ensure observance of engagements",
+  "parent": "120"
+ },
+ "175": {
+  "label": "(Art. 19) High Contracting Party",
+  "parent": "120"
+ },
+ "567": {
+  "label": "(Art. 33) Inter-State cases",
+  "parent": null
+ },
+ "197": {
+  "label": "(Art. 33) Inter-State application",
+  "parent": "567"
+ },
+ "22": {
+  "label": "(Art. 33) Applicant State Party",
+  "parent": "567"
+ },
+ "87": {
+  "label": "(Art. 33) Defendant State Party",
+  "parent": "567"
+ },
+ "183": {
+  "label": "(Art. 34) Individual applications",
+  "parent": null
+ },
+ "10": {
+  "label": "(Art. 34) Actio popularis",
+  "parent": "183"
+ },
+ "533": {
+  "label": "(Art. 34) Defendant State Party",
+  "parent": "183"
+ },
+ "170": {
+  "label": "(Art. 34) Group of individuals",
+  "parent": "183"
+ },
+ "177": {
+  "label": "(Art. 34) Hinder the exercise of the right of application",
+  "parent": "183"
+ },
+ "182": {
+  "label": "(Art. 34) Individual",
+  "parent": "183"
+ },
+ "234": {
+  "label": "(Art. 34) Locus standi",
+  "parent": "183"
+ },
+ "282": {
+  "label": "(Art. 34) Non-governmental organisation",
+  "parent": "183"
+ },
+ "308": {
+  "label": "(Art. 34) Petition",
+  "parent": "183"
+ },
+ "498": {
+  "label": "(Art. 34) Victim",
+  "parent": "183"
+ },
+ "14": {
+  "label": "(Art. 35) Admissibility criteria",
+  "parent": null
+ },
+ "128": {
+  "label": "(Art. 35-1) Exhaustion of domestic remedies",
+  "parent": "14"
+ },
+ "109": {
+  "label": "(Art. 35-1) Effective domestic remedy",
+  "parent": "128"
+ },
+ "127": {
+  "label": "(Art. 35-1) Exemption from exhaustion of domestic remedies",
+  "parent": "128"
+ },
+ "471": {
+  "label": "(Art 35-1) Four-month period (former six-month)",
+  "parent": "14"
+ },
+ "60": {
+  "label": "(Art. 35-1) Continuing situation",
+  "parent": "471"
+ },
+ "137": {
+  "label": "(Art. 35-1) Final domestic decision",
+  "parent": "471"
+ },
+ "21": {
+  "label": "(Art. 35-2-a) Anonymous application",
+  "parent": "14"
+ },
+ "412": {
+  "label": "(Art. 35-2-b) Relevant new information",
+  "parent": "14"
+ },
+ "453": {
+  "label": "(Art. 35-2-b) Matter already examined by the Court",
+  "parent": "14"
+ },
+ "454": {
+  "label": "(Art. 35-2-b) Matter already submitted to another international procedure",
+  "parent": "14"
+ },
+ "5": {
+  "label": "(Art. 35-3-a) Abuse of the right of application",
+  "parent": "14"
+ },
+ "236": {
+  "label": "(Art. 35-3-a) Manifestly ill-founded",
+  "parent": "14"
+ },
+ "396": {
+  "label": "(Art. 35-3-a) Ratione loci",
+  "parent": "14"
+ },
+ "398": {
+  "label": "(Art. 35-3-a) Ratione materiae",
+  "parent": "14"
+ },
+ "400": {
+  "label": "(Art. 35-3-a) Ratione personae",
+  "parent": "14"
+ },
+ "402": {
+  "label": "(Art. 35-3-a) Ratione temporis",
+  "parent": "14"
+ },
+ "605": {
+  "label": "(Art. 35-3-a) Continuing situation",
+  "parent": "402"
+ },
+ "623": {
+  "label": "(Art. 35-3-b) Case duly considered by a domestic tribunal",
+  "parent": "14"
+ },
+ "622": {
+  "label": "(Art. 35-3-b) Continued examination not justified",
+  "parent": "14"
+ },
+ "621": {
+  "label": "(Art. 35-3-b) No significant disadvantage",
+  "parent": "14"
+ },
+ "619": {
+  "label": "(Art. 35-4) Rejection of application at any stage of the proceedings",
+  "parent": "14"
+ },
+ "609": {
+  "label": "(Art. 37) Striking out applications-{general}",
+  "parent": null
+ },
+ "478": {
+  "label": "(Art. 37-1) Striking out applications",
+  "parent": "609"
+ },
+ "648": {
+  "label": "(Art. 37-1) Respect for human rights",
+  "parent": "609"
+ },
+ "3": {
+  "label": "(Art. 37-1-a) Absence of intention to pursue application",
+  "parent": "609"
+ },
+ "241": {
+  "label": "(Art. 37-1-b) Matter resolved",
+  "parent": "609"
+ },
+ "59": {
+  "label": "(Art. 37-1-c) Continued examination not justified",
+  "parent": "609"
+ },
+ "649": {
+  "label": "(Art. 37-2) Restore to list",
+  "parent": "609"
+ },
+ "121": {
+  "label": "(Art. 38) Examination of the case-{general}",
+  "parent": null
+ },
+ "523": {
+  "label": "(Art. 38) Examination of the case",
+  "parent": "121"
+ },
+ "594": {
+  "label": "(Art. 38) Obligation to furnish all necessary facilities",
+  "parent": "121"
+ },
+ "138": {
+  "label": "(Art. 39) Friendly settlements",
+  "parent": null
+ },
+ "165": {
+  "label": "(Art. 39) Friendly settlement",
+  "parent": "138"
+ },
+ "216": {
+  "label": "(Art. 41) Just satisfaction-{general}",
+  "parent": null
+ },
+ "31": {
+  "label": "(Art. 41) Causal link",
+  "parent": "216"
+ },
+ "69": {
+  "label": "(Art. 41) Costs and expenses",
+  "parent": "216"
+ },
+ "83": {
+  "label": "(Art. 41) Default interest",
+  "parent": "216"
+ },
+ "129": {
+  "label": "(Art. 41) Experts' costs",
+  "parent": "216"
+ },
+ "534": {
+  "label": "(Art. 41) Freedom from attachment",
+  "parent": "216"
+ },
+ "194": {
+  "label": "(Art. 41) Injured party",
+  "parent": "216"
+ },
+ "302": {
+  "label": "(Art. 41) Insufficient reparation under national law",
+  "parent": "216"
+ },
+ "213": {
+  "label": "(Art. 41) Jurisdiction to give orders or grant injunctions",
+  "parent": "216"
+ },
+ "577": {
+  "label": "(Art. 41) Just satisfaction",
+  "parent": "216"
+ },
+ "283": {
+  "label": "(Art. 41) Non-pecuniary damage",
+  "parent": "216"
+ },
+ "299": {
+  "label": "(Art. 41) Overall assessment",
+  "parent": "216"
+ },
+ "305": {
+  "label": "(Art. 41) Pecuniary damage",
+  "parent": "216"
+ },
+ "26": {
+  "label": "(Art. 46) Binding force and execution of judgments",
+  "parent": null
+ },
+ "636": {
+  "label": "(Art. 46) Pilot judgment",
+  "parent": "26"
+ },
+ "637": {
+  "label": "(Art. 46) Systemic problem",
+  "parent": "26"
+ },
+ "638": {
+  "label": "(Art. 46) General measures (pilot judgment)",
+  "parent": "26"
+ },
+ "639": {
+  "label": "(Art. 46) Individual measures (pilot judgment)",
+  "parent": "26"
+ },
+ "1": {
+  "label": "(Art. 46-1) Abide by judgment",
+  "parent": "26"
+ },
+ "303": {
+  "label": "(Art. 46-1) Parties to case",
+  "parent": "26"
+ },
+ "126": {
+  "label": "(Art. 46-2) Execution of judgment",
+  "parent": "26"
+ },
+ "184": {
+  "label": "(Art. 46-2) Individual measures",
+  "parent": "126"
+ },
+ "300": {
+  "label": "(Art. 46-2) Pardon",
+  "parent": "184"
+ },
+ "416": {
+  "label": "(Art. 46-2) Reopening of proceedings",
+  "parent": "184"
+ },
+ "479": {
+  "label": "(Art. 46-2) Striking out of criminal records",
+  "parent": "184"
+ },
+ "214": {
+  "label": "(Art. 46-2) Just satisfaction",
+  "parent": "126"
+ },
+ "199": {
+  "label": "(Art. 46-2) Default interest",
+  "parent": "214"
+ },
+ "143": {
+  "label": "(Art. 46-2) Freedom from attachment",
+  "parent": "214"
+ },
+ "243": {
+  "label": "(Art. 46-2) General measures",
+  "parent": "126"
+ },
+ "33": {
+  "label": "(Art. 46-2) Changes in case-law",
+  "parent": "243"
+ },
+ "35": {
+  "label": "(Art. 46-2) Changes of regulations",
+  "parent": "243"
+ },
+ "225": {
+  "label": "(Art. 46-2) Legislative amendments",
+  "parent": "243"
+ },
+ "656": {
+  "label": "(Art. 46-4) Infringement proceedings",
+  "parent": "26"
+ },
+ "563": {
+  "label": "(Art. 47) Advisory opinions-{general}",
+  "parent": null
+ },
+ "17": {
+  "label": "(Art. 47) Advisory opinions",
+  "parent": "563"
+ },
+ "420": {
+  "label": "(Art. 47) Request by the Committee of Ministers",
+  "parent": "563"
+ },
+ "562": {
+  "label": "(Art. 48) Advisory jurisdiction of the Court-{general}",
+  "parent": null
+ },
+ "16": {
+  "label": "(Art. 48) Advisory jurisdiction of the Court",
+  "parent": "562"
+ },
+ "569": {
+  "label": "(Art. 52) Inquiries by the Secretary General",
+  "parent": null
+ },
+ "544": {
+  "label": "(Art. 52) Report to the Secretary General",
+  "parent": "569"
+ },
+ "421": {
+  "label": "(Art. 52) Request by the Secretary General",
+  "parent": "569"
+ },
+ "441": {
+  "label": "(Art. 53) Rights otherwise guaranteed",
+  "parent": null
+ },
+ "312": {
+  "label": "(Art. 54) Powers of the Committee of Ministers",
+  "parent": null
+ },
+ "414": {
+  "label": "(Art. 55) Renunciation of other means of settlement",
+  "parent": null
+ },
+ "483": {
+  "label": "(Art. 56) Territorial application-{general}",
+  "parent": null
+ },
+ "233": {
+  "label": "(Art. 56) Local requirements",
+  "parent": "483"
+ },
+ "575": {
+  "label": "(Art. 56) Territorial application",
+  "parent": "483"
+ },
+ "570": {
+  "label": "(Art. 57) Reservations-{general}",
+  "parent": null
+ },
+ "423": {
+  "label": "(Art. 57) Reservations",
+  "parent": "570"
+ },
+ "25": {
+  "label": "(Art. 57) Particular provision of the Convention",
+  "parent": "570"
+ },
+ "222": {
+  "label": "(Art. 57) Law then in force",
+  "parent": "570"
+ },
+ "348": {
+  "label": "(Art. 57) Prohibition of reservations of a general character",
+  "parent": "570"
+ },
+ "272": {
+  "label": "(Art. 57) Brief statement of the law",
+  "parent": "570"
+ },
+ "207": {
+  "label": "(Art. 57) Interpretative declaration",
+  "parent": "570"
+ },
+ "517": {
+  "label": "(Art. 58) Denunciation",
+  "parent": null
+ },
+ "520": {
+  "label": "(Art. 58) Cessation of membership of the Council of Europe",
+  "parent": "517"
+ },
+ "519": {
+  "label": "(Art. 58) Notification of denunciation",
+  "parent": "517"
+ },
+ "518": {
+  "label": "(Art. 58) Six months' notice",
+  "parent": "517"
+ },
+ "465": {
+  "label": "(Art. 59) Signature and ratification-{general}",
+  "parent": null
+ },
+ "576": {
+  "label": "(Art. 59) Signature and ratification",
+  "parent": "465"
+ },
+ "369": {
+  "label": "(P1-1) Protection of property",
+  "parent": null
+ },
+ "635": {
+  "label": "(P1-1) Positive obligations",
+  "parent": "369"
+ },
+ "94": {
+  "label": "(P1-1-1) Deprivation of property",
+  "parent": "369"
+ },
+ "387": {
+  "label": "(P1-1-1) Public interest",
+  "parent": "94"
+ },
+ "168": {
+  "label": "(P1-1-1) General principles of international law",
+  "parent": "369"
+ },
+ "509": {
+  "label": "(P1-1-1) Interference",
+  "parent": "369"
+ },
+ "304": {
+  "label": "(P1-1-1) Peaceful enjoyment of possessions",
+  "parent": "369"
+ },
+ "311": {
+  "label": "(P1-1-1) Possessions",
+  "parent": "369"
+ },
+ "321": {
+  "label": "(P1-1-1) Prescribed by law",
+  "parent": "369"
+ },
+ "541": {
+  "label": "(P1-1-1) Accessibility",
+  "parent": "321"
+ },
+ "542": {
+  "label": "(P1-1-1) Foreseeability",
+  "parent": "321"
+ },
+ "543": {
+  "label": "(P1-1-1) Safeguards against abuse",
+  "parent": "321"
+ },
+ "62": {
+  "label": "(P1-1-2) Control of the use of property",
+  "parent": "369"
+ },
+ "167": {
+  "label": "(P1-1-2) General interest",
+  "parent": "62"
+ },
+ "457": {
+  "label": "(P1-1-2) Secure the payment of contributions or penalties",
+  "parent": "369"
+ },
+ "458": {
+  "label": "(P1-1-2) Secure the payment of taxes",
+  "parent": "369"
+ },
+ "573": {
+  "label": "(P1-2) Right to education-{general}",
+  "parent": null
+ },
+ "427": {
+  "label": "(P1-2) Respect for parents' philosophical convictions",
+  "parent": "573"
+ },
+ "428": {
+  "label": "(P1-2) Respect for parents' religious convictions",
+  "parent": "573"
+ },
+ "446": {
+  "label": "(P1-2) Right to education",
+  "parent": "573"
+ },
+ "574": {
+  "label": "(P1-3) Right to free elections-{general}",
+  "parent": null
+ },
+ "39": {
+  "label": "(P1-3) Choice of the legislature",
+  "parent": "574"
+ },
+ "112": {
+  "label": "(P1-3) Elections by secret ballot",
+  "parent": "574"
+ },
+ "163": {
+  "label": "(P1-3) Free expression of the opinion of the people",
+  "parent": "574"
+ },
+ "306": {
+  "label": "(P1-3) Periodic elections",
+  "parent": "574"
+ },
+ "447": {
+  "label": "(P1-3) Right to free elections",
+  "parent": "574"
+ },
+ "476": {
+  "label": "(P1-3) Stand for election",
+  "parent": "574"
+ },
+ "499": {
+  "label": "(P1-3) Vote",
+  "parent": "574"
+ },
+ "484": {
+  "label": "(P1-4) Territorial application",
+  "parent": null
+ },
+ "466": {
+  "label": "(P1-6) Signature and ratification",
+  "parent": null
+ },
+ "560": {
+  "label": "(P4-1) Prohibition of imprisonment for debt-{general}",
+  "parent": null
+ },
+ "540": {
+  "label": "(P4-1) Deprivation of liberty",
+  "parent": "560"
+ },
+ "346": {
+  "label": "(P4-1) Prohibition of imprisonment for debt",
+  "parent": "560"
+ },
+ "566": {
+  "label": "(P4-2) Freedom of movement-{general}",
+  "parent": null
+ },
+ "150": {
+  "label": "(P4-2-1) Freedom of movement",
+  "parent": "566"
+ },
+ "155": {
+  "label": "(P4-2-1) Freedom to choose residence",
+  "parent": "566"
+ },
+ "219": {
+  "label": "(P4-2-1) Lawfully within the territory",
+  "parent": "566"
+ },
+ "159": {
+  "label": "(P4-2-2) Freedom to leave a country",
+  "parent": "566"
+ },
+ "205": {
+  "label": "(P4-2-3) Interference",
+  "parent": "566"
+ },
+ "270": {
+  "label": "(P4-2-3) Necessary in a democratic society",
+  "parent": "566"
+ },
+ "263": {
+  "label": "(P4-2-3) National security",
+  "parent": "270"
+ },
+ "330": {
+  "label": "(P4-2-3) Prevention of crime",
+  "parent": "270"
+ },
+ "360": {
+  "label": "(P4-2-3) Protection of health",
+  "parent": "270"
+ },
+ "367": {
+  "label": "(P4-2-3) Protection of morals",
+  "parent": "270"
+ },
+ "372": {
+  "label": "(P4-2-3) Protection of public order",
+  "parent": "270"
+ },
+ "378": {
+  "label": "(P4-2-3) Protection of the rights and freedoms of others",
+  "parent": "270"
+ },
+ "386": {
+  "label": "(P4-2-3) Public interest",
+  "parent": "270"
+ },
+ "393": {
+  "label": "(P4-2-3) Public safety",
+  "parent": "270"
+ },
+ "432": {
+  "label": "(P4-2-3) Restrictions in particular areas",
+  "parent": "270"
+ },
+ "322": {
+  "label": "(P4-2-3) In accordance with law",
+  "parent": "566"
+ },
+ "527": {
+  "label": "(P4-2-3) Accessibility",
+  "parent": "322"
+ },
+ "528": {
+  "label": "(P4-2-3) Foreseeability",
+  "parent": "322"
+ },
+ "529": {
+  "label": "(P4-2-3) Safeguards against abuse",
+  "parent": "322"
+ },
+ "345": {
+  "label": "(P4-3) Prohibition of expulsion of nationals",
+  "parent": null
+ },
+ "342": {
+  "label": "(P4-3-1) Prohibition of collective expulsion of nationals",
+  "parent": "345"
+ },
+ "344": {
+  "label": "(P4-3-1) Prohibition of expulsion of a national",
+  "parent": "345"
+ },
+ "116": {
+  "label": "(P4-3-2) Enter own country",
+  "parent": "345"
+ },
+ "341": {
+  "label": "(P4-4) Prohibition of collective expulsion of aliens-{general}",
+  "parent": null
+ },
+ "578": {
+  "label": "(P4-4) Prohibition of collective expulsion of aliens",
+  "parent": "341"
+ },
+ "485": {
+  "label": "(P4-5) Territorial application",
+  "parent": null
+ },
+ "467": {
+  "label": "(P4-7) Signature and ratification",
+  "parent": null
+ },
+ "561": {
+  "label": "(P6-1) Abolition of the death penalty-{general}",
+  "parent": null
+ },
+ "2": {
+  "label": "(P6-1) Abolition of the death penalty",
+  "parent": "561"
+ },
+ "564": {
+  "label": "(P6-2) Death penalty in time of war-{general}",
+  "parent": null
+ },
+ "43": {
+  "label": "(P6-2) Communication of the law to the Secretary General",
+  "parent": "564"
+ },
+ "78": {
+  "label": "(P6-2) Death penalty in time of war",
+  "parent": "564"
+ },
+ "179": {
+  "label": "(P6-2) Imminent threat of war",
+  "parent": "564"
+ },
+ "323": {
+  "label": "(P6-2) Prescribed by law",
+  "parent": "564"
+ },
+ "513": {
+  "label": "(P6-2) Accessibility",
+  "parent": "323"
+ },
+ "514": {
+  "label": "(P6-2) Foreseeability",
+  "parent": "323"
+ },
+ "515": {
+  "label": "(P6-2) Safeguards against abuse",
+  "parent": "323"
+ },
+ "501": {
+  "label": "(P6-2) War",
+  "parent": "564"
+ },
+ "568": {
+  "label": "(P6-4) Prohibition of reservations-{general}",
+  "parent": null
+ },
+ "347": {
+  "label": "(P6-4) Prohibition of reservations",
+  "parent": "568"
+ },
+ "486": {
+  "label": "(P6-5) Territorial application",
+  "parent": null
+ },
+ "468": {
+  "label": "(P6-7) Signature and ratification",
+  "parent": null
+ },
+ "338": {
+  "label": "(P7-1) Procedural safeguards relating to expulsion of aliens",
+  "parent": null
+ },
+ "49": {
+  "label": "(P7-1-1) Competent authority",
+  "parent": "338"
+ },
+ "58": {
+  "label": "(P7-1-1) Contest expulsion",
+  "parent": "338"
+ },
+ "132": {
+  "label": "(P7-1-1) Expulsion of an alien",
+  "parent": "338"
+ },
+ "218": {
+  "label": "(P7-1-1) Lawfully resident",
+  "parent": "338"
+ },
+ "324": {
+  "label": "(P7-1-1) In accordance with law",
+  "parent": "338"
+ },
+ "537": {
+  "label": "(P7-1-1) Accessibility",
+  "parent": "324"
+ },
+ "538": {
+  "label": "(P7-1-1) Foreseeability",
+  "parent": "324"
+ },
+ "539": {
+  "label": "(P7-1-1) Safeguards against abuse",
+  "parent": "324"
+ },
+ "419": {
+  "label": "(P7-1-1) Represented",
+  "parent": "338"
+ },
+ "437": {
+  "label": "(P7-1-1) Review of expulsion decision",
+  "parent": "338"
+ },
+ "131": {
+  "label": "(P7-1-2) Expulsion before exercising procedural rights",
+  "parent": "338"
+ },
+ "271": {
+  "label": "(P7-1-2) Necessary in a democratic society",
+  "parent": "338"
+ },
+ "264": {
+  "label": "(P7-1-2) National security",
+  "parent": "271"
+ },
+ "373": {
+  "label": "(P7-1-2) Protection of public order",
+  "parent": "271"
+ },
+ "443": {
+  "label": "(P7-2) Right of appeal in criminal matters",
+  "parent": null
+ },
+ "549": {
+  "label": "(P7-2) Competent court",
+  "parent": "443"
+ },
+ "547": {
+  "label": "(P7-2) Conviction",
+  "parent": "443"
+ },
+ "548": {
+  "label": "(P7-2) Criminal offence",
+  "parent": "443"
+ },
+ "173": {
+  "label": "(P7-2) Higher tribunal",
+  "parent": "443"
+ },
+ "255": {
+  "label": "(P7-2) National law",
+  "parent": "443"
+ },
+ "68": {
+  "label": "(P7-2) Conviction following appeal against acquittal",
+  "parent": "255"
+ },
+ "251": {
+  "label": "(P7-2) Minor offences",
+  "parent": "255"
+ },
+ "493": {
+  "label": "(P7-2) Trial at first instance by the highest tribunal",
+  "parent": "255"
+ },
+ "436": {
+  "label": "(P7-2) Review of conviction",
+  "parent": "443"
+ },
+ "439": {
+  "label": "(P7-2) Review of sentence",
+  "parent": "443"
+ },
+ "47": {
+  "label": "(P7-3) Compensation for wrongful conviction",
+  "parent": null
+ },
+ "46": {
+  "label": "(P7-3) Compensation",
+  "parent": "47"
+ },
+ "510": {
+  "label": "(P7-3) Conviction",
+  "parent": "47"
+ },
+ "512": {
+  "label": "(P7-3) Criminal offence",
+  "parent": "47"
+ },
+ "252": {
+  "label": "(P7-3) Miscarriage of justice",
+  "parent": "47"
+ },
+ "256": {
+  "label": "(P7-3) National law",
+  "parent": "47"
+ },
+ "273": {
+  "label": "(P7-3) New or newly discovered facts",
+  "parent": "47"
+ },
+ "281": {
+  "label": "(P7-3) Non-disclosure of fact by convicted person",
+  "parent": "47"
+ },
+ "572": {
+  "label": "(P7-4) Right not to be tried or punished twice-{general}",
+  "parent": null
+ },
+ "9": {
+  "label": "(P7-4) Acquittal",
+  "parent": "572"
+ },
+ "545": {
+  "label": "(P7-4) Conviction",
+  "parent": "572"
+ },
+ "546": {
+  "label": "(P7-4) Criminal offence",
+  "parent": "572"
+ },
+ "212": {
+  "label": "(P7-4) Jurisdiction of the same State",
+  "parent": "572"
+ },
+ "415": {
+  "label": "(P7-4) Reopening of case",
+  "parent": "572"
+ },
+ "166": {
+  "label": "(P7-4) Fundamental defect in proceedings",
+  "parent": "415"
+ },
+ "274": {
+  "label": "(P7-4) New or newly discovered facts",
+  "parent": "415"
+ },
+ "442": {
+  "label": "(P7-4) Right not to be tried or punished twice",
+  "parent": "572"
+ },
+ "565": {
+  "label": "(P7-5) Equality between spouses-{general}",
+  "parent": null
+ },
+ "118": {
+  "label": "(P7-5) Equality between spouses",
+  "parent": "565"
+ },
+ "242": {
+  "label": "(P7-5) Measures necessary in the interests of children",
+  "parent": "565"
+ },
+ "410": {
+  "label": "(P7-5) Relations with children",
+  "parent": "565"
+ },
+ "24": {
+  "label": "(P7-5) As to marriage",
+  "parent": "410"
+ },
+ "104": {
+  "label": "(P7-5) During marriage",
+  "parent": "410"
+ },
+ "208": {
+  "label": "(P7-5) In the event of dissolution of marriage",
+  "parent": "410"
+ },
+ "475": {
+  "label": "(P7-5) Spouses",
+  "parent": "565"
+ },
+ "487": {
+  "label": "(P7-6) Territorial application",
+  "parent": null
+ },
+ "469": {
+  "label": "(P7-8) Signature and ratification",
+  "parent": null
+ },
+ "600": {
+  "label": "(P12-1) General prohibition of discrimination",
+  "parent": null
+ },
+ "642": {
+  "label": "(P13-1) Abolition of the death penalty",
+  "parent": null
+ },
+ "601": {
+  "label": "(P13-1) Abolition of the death penalty in all circumstances",
+  "parent": "642"
+ },
+ "660": {
+  "label": "(P12-1) General prohibition of discrimination",
+  "parent": "600"
+ },
+ "597": {
+  "label": "Accessibility",
+  "parent": null
+ },
+ "598": {
+  "label": "Foreseeability",
+  "parent": null
+ },
+ "211": {
+  "label": "Jurisdiction of the Court",
+  "parent": null
+ },
+ "238": {
+  "label": "Margin of appreciation",
+  "parent": null
+ },
+ "276": {
+  "label": "Non-derogable rights and freedoms",
+  "parent": null
+ },
+ "310": {
+  "label": "Positive obligations",
+  "parent": null
+ },
+ "354": {
+  "label": "Proportionality",
+  "parent": null
+ },
+ "599": {
+  "label": "Safeguards against abuse",
+  "parent": null
+ },
+ "610": {
+  "label": "(Former Art. 25)",
+  "parent": null
+ },
+ "48": {
+  "label": "(Former Art. 25) Competence of the Commission",
+  "parent": "610"
+ },
+ "79": {
+  "label": "(Former Art. 25) Declaration recognising competence",
+  "parent": "610"
+ },
+ "611": {
+  "label": "(Former Art. 32)",
+  "parent": null
+ },
+ "521": {
+  "label": "(Former Art. 32) Friendly settlement",
+  "parent": "611"
+ },
+ "174": {
+  "label": "(Former Art. 32) High Contracting Party",
+  "parent": "611"
+ },
+ "245": {
+  "label": "(Former Art. 32) Measures taken following a decision",
+  "parent": "611"
+ },
+ "185": {
+  "label": "(Former Art. 32) Individual measures",
+  "parent": "245"
+ },
+ "301": {
+  "label": "(Former Art. 32) Pardon",
+  "parent": "185"
+ },
+ "417": {
+  "label": "(Former Art. 32) Reopening of proceedings",
+  "parent": "185"
+ },
+ "480": {
+  "label": "(Former Art. 32) Striking out of criminal records",
+  "parent": "185"
+ },
+ "215": {
+  "label": "(Former Art. 32) Just satisfaction",
+  "parent": "245"
+ },
+ "144": {
+  "label": "(Former Art. 32) Freedom from attachment",
+  "parent": "215"
+ },
+ "200": {
+  "label": "(Former Art. 32) Interest for delay",
+  "parent": "215"
+ },
+ "244": {
+  "label": "(Former Art. 32) Measures of a general character",
+  "parent": "245"
+ },
+ "34": {
+  "label": "(Former Art. 32) Changes in case-law",
+  "parent": "244"
+ },
+ "36": {
+  "label": "(Former Art. 32) Changes of regulations",
+  "parent": "244"
+ },
+ "226": {
+  "label": "(Former Art. 32) Legislative amendments",
+  "parent": "244"
+ },
+ "381": {
+  "label": "(Former Art. 32) Publication of the report",
+  "parent": "611"
+ },
+ "516": {
+  "label": "(Former Art. 44) Capacity to bring a case before the Court",
+  "parent": null
+ },
+ "612": {
+  "label": "(Former Art. 46)",
+  "parent": null
+ },
+ "56": {
+  "label": "(Former Art. 46) Condition of reciprocity",
+  "parent": "612"
+ },
+ "614": {
+  "label": "(Former Art. 46) Continuing situation",
+  "parent": "612"
+ },
+ "82": {
+  "label": "(Former Art. 46) Declaration recognising jurisdiction",
+  "parent": "612"
+ },
+ "615": {
+  "label": "(Former Art. 46) Ratione loci",
+  "parent": "612"
+ },
+ "617": {
+  "label": "(Former Art. 46) Ratione materiae",
+  "parent": "612"
+ },
+ "616": {
+  "label": "(Former Art. 46) Ratione personae",
+  "parent": "612"
+ },
+ "613": {
+  "label": "(Former Art. 46) Ratione temporis",
+  "parent": "612"
+ },
+ "490": {
+  "label": "(Former Art. 47) Three-month period",
+  "parent": null
+ },
+ "477": {
+  "label": "(Former Art. 48) State whose national is a victim",
+  "parent": null
+ },
+ "102": {
+  "label": "(Former Art. 49) Dispute as to jurisdiction",
+  "parent": null
+ }
+}

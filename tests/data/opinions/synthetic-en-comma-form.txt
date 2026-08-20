@@ -1,0 +1,23 @@
+PROCEDURE
+
+1. This synthetic fixture tests comma-separated English opinion labels.
+
+THE LAW
+
+2. The synthetic majority section ends here.
+
+FOR THESE REASONS, THE COURT
+
+1. Makes a synthetic ruling.
+
+PARTLY CONCURRING, PARTLY DISSENTING OPINION OF JUDGE GARLICKI
+
+1. Synthetic individual opinion body with enough invented text for validation.
+
+JOINT PARTLY DISSENTING OPINION OF JUDGES WILDHABER, COSTA, CAFLISCH, TÜRMEN, GARLICKI AND BORREGO BORREGO
+
+1. Synthetic joint opinion body with enough invented text for validation.
+
+JOINT PARTLY DISSENTING OPINION OF JUDGES COSTA, CAFLISCH, TÜRMEN AND BORREGO BORREGO
+
+1. A second synthetic joint opinion body.

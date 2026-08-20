@@ -1,0 +1,67 @@
+{
+  "case": {
+    "itemid": "001-69022",
+    "title": "CASE OF ÖCALAN v. TURKEY"
+  },
+  "bench_member_count": 17,
+  "opinion_count": 3,
+  "spine_summary": {
+    "block_count": 553,
+    "paragraph_count": 487,
+    "sections": {
+      "unknown": 12,
+      "procedure": 26,
+      "facts": 113,
+      "the_law": 326,
+      "operative": 27,
+      "separate_opinion": 49
+    },
+    "source_components": {
+      "majority": 504,
+      "opinion": 49
+    },
+    "footnote_blocks": 1,
+    "opinion_blocks": 49
+  },
+  "network_summary": {
+    "mentions": 146,
+    "resolved_mentions": 140,
+    "target_documents": 78,
+    "occurrences": 139,
+    "majority_occurrences": 115,
+    "opinion_occurrences": 24,
+    "appendix_occurrences": 0,
+    "pinpoint_occurrences": 79,
+    "text_only_occurrences": 49,
+    "unresolved_occurrences": 4,
+    "included_target_nodes": 40,
+    "included_aggregate_edges": 47
+  },
+  "top_5_targets": [
+    {
+      "label": "CASE OF SOERING v. THE UNITED KINGDOM",
+      "occurrence_count": 18
+    },
+    {
+      "label": "CASE OF INCAL v. TURKEY",
+      "occurrence_count": 10
+    },
+    {
+      "label": "CINAR v. TURKEY",
+      "occurrence_count": 6
+    },
+    {
+      "label": "CASE OF KREMZOW v. AUSTRIA",
+      "occurrence_count": 5
+    },
+    {
+      "label": "CASE OF BOZANO v. FRANCE",
+      "occurrence_count": 4
+    }
+  ],
+  "observations": [
+    "Target concentration: the top 5 listed targets account for 43 of 139 total occurrences (18+10+6+5+4=43 / 139).",
+    "Majority-versus-opinion shares: majority_occurrences is 115 of 139 total occurrences (115/139), while opinion_occurrences is 24 of 139 (24/139).",
+    "Resolution share: resolved_mentions is 140 of 146 total mentions (140/146)."
+  ]
+}

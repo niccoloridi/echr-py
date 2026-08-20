@@ -1,0 +1,19 @@
+PROCEDURE
+
+1. This synthetic fixture tests a single English opinion boundary.
+
+THE FACTS
+
+2. The fixture contains no real party, lawyer, pleading, or judgment text.
+
+THE LAW
+
+3. The synthetic majority section ends here.
+
+FOR THESE REASONS, THE COURT
+
+1. Holds, unanimously, that this is synthetic test material.
+
+JOINT DISSENTING OPINION OF JUDGES VILLIGER, MAHONEY AND SILVIS
+
+1. This is a short synthetic dissent used only to verify the heading parser.

@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "hudoc-citation-use-minimal/v1",
+  "title": "Minimal ECtHR citation context",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "source_voice": {
+      "type": "string",
+      "enum": ["court", "individual_opinion", "party_submission", "third_party", "quoted_material", "unclear"]
+    },
+    "complaint_articles": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "consideration": {"type": "string", "enum": ["positive", "negative", "neutral", "mixed", "unclear"]},
+    "proposition": {"type": "string"},
+    "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+    "needs_review": {"type": "boolean"}
+  },
+  "required": ["source_voice", "complaint_articles", "consideration", "proposition", "confidence", "needs_review"]
+}

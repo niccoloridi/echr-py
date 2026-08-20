@@ -1,0 +1,99 @@
+{
+  "schema_version": "echr-py-benchmark-audit/v1",
+  "created_at": "2026-08-20",
+  "benchmark": {
+    "name": "Mumford ECHR citation context v1",
+    "repository_revision": "166b15c31276bfa8c8775e7e7def575e916aced7",
+    "archive_sha256": "665c7606baa0ff3c37ff193daee362b83733b832ea0d957d65f5aca74a1e444e",
+    "licence": "CC0-1.0",
+    "documents_sha256": "c68b87980e8f1d1e14d65d418694f9d9a1bdb6db1e4c4434ac9b32896393c69a",
+    "annotations_sha256": "0ee7c443f59eb0e69d9c03b069e2f4d53c01dc7615ce457b5fcacade777dc2fd",
+    "reference_documents": 115,
+    "valid_reference_documents": 115,
+    "all_curated_annotations": 5481,
+    "selected_echr_annotations": 5425
+  },
+  "software": {
+    "name": "echr-py",
+    "version": "0.2.0",
+    "evaluation_identity": "content-addressed source files; the release tag identifies the packaging revision",
+    "benchmarks_py_sha256": "acc7e5cc92976db109c76aa047d18834ee5036365b8d77889d7b6e945b4f6f0d",
+    "occurrences_py_sha256": "4a86f8b4af9037a06e92790e083d0b0a3bf589ff7fc8b508dc2e140d234ecbfb",
+    "comparison_example_sha256": "748363c660e1978cdba094eb406731ad5a7297121bdbda1e1aec21f187f6a23d"
+  },
+  "selection": {
+    "selection_schema": "hudoc-selection/v1",
+    "selection_count": 115,
+    "selection_sha256": "34ff8fa4a4a4c6620ba00a8ff7ca5aab9d842cd922b5ea7456f7ea4fc86cd280",
+    "selection_file_sha256": "f71e5c9fc666bc495e7a3ea55ea501869551a5c64f4e88ef4cf805ceeb4181ad",
+    "input_source_documents": 112,
+    "projected_source_documents": 110
+  },
+  "authority": {
+    "schema_version": "citation-authority/v2",
+    "parser_version": "7",
+    "updated_through": "2026-07-27",
+    "source_sha256": "de0d9a70bf36caf815bc9014cc6b0dc2f389207520e2494f5475cf0c4ddf1c7e",
+    "entries": 42167,
+    "supplements": 6,
+    "json_sha256": "dc70c23ca044b7a06a498377f3324eef3bc45fe11cabe0cb8eb31712d9781c59",
+    "csv_sha256": "b12ebea33e1b2a4446219372e91432bd24dfa65556ffca8e384b63c50f6774cd"
+  },
+  "scl_resolution": {
+    "mentions": 2193,
+    "resolved": 2167,
+    "unresolved_or_ambiguous": 26,
+    "resolved_rate": 0.9881440948472412,
+    "target_documents": 1524,
+    "lookup_errors": 0,
+    "report_sha256": "49049a4b9c5f49aae00c182579900f746106cd7f8c19c3cc9deb81cca3c4963c"
+  },
+  "inclusive_occurrences": {
+    "occurrences": 8163,
+    "scl_covered_occurrences": 5820,
+    "text_only_occurrences": 2343,
+    "majority_occurrences": 6944,
+    "opinion_occurrences": 1153,
+    "appendix_occurrences": 66,
+    "pinpoint_occurrences": 5409,
+    "missing_source_html": 0,
+    "missing_target_html": 13,
+    "offline_run_status": "partial_target_paragraph_hydration",
+    "occurrences_jsonl_sha256": "6febf2be772fad0524ba47946e72997f4568fc68b613bc1af5a9c27fe9683a2c",
+    "report_sha256": "798387d102d36a38e72648c8d6357bdf99d3d4b2883bbf5fd38e33770601d10f"
+  },
+  "offset_projection": {
+    "coordinate_system": "mumford_xmi_sofa",
+    "projected_occurrences": 5611,
+    "abstained_occurrences": 2552,
+    "projected_jsonl_sha256": "146e61240e52220da0b4c8bc2f7a835dd13e066295db4f5d3a4778602a8e4713",
+    "diagnostics_jsonl_sha256": "d1ee3c9d35b569f8cdb7436b75aec69a9aa86b3497b2d91c2b4fcfa0bd031c7e"
+  },
+  "selected_annotation_recovery": {
+    "denominator": 5425,
+    "aligned_one_to_one": 4445,
+    "rate": 0.8193548387096774,
+    "strict_source_span": 4437,
+    "normalized_identity_context": 8,
+    "ambiguous_abstentions": 543,
+    "unmatched": 437
+  },
+  "coverage_not_accuracy": {
+    "aligned_document_scope": 3264,
+    "aligned_denominator": 4445,
+    "printed_application_number_agreement": 1662,
+    "printed_application_number_denominator": 2435,
+    "fully_mapped_local_pinpoints": 2612,
+    "local_pinpoint_denominator": 3791
+  },
+  "outputs": {
+    "comparison_json_sha256": "25fb78fb383d14dc7ce8f70b5dd1298c6fb27f964ce3b5bb84dddd3471e99b45"
+  },
+  "qualifications": [
+    "Mumford annotations are selective and do not supply exhaustive negatives, so this result does not estimate detector precision.",
+    "The reference supplies no canonical target item IDs or structured target-paragraph links; document and paragraph figures are coverage, not accuracy.",
+    "Names shared by distinct judgments and decisions remain ambiguous unless local evidence identifies the procedural document; they are not coalesced to improve recovery.",
+    "Opinions, footnotes, and sections outside the supplied THE LAW text are explicit projection abstentions rather than false positives.",
+    "No third-party source archive, raw annotation row, HUDOC source document, lookup cache, or raw benchmark output is bundled with echr-py."
+  ]
+}

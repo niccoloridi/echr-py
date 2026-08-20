@@ -1,0 +1,48 @@
+# Secrets and local config – NEVER commit
+/Resources/
+.env
+*api_key*
+*.pem
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+*.egg
+MANIFEST
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Build / dist
+/build/
+/dist/
+/wheels/
+pip-wheel-metadata/
+
+# Caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Data and logs (large; cached locally under ~/.hudoc-py)
+/data/
+*.parquet
+*.jsonl
+*.log
+
+# IDE / tooling
+.vscode/
+.idea/
+.claude/
+.DS_Store
+
+# Local provisional paper package (must never be committed)
+/paper/

@@ -1,0 +1,16 @@
+include LICENSE
+include CITATION.cff
+include README.md
+include RIGHTS.md
+include SECURITY.md
+include pyproject.toml
+include release-requirements.txt
+include scripts/check_sdist.py
+include scripts/check_wheel.py
+include scripts/public_package_files.txt
+include scripts/public_payload_hashes.json
+include scripts/verify_release.py
+prune Resources
+prune docs
+prune examples
+prune tests

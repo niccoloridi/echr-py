@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "hudoc-citation-use-multiaxial/v1",
+  "title": "Editable multiaxial citation-use starter",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "source_voice": {
+      "type": "string",
+      "enum": ["court", "individual_opinion", "party_submission", "third_party", "quoted_material", "unclear"]
+    },
+    "engagement": {
+      "type": "string",
+      "enum": ["general_reference", "string_citation", "verbatim", "substantive", "unclear"]
+    },
+    "function": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "classify_issue", "identify_governing_norm", "state_rule", "interpret_provision",
+          "interpret_law", "interpret_case", "apply_rule", "factual_analogy",
+          "justify_interpretation", "assert_fact", "procedural", "jurisdiction_admissibility",
+          "evidence_standard", "remedy_just_satisfaction", "affirm_conclusion", "background", "other"
+        ]
+      },
+      "uniqueItems": true,
+      "minItems": 1
+    },
+    "treatment": {
+      "type": "string",
+      "enum": [
+        "follows", "applies", "approves", "extends", "distinguishes_facts",
+        "distinguishes_law", "narrows", "declines_to_follow", "departs_explicit",
+        "departs_implicit", "neutral", "mixed", "unclear"
+      ]
+    },
+    "complaint_articles": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "proposition": {"type": "string"},
+    "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+    "needs_review": {"type": "boolean"},
+    "taxonomy_notes": {"type": "string"}
+  },
+  "required": [
+    "source_voice", "engagement", "function", "treatment", "complaint_articles",
+    "proposition", "confidence", "needs_review", "taxonomy_notes"
+  ]
+}

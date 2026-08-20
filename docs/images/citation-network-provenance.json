@@ -1,0 +1,85 @@
+{
+  "generated_at": "2026-07-17",
+  "software_version": "0.2.0",
+  "query": {
+    "article": "3",
+    "respondent": "ITA",
+    "importance": "1",
+    "languages": [
+      "ENG",
+      "FRE"
+    ],
+    "sort": "date-desc",
+    "limit": 20
+  },
+  "scope": {
+    "language_records": 20,
+    "canonical_source_documents": 10,
+    "source_itemids": [
+      "001-247630",
+      "001-248082",
+      "001-243117",
+      "001-243130",
+      "001-241823",
+      "001-241395",
+      "001-233692",
+      "001-233381",
+      "001-220770",
+      "001-220616",
+      "001-218787",
+      "001-218424",
+      "001-194036",
+      "001-194051",
+      "001-184389",
+      "001-184525",
+      "001-171805",
+      "001-171804",
+      "001-170867",
+      "001-170359"
+    ],
+    "source_eclis": [
+      "ECLI:CE:ECHR:2026:0108JUD002353814",
+      "ECLI:CE:ECHR:2025:0429DEC006338616",
+      "ECLI:CE:ECHR:2025:0130JUD005156714",
+      "ECLI:CE:ECHR:2024:0502JUD003527119",
+      "ECLI:CE:ECHR:2022:0921DEC002086321",
+      "ECLI:CE:ECHR:2022:0721JUD000579717",
+      "ECLI:CE:ECHR:2019:0613JUD007763316",
+      "ECLI:CE:ECHR:2018:0628JUD000182806",
+      "ECLI:CE:ECHR:2017:0223JUD004339509",
+      "ECLI:CE:ECHR:2017:0124JUD002535812"
+    ],
+    "one_hop": true,
+    "edge_weight": "citation_count"
+  },
+  "authority": {
+    "updated_through": "2026-07-10",
+    "parser_version": "6",
+    "source_sha256": "d5ded3abd3de67cdc3c0dd43b37de0b80f8558e40621e75d63c03faa2f3b07ee",
+    "entry_count": 21078
+  },
+  "resolution": {
+    "mentions": 1124,
+    "resolved": 1124,
+    "complete": true,
+    "completeness": 1.0,
+    "resolved_metadata": 743,
+    "resolved_authority": 368,
+    "resolved_override": 13,
+    "review_required": 0,
+    "target_documents": 500,
+    "nodes": 509,
+    "edges": 562,
+    "placeholder_nodes": 0,
+    "lookup_errors": 0
+  },
+  "review_overrides": "examples/readme-citation-overrides.csv",
+  "plot_script": "examples/plot_corpus.py",
+  "hashes": {
+    "source_cases_parquet": "74b08ffaeafd1a96ee73f262c9eed2d7e6023d0fec470decc33101f8471bd4be",
+    "resolution_report_json": "dc080b537df38079debe217d9c05a1e76063ddef54467f05674486bf202df88e",
+    "review_overrides_csv": "64a4768ced06067b2f9b43331b7abea43b088cf75ae9f20332ffe6c29866efa5",
+    "citation_network_png": "e0f2d385062aef1af42622fdd5f5016aac6ea85b518cd16e793d2bb3fd2748d6",
+    "most_cited_cases_png": "67254dae460dc4f6bf17f395c181d4a186ce84ca88b557f28c6774e1830e5c14"
+  }
+}
