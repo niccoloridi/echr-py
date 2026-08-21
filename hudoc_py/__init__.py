@@ -37,7 +37,7 @@ from ._sync import (
 from .main.dsl import Q
 from .models import Case, CaseCollection, Document, Sections
 
-__version__ = "0.2.0"
+__version__ = "0.2.1"
 
 __all__ = [
     "__version__",

@@ -14,7 +14,7 @@
   <a href="https://github.com/niccoloridi/echr-py/actions/workflows/ci.yml"><img src="https://github.com/niccoloridi/echr-py/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <img src="https://img.shields.io/badge/python-3.11%E2%80%933.14-3776AB.svg" alt="Python 3.11–3.14">
   <a href="https://github.com/niccoloridi/echr-py/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-green.svg" alt="MIT license"></a>
-  <img src="https://img.shields.io/badge/version-0.2.0-blue.svg" alt="Version 0.2.0">
+  <img src="https://img.shields.io/badge/version-0.2.1-blue.svg" alt="Version 0.2.1">
 </p>
 
 `echr-py` is a research engineering toolkit for the case law of the European
@@ -407,7 +407,7 @@ without cloning the repository:
 
 ```bash
 claude mcp add --scope user --transport stdio echr-py -- \
-  "$(command -v uvx)" --from 'echr-py[mcp]==0.2.0' echr-py mcp
+  "$(command -v uvx)" --from 'echr-py[mcp]==0.2.1' echr-py mcp
 claude mcp get echr-py
 ```
 

@@ -3,6 +3,26 @@
 All notable user-facing changes are recorded here. The project follows
 semantic versioning during its alpha series.
 
+## 0.2.1 – 2026-08-21
+
+### Documentation
+
+- Replace the lineage figure with an equivalent table. The diagram's labels
+  overflowed their borders at common rendering widths; the table states the same
+  stage-by-stage contract and stays legible at any width.
+- Record the King's Digital Futures Institute Fellowship in the funding
+  statement, the Zenodo software metadata, and `CITATION.cff`.
+
+### Release engineering
+
+- Remove the live provider canaries from the release workflow. The published
+  pipeline holds no provider credentials and calls no model provider; the
+  minimum-version CI job already proves the advertised provider contract.
+- Strip the content-provenance manifest embedded in the project logo.
+
+No library behaviour, artifact schema, citation identity, or benchmark figure
+changes in this release.
+
 ## 0.2.0 – 2026-08-21
 
 ### Acquisition and structure
