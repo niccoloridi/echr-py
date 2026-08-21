@@ -92,6 +92,11 @@ _ATTACHED_DOCUMENT_CUE_RE = re.compile(
     r"(?:judgment|decision|arr[êe]t|d[ée]cision)\b",
     re.IGNORECASE,
 )
+_PERSON_HONORIFIC_RE = re.compile(
+    r"(?:^|\s)(?:Mr|Mrs|Ms|Miss|Dr|Prof(?:essor)?|Sir|Lord|Lady|Judge|Justice|"
+    r"President|M(?:M)?|Mme|Mlle|Me|Ma[iî]tre|Herr|Frau|Bay|Bayan)\.?\s+$",
+    re.IGNORECASE,
+)
 
 
 def _citation_cue_at(text: str, start: int, end: int, *, max_gap: int = 18) -> bool:
@@ -121,6 +126,12 @@ def _citation_cue_at(text: str, start: int, end: int, *, max_gap: int = 18) -> b
         if punctuation_gap or corporate_suffix_gap or document_modifier_gap:
             return True
     return False
+
+
+def _person_honorific_at(text: str, start: int) -> bool:
+    """Reject weak surname aliases when the printed text identifies a person."""
+
+    return bool(_PERSON_HONORIFIC_RE.search(text[max(0, start - 48) : start]))
 
 
 _PIN_RE = re.compile(
@@ -3913,6 +3924,23 @@ def extract_citation_occurrences(
             raw = block.text[start:end]
             if not alias.strong and " " not in raw.strip() and raw[:1].islower():
                 continue
+            if not alias.strong and _person_honorific_at(block.text, start):
+                diagnostics.append(
+                    {
+                        "code": "person_name_context",
+                        "source_itemid": case.itemid,
+                        "block_id": block.block_id,
+                        "para_id": block.para_id,
+                        "block_start": start,
+                        "block_end": end,
+                        "document_start": block.char_start + start,
+                        "document_end": block.char_start + end,
+                        "raw_text": raw,
+                        "alias_key": alias.key,
+                        "mention_id": alias.owner.mention.mention_id,
+                    }
+                )
+                continue
             if not alias.strong:
                 document_cue = _ATTACHED_DOCUMENT_CUE_RE.match(block.text[end:])
                 if document_cue is not None:
@@ -3951,6 +3979,29 @@ def extract_citation_occurrences(
                     )
                     and not _prior_document_cue_at(block.text, match.start(), match.end())
                 ):
+                    selected_alias = None
+                if (
+                    selected_alias is not None
+                    and not selected_alias.strong
+                    and _person_honorific_at(block.text, match.start())
+                ):
+                    diagnostics.append(
+                        {
+                            "code": "person_name_context",
+                            "source_itemid": case.itemid,
+                            "block_id": block.block_id,
+                            "para_id": block.para_id,
+                            "block_start": match.start(),
+                            "block_end": match.end(),
+                            "document_start": block.char_start + match.start(),
+                            "document_end": block.char_start + match.end(),
+                            "raw_text": block.text[match.start() : match.end()],
+                            "alias_key": key,
+                            "mention_ids": sorted(
+                                {entry.owner.mention.mention_id for entry in entries}
+                            ),
+                        }
+                    )
                     selected_alias = None
                 if selected_alias is not None:
                     candidates.append((match.start(), match.end(), selected_alias, italic, bold))

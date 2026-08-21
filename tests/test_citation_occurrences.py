@@ -1376,6 +1376,34 @@ def test_historical_text_discovery_seeds_later_short_forms_without_scl():
     assert assenov[-1].target_paragraphs == ["144-50"]
 
 
+@pytest.mark.parametrize("honorific", ["Mr", "Dr", "M.", "Mme"])
+def test_established_short_form_does_not_capture_honorific_person_name(honorific):
+    case = Case(
+        itemid="001-source",
+        text=(
+            "THE LAW\n\n"
+            "42. Assenov and Others v. Bulgaria (judgment of 28 October 1998, "
+            "Reports of Judgments and Decisions 1998-VIII).\n\n"
+            f"50. Neither {honorific} Assenov nor the prosecutor was independent "
+            "(see the Assenov and Others judgment cited above, §§ 144-50)."
+        ),
+    )
+
+    result = extract_citation_occurrences(case, scope="inclusive")
+    assenov = [value for value in result.occurrences if "Assenov" in value.raw_text]
+
+    assert [value.raw_text for value in assenov] == [
+        "Assenov and Others v. Bulgaria (judgment of 28 October 1998, "
+        "Reports of Judgments and Decisions 1998-VIII)",
+        "Assenov and Others judgment",
+    ]
+    assert any(
+        diagnostic.get("code") == "person_name_context"
+        and diagnostic.get("raw_text") == "Assenov"
+        for diagnostic in result.diagnostics
+    )
+
+
 @pytest.mark.parametrize(
     ("name", "appno"),
     [
