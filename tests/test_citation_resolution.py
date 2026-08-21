@@ -778,6 +778,23 @@ def test_online_lookup_cache_resumes_deterministically(tmp_path):
     assert second_client.calls == 0
 
 
+def test_lookup_cache_is_an_offline_catalog_with_live_resolution_parity(tmp_path):
+    class FakeClient:
+        async def search(self, **kwargs):
+            return [_albert_targets()[0]] if kwargs.get("docname") else []
+
+    source = _case(scl="Series A no. 58")
+    cache = tmp_path / "lookup-cache.jsonl"
+    live = asyncio.run(resolve_citations([source], client=FakeClient(), cache_path=cache))
+    offline = asyncio.run(resolve_citations([source], cache_path=cache))
+
+    assert offline.report.model_dump() == live.report.model_dump()
+    assert [value.model_dump(mode="json") for value in offline.resolutions] == [
+        value.model_dump(mode="json") for value in live.resolutions
+    ]
+    assert offline.edges == live.edges
+
+
 def test_placeholder_source_uses_non_placeholder_ecli_sibling():
     source = _case(scl=None, isplaceholder=True)
     sibling = source.model_copy(

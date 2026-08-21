@@ -4,6 +4,7 @@ from hudoc_py.citations import resolve_occurrence_paragraphs
 from hudoc_py.citations.models import (
     CitationOccurrence,
     CitationOccurrenceResult,
+    CitationParagraphResolution,
     CitationSourceInvocation,
 )
 from hudoc_py.text import build_spine_from_html
@@ -225,3 +226,61 @@ def test_reports_partial_ambiguous_and_unavailable_instead_of_guessing():
     )
     assert unavailable.occurrences[0].paragraph_resolution_status == "unavailable"
     assert unavailable.paragraph_edges == []
+
+
+def test_missing_target_html_preserves_every_detection_and_resolution_field():
+    occurrence = _occurrence("identity", ["40-41"])
+    occurrence.locus_id = "locus:identity"
+    occurrence.citation_group_id = "group:identity"
+    occurrence.group_ordinal = 2
+    occurrence.group_size = 3
+    occurrence.target_ecli = "ECLI:CE:ECHR:2001:0101JUD000000001"
+    occurrence.target_appnos = ["1/01"]
+    occurrence.resolution_candidates = [
+        {
+            "itemid": "001-target",
+            "ecli": occurrence.target_ecli,
+            "appnos": ["1/01"],
+        }
+    ]
+    occurrence.evidence = {"printed_name": "Example v. State"}
+    before = occurrence.model_dump(mode="json")
+
+    mapped = resolve_occurrence_paragraphs(
+        CitationOccurrenceResult(occurrences=[occurrence]), {}
+    )
+
+    assert len(mapped.occurrences) == 1
+    after = mapped.occurrences[0].model_dump(mode="json")
+    paragraph_fields = {"target_paragraph_resolutions", "paragraph_resolution_status"}
+    assert {
+        key: value for key, value in after.items() if key not in paragraph_fields
+    } == {
+        key: value for key, value in before.items() if key not in paragraph_fields
+    }
+    assert mapped.occurrences[0].paragraph_resolution_status == "unavailable"
+    assert mapped.occurrences[0].target_paragraph_resolutions[0].status == "unavailable"
+
+
+def test_partial_offline_rehydration_does_not_erase_existing_paragraph_evidence():
+    occurrence = _occurrence("already-mapped", ["42"])
+    occurrence.target_paragraph_resolutions = [
+        CitationParagraphResolution(
+            printed_label="42",
+            status="exact",
+            target_itemid="001-target",
+            target_para_ids=["42"],
+            target_para_nums=[42],
+            evidence={"target_spine_schema": "hudoc-spine/v2"},
+        )
+    ]
+    occurrence.paragraph_resolution_status = "resolved"
+
+    mapped = resolve_occurrence_paragraphs(
+        CitationOccurrenceResult(occurrences=[occurrence]), {}
+    )
+
+    assert mapped.occurrences[0].paragraph_resolution_status == "resolved"
+    assert mapped.occurrences[0].target_paragraph_resolutions == (
+        occurrence.target_paragraph_resolutions
+    )

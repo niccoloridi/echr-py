@@ -99,8 +99,7 @@ def test_citation_in_unnumbered_continuation_uses_owning_legal_paragraph():
     )
 
     occurrence = next(
-        value for value in result.occurrences
-        if value.raw_text == "Hood v. the United Kingdom"
+        value for value in result.occurrences if value.raw_text == "Hood v. the United Kingdom"
     )
     assert occurrence.source_block_id == "b000002"
     assert occurrence.source_para_id == "79"
@@ -132,7 +131,8 @@ def test_inline_spacing_and_covered_discovery_resolutions_preserve_repeated_cite
     """
     discovery = discover_citation_mentions(case, html=html)
     duplicate = next(
-        mention for mention in discovery.mentions
+        mention
+        for mention in discovery.mentions
         if mention.explicit_appnos and mention.origin == "text_discovery"
     )
     unresolved_duplicate = CitationResolution(
@@ -148,10 +148,7 @@ def test_inline_spacing_and_covered_discovery_resolutions_preserve_repeated_cite
         scope="inclusive",
     )
 
-    crimea = [
-        value for value in result.occurrences
-        if "Ukraine v. Russia" in value.raw_text
-    ]
+    crimea = [value for value in result.occurrences if "Ukraine v. Russia" in value.raw_text]
     assert len(crimea) == 3
     assert [value.target_paragraphs for value in crimea] == [[], ["257"], ["383"]]
     assert all(value.target_node_id == "ecli:crimea" for value in crimea)
@@ -180,9 +177,7 @@ def test_cached_v1_spine_spacing_inside_delimiters_remains_searchable():
     )
 
     crimea = [value for value in result.occurrences if "Crimea" in value.raw_text]
-    assert [value.raw_text for value in crimea] == [
-        "Ukraine v. Russia ( re Crimea )"
-    ]
+    assert [value.raw_text for value in crimea] == ["Ukraine v. Russia ( re Crimea )"]
     assert crimea[0].target_paragraphs == ["257"]
 
 
@@ -199,10 +194,7 @@ def test_coverage_does_not_fold_unresolved_decision_into_resolved_judgment():
         itemid="001-source",
         languageisocode="ENG",
         scl="Example v. France, no. 12345/67, judgment of 2 January 2020",
-        text=(
-            "THE LAW\n\n"
-            "1. Example v. France (dec.), no. 12345/67, 3 January 2020."
-        ),
+        text=("THE LAW\n\n1. Example v. France (dec.), no. 12345/67, 3 January 2020."),
     )
     scl_resolution = _resolved(
         case,
@@ -226,9 +218,7 @@ def test_coverage_does_not_fold_unresolved_decision_into_resolved_judgment():
         scope="inclusive",
     )
 
-    decision = next(
-        value for value in result.occurrences if "(dec.)" in value.raw_text
-    )
+    decision = next(value for value in result.occurrences if "(dec.)" in value.raw_text)
     assert decision.scl_coverage == "not_covered"
     assert decision.target_node_id is None
 
@@ -262,9 +252,7 @@ def test_alias_token_prefilter_is_identical_to_exhaustive_scan(monkeypatch):
         ("KIRK", "KIRK"),
     ],
 )
-def test_alias_prefilter_preserves_unicode_ignorecase_equivalents(
-    monkeypatch, authority, printed
-):
+def test_alias_prefilter_preserves_unicode_ignorecase_equivalents(monkeypatch, authority, printed):
     case = Case(
         itemid="001-source",
         languageisocode="ENG",
@@ -307,8 +295,7 @@ def test_text_discovery_preserves_source_footnote_identity():
     """
     discovery = discover_citation_mentions(case, html=html)
     occurrence = next(
-        value for value in discovery.preliminary_occurrences
-        if "Soering" in value.raw_text
+        value for value in discovery.preliminary_occurrences if "Soering" in value.raw_text
     )
     mention = next(
         value for value in discovery.mentions if value.mention_id == occurrence.mention_id
@@ -337,8 +324,7 @@ def test_footnote_invocation_from_continuation_uses_owning_legal_paragraph():
 
     discovery = discover_citation_mentions(case, html=html)
     occurrence = next(
-        value for value in discovery.preliminary_occurrences
-        if "Soering" in value.raw_text
+        value for value in discovery.preliminary_occurrences if "Soering" in value.raw_text
     )
 
     assert occurrence.source_invoking_block_ids == ["b000003"]
@@ -355,10 +341,7 @@ def test_resolution_never_changes_detected_loci_or_occurrence_ids():
     case = Case(
         itemid="001-source",
         languageisocode="ENG",
-        scl=(
-            "Assenov and Others v. Bulgaria judgment of 28 October 1998, "
-            "Reports 1998-VIII"
-        ),
+        scl=("Assenov and Others v. Bulgaria judgment of 28 October 1998, Reports 1998-VIII"),
         text=(
             "THE LAW\n\n42. Assenov and Others v. Bulgaria (judgment of "
             "28 October 1998, Reports 1998-VIII).\n\n"
@@ -392,10 +375,7 @@ def test_accent_insensitive_alias_retains_exact_printed_span():
     case = Case(
         itemid="001-source",
         scl="Stanciulescu v. Romania (no. 2), no. 14621/06",
-        text=(
-            "THE LAW\n\n1. See Stănciulescu v. Romania (no. 2), "
-            "cited above, § 44."
-        ),
+        text=("THE LAW\n\n1. See Stănciulescu v. Romania (no. 2), cited above, § 44."),
     )
 
     result = extract_citation_occurrences(case)
@@ -426,8 +406,7 @@ def test_parenthesised_appno_envelope_stops_before_following_authority():
     assert "Kavala" not in ilgar.raw_ref
     assert any(value.raw_text.startswith("Ilgar Mammadov") for value in result.occurrences)
     assert not any(
-        value.get("code") == "overlapping_distinct_authorities"
-        for value in result.diagnostics
+        value.get("code") == "overlapping_distinct_authorities" for value in result.diagnostics
     )
 
 
@@ -473,9 +452,7 @@ def test_grouped_procedural_rows_receive_distinct_resolved_documents():
     resolutions[0].target.procedural_phase = "preliminary_objections"
     resolutions[1].target.procedural_phase = "merits"
 
-    result = extract_citation_occurrences(
-        case, resolutions, scope="inclusive"
-    )
+    result = extract_citation_occurrences(case, resolutions, scope="inclusive")
     grouped = [value for value in result.occurrences if value.group_size == 2]
 
     assert len(grouped) == 2
@@ -501,9 +478,7 @@ def test_name_date_series_a_without_judgment_word_is_one_strong_envelope():
 
     assert len(discovery.mentions) == 1
     assert discovery.mentions[0].cited_name == "Engel and Others v. the Netherlands"
-    assert discovery.mentions[0].discovery_evidence["method"] == (
-        "historical_name_date_reporter"
-    )
+    assert discovery.mentions[0].discovery_evidence["method"] == ("historical_name_date_reporter")
     assert discovery.preliminary_occurrences[0].target_paragraphs == ["68"]
 
 
@@ -786,8 +761,7 @@ def test_identity_coverage_uses_scl_name_when_scl_omits_appno():
         itemid="001-source",
         scl="Hood v. the United Kingdom judgment of 18 February 1999, §§ 84-87",
         text=(
-            "THE LAW\n76. See Hood v. the United Kingdom [GC], no. 27267/95, "
-            "§§ 84-87, ECHR 1999-I."
+            "THE LAW\n76. See Hood v. the United Kingdom [GC], no. 27267/95, §§ 84-87, ECHR 1999-I."
         ),
     )
 
@@ -808,6 +782,155 @@ def test_lowercase_ordinary_word_does_not_become_short_form():
     result = extract_citation_occurrences(case)
 
     assert result.occurrences == []
+
+
+def test_source_application_and_current_party_aliases_are_not_citations():
+    case = Case(
+        itemid="001-ocalan-final",
+        appno=["46221/99"],
+        kpdate="2005-05-12",
+        scl=("Öcalan v. Turkey, no. 46221/99, judgment of 12 March 2003"),
+        text=(
+            "PROCEDURE\n\n"
+            "1. The case originated in an application (no. 46221/99) "
+            "lodged by Mr Abdullah Öcalan."
+        ),
+    )
+    resolution = _resolved(case, [("ecli:ocalan-chamber", "Öcalan v. Turkey")])[0]
+    assert resolution.target is not None
+    resolution.target.appnos = ["46221/99"]
+
+    unresolved = extract_citation_occurrences(case)
+    result = extract_citation_occurrences(case, [resolution])
+
+    assert unresolved.occurrences == []
+    assert result.occurrences == []
+    assert {
+        (value.source_block_id, value.block_start, value.block_end)
+        for value in unresolved.occurrences
+    } == {
+        (value.source_block_id, value.block_start, value.block_end) for value in result.occurrences
+    }
+
+
+def test_same_application_prior_document_requires_name_date_and_phase_cue():
+    case = Case(
+        itemid="001-molla-sali-article-41",
+        appno=["20452/14"],
+        kpdate="2020-06-18",
+        text=(
+            "JOINT OPINION\n\n"
+            "3. The conclusion departs from the principal judgment "
+            "(Molla Sali v. Greece [GC], no. 20452/14, 19 December 2018)."
+        ),
+    )
+
+    result = discover_citation_mentions(case)
+
+    assert len(result.mentions) == 1
+    assert result.mentions[0].cited_name == "Molla Sali v. Greece"
+    assert result.mentions[0].target_date.isoformat() == "2018-12-19"
+    assert result.mentions[0].discovery_evidence["method"] == ("same_application_prior_document")
+
+
+def test_four_letter_short_form_needs_an_established_authority():
+    case = Case(
+        itemid="001-source",
+        scl="Glor v. Switzerland, no. 13444/04, 30 April 2009",
+        text=(
+            "THE LAW\n\n"
+            "1. Glor v. Switzerland supplied the governing test; Glor, § 57, "
+            "then applied it.\n\n"
+            "2. The word glor is deliberately lowercase prose."
+        ),
+    )
+
+    result = extract_citation_occurrences(case)
+
+    assert [value.raw_text for value in result.occurrences] == [
+        "Glor v. Switzerland",
+        "Glor",
+    ]
+
+
+@pytest.mark.parametrize(
+    ("text", "name", "method"),
+    [
+        (
+            "Turgut et autres c. Turquie (no 1411/03, §§ 41-67, 8 juillet 2008)",
+            "Turgut et autres c. Turquie",
+            "name_application_number",
+        ),
+        (
+            "Wirtschafts-Trend Zeitschriften-Verlags m.b.H. (no. 3) "
+            "v. Austria, nos. 66298/01 and 15653/02, 13 December 2005",
+            "Wirtschafts-Trend Zeitschriften-Verlags m.b.H. (no. 3) v. Austria",
+            "name_application_number",
+        ),
+        (
+            "Parti communiste unifié de Turquie et autres c. Turquie, "
+            "30 janvier 1998, § 29, Recueil 1998-I",
+            "Parti communiste unifié de Turquie et autres c. Turquie",
+            "historical_name_date_reporter",
+        ),
+        (
+            "Colozza [v. Italy, judgment of 12 February 1985, Series A no. 89], pp. 14-15, § 28",
+            "Colozza v. Italy",
+            "historical_name_date_reporter",
+        ),
+        (
+            "decision of 26 May 1975 concerning the case of Cyprus v. Turkey",
+            "Cyprus v. Turkey",
+            "historical_reverse_date_name",
+        ),
+    ],
+)
+def test_reviewed_french_corporate_and_historical_forms(text, name, method):
+    result = discover_citation_mentions(
+        Case(itemid="001-source", text=f"THE LAW\n\n1. See {text}.")
+    )
+
+    assert any(
+        mention.cited_name == name and mention.discovery_evidence["method"] == method
+        for mention in result.mentions
+    )
+
+
+def test_reverse_date_name_envelope_owns_following_application_numbers():
+    text = (
+        "In its decision of 26 May 1975 concerning the case of Cyprus v. "
+        "Turkey (nos. 6780/74 and 6950/75, DR 2, p. 136), the Commission "
+        "had already taken the same view."
+    )
+
+    case = Case(
+        itemid="001-source",
+        scl=(
+            "European Commission of Human Rights, Cyprus v. Turkey, "
+            "applications nos. 6780/74 and 6950/75, decisions on "
+            "admissibility, 26 May 1975, DR 2, pp. 135-136"
+        ),
+        text=f"THE LAW\n\n1. {text}",
+    )
+    result = discover_citation_mentions(case)
+
+    mention = next(
+        value for value in result.mentions if set(value.explicit_appnos) == {"6780/74", "6950/75"}
+    )
+    occurrence = next(
+        value for value in result.preliminary_occurrences if value.mention_id == mention.mention_id
+    )
+    assert mention.cited_name == "Cyprus v. Turkey"
+    assert occurrence.raw_text.startswith("decision of 26 May 1975")
+
+    located = extract_citation_occurrences(
+        case,
+        _resolved(case, [("ecli:cyprus-1975", "Cyprus v. Turkey")]),
+        scope="inclusive",
+    )
+    full = next(value for value in located.occurrences if "26 May 1975" in value.raw_text)
+    assert full.raw_text.startswith("decision of 26 May 1975")
+    assert not any(value.raw_text == "6780/74" for value in located.occurrences)
 
 
 def test_discovery_groups_application_numbers_in_one_envelope():
@@ -963,9 +1086,10 @@ def test_tail_footnote_in_second_opinion_keeps_invoking_opinion_identity():
     assert occurrence.source_component == "opinion"
     assert occurrence.source_opinion_ordinal == 2
     assert occurrence.source_opinion_authors == ["BETA"]
-    assert [(value.source_para_id, value.source_opinion_ordinal) for value in occurrence.source_invocations] == [
-        ("52", 2)
-    ]
+    assert [
+        (value.source_para_id, value.source_opinion_ordinal)
+        for value in occurrence.source_invocations
+    ] == [("52", 2)]
 
 
 def test_application_level_resolution_retains_candidates_without_edge():
@@ -1005,10 +1129,7 @@ def test_conflicting_printed_appnos_never_inherit_same_name_scl_target():
     case = Case(
         itemid="001-source",
         scl="Georgia v. Russia (I) [GC], no. 13255/07, ECHR 2014",
-        text=(
-            "THE LAW\n\n75. See Georgia v. Russia (II) (dec.), "
-            "no. 38263/08, 13 December 2011."
-        ),
+        text=("THE LAW\n\n75. See Georgia v. Russia (II) (dec.), no. 38263/08, 13 December 2011."),
     )
     scl_mention = parse_scl_mentions(case)[0]
     discovered = discover_citation_mentions(case).mentions[0]
@@ -1048,19 +1169,21 @@ def test_conflicting_printed_appnos_never_inherit_same_name_scl_target():
 
 
 def test_occurrence_v1_rows_remain_readable_and_serialization_is_stable():
-    legacy = CitationOccurrence.model_validate({
-        "schema_version": "citation-occurrence/v1",
-        "occurrence_id": "old",
-        "mention_id": "mention",
-        "source_block_id": "block",
-        "block_start": 0,
-        "block_end": 6,
-        "document_start": 0,
-        "document_end": 6,
-        "raw_text": "Magee",
-        "source_context": "Magee",
-        "finder": "full_name",
-    })
+    legacy = CitationOccurrence.model_validate(
+        {
+            "schema_version": "citation-occurrence/v1",
+            "occurrence_id": "old",
+            "mention_id": "mention",
+            "source_block_id": "block",
+            "block_start": 0,
+            "block_end": 6,
+            "document_start": 0,
+            "document_end": 6,
+            "raw_text": "Magee",
+            "source_context": "Magee",
+            "finder": "full_name",
+        }
+    )
     assert legacy.source_component == "majority"
     assert legacy.resolution_scope == "unresolved"
     assert legacy.locus_id is None
@@ -1113,18 +1236,15 @@ def test_unique_series_a_locator_is_exact_but_modern_volume_is_not_an_anchor():
     ("text", "expected"),
     [
         (
-            "THE LAW\nA v. France, no. 11111/11, and B v. France, "
-            "no. 22222/22, § 42.",
+            "THE LAW\nA v. France, no. 11111/11, and B v. France, no. 22222/22, § 42.",
             {"A v. France": [], "B v. France": ["42"]},
         ),
         (
-            "THE LAW\nA v. France, no. 11111/11, § 17, and B v. France, "
-            "no. 22222/22.",
+            "THE LAW\nA v. France, no. 11111/11, § 17, and B v. France, no. 22222/22.",
             {"A v. France": ["17"], "B v. France": []},
         ),
         (
-            "THE LAW\nA v. France, no. 11111/11, § 17; B v. France, "
-            "no. 22222/22, §§ 42-43.",
+            "THE LAW\nA v. France, no. 11111/11, § 17; B v. France, no. 22222/22, §§ 42-43.",
             {"A v. France": ["17"], "B v. France": ["42-43"]},
         ),
     ],
@@ -1141,10 +1261,7 @@ def test_adjacent_citations_own_only_their_pinpoints(text, expected):
 
 
 def test_article_paragraph_is_not_mistaken_for_cited_case_pinpoint():
-    text = (
-        "THE LAW\nA v. France, no. 11111/11. "
-        "The complaint falls under Article 5 § 4."
-    )
+    text = "THE LAW\nA v. France, no. 11111/11. The complaint falls under Article 5 § 4."
     discovery = discover_citation_mentions(Case(itemid="001-source", text=text))
 
     assert discovery.preliminary_occurrences[0].target_paragraphs == []

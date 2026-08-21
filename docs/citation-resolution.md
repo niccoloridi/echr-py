@@ -382,8 +382,10 @@ metadata-only accepted appno or exact-date contradictions. The separately
 labelled Temeltasch authority mapping is the one reviewed exception to the
 HUDOC-date check.
 
-The dated 99.5% figure is **automatic coverage**, not current-code accuracy or
-measurement completeness. It used parser version 6 and the 10 July English
+The dated 99.5% figure is **automatic coverage of the SCL mentions that HUDOC
+supplied**, not current-code accuracy, detector recall, or measurement
+completeness. SCL itself is selective and cannot supply a denominator for all
+printed citations. The audit used parser version 6 and the 10 July English
 authority; later parser, authority, and title/phase gates require their own
 fresh denominators. The 13 held references do not enter `edges.parquet`: one
 remains ambiguous after a

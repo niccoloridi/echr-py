@@ -150,6 +150,11 @@ def test_parse_and_import_mumford_xmi_preserves_offsets_and_annotators(tmp_path)
     assert report["annotations"] == 2
     assert report["curated_annotations"] == 1
     assert report["individual_annotations"] == 1
+    imported_document = json.loads(
+        (tmp_path / "out" / "documents.jsonl").read_text(encoding="utf-8").splitlines()[0]
+    )
+    assert not Path(imported_document["source_file"]).is_absolute()
+    assert imported_document["source_file"].startswith("Curation/")
 
 
 def test_mumford_appno_is_read_from_exact_span_when_attribute_has_name_only(tmp_path):

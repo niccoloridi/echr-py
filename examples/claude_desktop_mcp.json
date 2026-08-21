@@ -1,7 +1,7 @@
 {
-  "_comment": "Drop the 'hudoc' entry into your claude_desktop_config.json mcpServers map. Use an absolute python path that points at the venv where echr-py is installed.",
+  "_comment": "Drop the 'echr-py' entry into your claude_desktop_config.json mcpServers map. Use an absolute python path that points at the venv where echr-py is installed.",
   "mcpServers": {
-    "hudoc": {
+    "echr-py": {
       "command": "/absolute/path/to/echr-py/.venv/bin/python",
       "args": ["-m", "hudoc_py.mcp"]
     }

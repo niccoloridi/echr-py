@@ -1,8 +1,10 @@
 # Paragraph-Aware Citation Occurrences
 
-The occurrence layer answers a different question from SCL resolution:
+The occurrence layer answers a different question from SCL resolution. The
+Court-supplied SCL field is useful, selective bibliographic evidence rather
+than an exhaustive inventory of citations, including in majority text:
 
-- an SCL mention identifies a bibliographic authority cited by a document;
+- an SCL mention identifies a bibliographic authority listed for a document;
 - a citation occurrence identifies where that authority appears in the source text.
 
 Occurrence finding is deterministic. Inclusive mode combines the document's
@@ -141,6 +143,12 @@ headers and all-caps title repetitions are excluded.
 Typography is corroborating evidence rather than an independent finder.
 Plain-text input can therefore locate strong forms, but weak short forms fail
 conservatively when formatting evidence is unavailable.
+
+The citing document's own application numbers and bare party/title aliases do
+not establish an external authority. A genuinely distinct earlier procedural
+document from the same application is considered only when the source and
+candidate dates differ and the printed envelope supplies a compatible
+document-kind or phase cue.
 
 ## Optional Citation-Use Labels
 

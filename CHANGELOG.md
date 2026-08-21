@@ -3,7 +3,7 @@
 All notable user-facing changes are recorded here. The project follows
 semantic versioning during its alpha series.
 
-## 0.2.0 – 2026-08-20
+## 0.2.0 – 2026-08-21
 
 ### Acquisition and structure
 
@@ -39,9 +39,15 @@ semantic versioning during its alpha series.
   self-referential, and rejected candidates without forced graph promotion.
 - Historical text discovery covers parenthesised judgment dates, anonymised
   single-letter applicants, comma-separated multi-party case names,
-  accent-insensitive aliases, and name/date/unique-Series-A forms.
+  French and corporate party forms, accent-insensitive aliases, four-letter
+  established short forms, and name/date/reporter forms.
+- The citing case's own application numbers and bare party aliases are no
+  longer promoted as citations; a genuinely earlier document in the same
+  application requires a name-bearing envelope with date and phase evidence.
 - Exact application-number, title, date, document-kind, and procedural-phase
   conflicts now fail closed before automatic document promotion.
+- Cached HUDOC lookup metadata is now authoritative input to offline reruns,
+  so paragraph hydration cannot demote otherwise identical document targets.
 - English/French official-authority import support, with the current bilingual
   v2 authority packaged by default, plus a checksummed historical catalogue,
   reviewed overrides, and reproducible benchmark import/compare commands.

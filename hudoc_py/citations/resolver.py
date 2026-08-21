@@ -655,12 +655,7 @@ async def _fetch_online_candidates(
             reporter_index=authority_reporter_index,
         )
 
-    cached_rows: list[dict[str, Any]] = []
-    if cache_path and Path(cache_path).exists():
-        cached_rows = [
-            dict(row["case"]) for row in iter_jsonl(cache_path) if isinstance(row.get("case"), dict)
-        ]
-    cached_cases = [Case.model_validate(row) for row in cached_rows]
+    cached_cases = _load_cached_cases(cache_path)
     cached_appnos = {appno for case in cached_cases for appno in case.appno}
     cached_eclis = {
         normalize_ecli(case.ecli) for case in cached_cases if case.ecli and not case.is_placeholder
@@ -939,6 +934,17 @@ async def _fetch_online_candidates(
     return [*cached_cases, *fetched], lookup_errors
 
 
+def _load_cached_cases(cache_path: str | Path | None) -> list[Case]:
+    """Load persisted HUDOC lookup rows for both online and offline resolution."""
+    if cache_path is None or not Path(cache_path).exists():
+        return []
+    return [
+        Case.model_validate(row["case"])
+        for row in iter_jsonl(cache_path)
+        if isinstance(row.get("case"), dict)
+    ]
+
+
 def _plausible_candidate(
     mention: CitationMention, candidate: CitationCandidate
 ) -> bool:
@@ -1177,7 +1183,10 @@ def _resolve_one(
             ]
             pool = list({candidate.node_id: candidate for candidate in candidates}.values())
             if not pool:
-                pool = list(catalog.candidates.values())
+                pool = [
+                    catalog.candidates[node_id]
+                    for node_id in sorted(catalog.candidates)
+                ]
         evaluated = [
             result
             for candidate in pool
@@ -1375,6 +1384,12 @@ async def resolve_citations(
             source_cases=sources,
         )
         catalog_cases.extend(online_cases)
+    else:
+        # The lookup cache is a portable metadata catalog, not merely an
+        # online request optimisation. Offline reruns must use the same cached
+        # candidate rows so enabling downstream paragraph hydration cannot
+        # silently demote already resolved document targets.
+        catalog_cases.extend(_load_cached_cases(cache_path))
     source_ids = {canonical_node_id(case) for case in sources if case.ecli or case.itemid}
     target_catalog = TargetCatalog(catalog_cases, source_node_ids=source_ids)
     override_list = list(overrides or [])

@@ -18,6 +18,22 @@ from .models import (
 _RANGE_RE = re.compile(r"^\s*(\d{1,4})\s*[-–\u2014]\s*(\d{1,4})\s*$")
 _NUMBER_RE = re.compile(r"^\s*(\d{1,4})\s*$")
 
+# Paragraph hydration is deliberately downstream of citation detection and
+# document resolution. Keeping the exclusion list here makes the contract
+# executable: these are the only occurrence fields this module may change.
+_PARAGRAPH_HYDRATION_FIELDS = frozenset(
+    {"target_paragraph_resolutions", "paragraph_resolution_status"}
+)
+
+
+def _detection_identity(occurrence: CitationOccurrence) -> dict[str, object]:
+    """Return every occurrence field that paragraph hydration must preserve."""
+    return {
+        key: value
+        for key, value in occurrence.model_dump(mode="json").items()
+        if key not in _PARAGRAPH_HYDRATION_FIELDS
+    }
+
 
 def _numbers(label: str) -> tuple[list[int], bool] | None:
     """Expand an exact/range label, including conventional ``139-41`` shorthand."""
@@ -171,7 +187,11 @@ def _resolve_label(
     )
 
 
-def _overall_status(resolutions: list[CitationParagraphResolution]) -> str:
+def _overall_status(
+    resolutions: list[CitationParagraphResolution],
+) -> Literal[
+    "not_requested", "resolved", "partial", "ambiguous", "missing", "unavailable"
+]:
     statuses = {value.status for value in resolutions}
     if not statuses:
         return "not_requested"
@@ -215,20 +235,39 @@ def resolve_occurrence_paragraphs(
         spine = _target_spine(occurrence, target_spines)
         target_key = occurrence.target_itemid or occurrence.target_node_id or ""
         language = languages.get(target_key)
-        resolutions = [
-            _resolve_label(occurrence, label, spine, target_language=language)
-            for label in occurrence.target_paragraphs
+        status: Literal[
+            "not_requested",
+            "resolved",
+            "partial",
+            "ambiguous",
+            "missing",
+            "unavailable",
         ]
-        status = _overall_status(resolutions)
+        # A partial/offline hydration pass must not erase a mapping produced by
+        # an earlier pass. Missing target HTML is absence of new evidence, not
+        # evidence that the document-level target (or its paragraph mapping) is
+        # wrong.
+        if spine is None and occurrence.target_paragraph_resolutions:
+            resolutions = occurrence.target_paragraph_resolutions
+            status = occurrence.paragraph_resolution_status
+        else:
+            resolutions = [
+                _resolve_label(occurrence, label, spine, target_language=language)
+                for label in occurrence.target_paragraphs
+            ]
+            status = _overall_status(resolutions)
         if occurrence.target_paragraphs:
             pinpoint_occurrences += 1
             counts[status] += 1
+        identity = _detection_identity(occurrence)
         updated_occurrence = occurrence.model_copy(
             update={
                 "target_paragraph_resolutions": resolutions,
                 "paragraph_resolution_status": status,
             }
         )
+        if _detection_identity(updated_occurrence) != identity:  # pragma: no cover
+            raise AssertionError("paragraph hydration changed citation detection identity")
         updated.append(updated_occurrence)
         target_blocks = {block.block_id: block for block in spine.blocks} if spine else {}
         source_rows: list[dict[str, object]] = [{}]

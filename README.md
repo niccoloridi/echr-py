@@ -71,7 +71,7 @@ see [acquisition performance and tuning](https://github.com/niccoloridi/echr-py/
   <img src="https://raw.githubusercontent.com/niccoloridi/echr-py/main/docs/images/acquisition-terminal-demo.gif" alt="Live echr-py case and metadata acquisition" width="92%">
 </p>
 
-In the recorded public-HUDOC run, `echr-py` selected twelve metadata records,
+In the recorded July 2026 public-HUDOC run, `echr-py` selected twelve metadata records,
 hydrated the nine records for which that response supplied usable official
 text, parsed 1,578 source-order blocks, and wrote 478,151 text characters in
 about 1.1 seconds with concurrency twelve. This is an observed demonstration,
@@ -118,7 +118,7 @@ cases = await aio.search(article="8", respondent="FRA", limit=50)
 | Research task | What `echr-py` provides |
 | --- | --- |
 | Build a multilingual case-law corpus | Frozen selections, complete language-version discovery, resumable acquisition, checksums, typed failures, Parquet/JSONL/CSV/XLSX |
-| Study precedent at paragraph level | Exact printed citation spans, exact procedural targets, citation-owned pinpoints, verified cited paragraphs |
+| Study precedent at paragraph level | Exact printed citation spans, uniquely corroborated procedural targets, citation-owned pinpoints, verified cited paragraphs |
 | Compare majority and individual opinions | Stable opinion identities, type, ordinal, authors, joiners, source spans, and separate citation provenance |
 | Analyse footnote citation practice | Linked footnote bodies, invoking paragraphs, majority/opinion context, and footnote-owned citation edges |
 | Search concepts across English and French | SQLite FTS5, exact dense search, deterministic hybrid fusion, filters, stable paragraph IDs |
@@ -133,7 +133,7 @@ cases. `echr-py` keeps the layers researchers actually need separate:
 
 ```text
 SCL decision graph
-    └── authoritative HUDOC cited-case baseline
+    └── Court-supplied, selective cited-authority baseline
 
 Inclusive occurrence ledger
     └── every occurrence accepted by the deterministic discovery rules
@@ -150,6 +150,11 @@ the next carries no pinpoint; two opinions may cite the same target for
 different propositions; and a footnote may cite an authority that never appears
 in the judgment's SCL field. `echr-py` preserves those distinctions instead of
 collapsing them into one count.
+
+SCL is valuable bibliographic evidence, but it is not an exhaustive inventory
+of printed citations – including in the majority judgment. Inclusive discovery
+therefore starts from SCL without treating its absence as evidence that a
+paragraph contains no citation.
 
 Occurrence v3 separates a target-independent printed `locus_id` from
 authority-specific `occurrence_id` rows. Compound references share a locus and
@@ -180,10 +185,11 @@ ambiguous application to an arbitrary judgment.
 
 In a fixed July 2026 audit using authority parser 6 and the 10 July English
 authority, the then-current resolver mapped **2,479 of 2,492 SCL mentions
-(99.5%)** automatically. This is dated automatic coverage, not current-code
-completeness or accuracy. Thirteen references remained outside the graph
-pending review or documented exclusion. The sample, denominators, failure
-classes, method, and qualifications are in the
+(99.5%)** automatically. This is dated automatic coverage of the SCL mentions
+that HUDOC supplied – not current-code accuracy, a detector-recall estimate, or
+the proportion of all printed citations. Thirteen references remained outside
+the graph pending review or documented exclusion. The sample, denominators,
+failure classes, method, and qualifications are in the
 [citation-resolution audit](https://github.com/niccoloridi/echr-py/blob/main/docs/citation-resolution.md#release-validation-audit).
 
 ### Discovery beyond SCL
@@ -392,7 +398,7 @@ tests are complete; manual and source-checkout setup is documented in the
   <img src="https://raw.githubusercontent.com/niccoloridi/echr-py/main/docs/images/mcp-terminal-demo.gif" alt="Live echr-py MCP terminal demo" width="92%">
 </p>
 
-The live workflow below replays a fixed three-tool protocol: it identifies the
+The recorded July 2026 workflow below replays a fixed three-tool protocol: it identifies the
 exact Öcalan Grand Chamber judgment, recovers its structured spine, bench and
 separate opinions, then performs inclusive deterministic citation discovery
 and resolution. It uses real public HUDOC responses, but no model chooses the
@@ -408,7 +414,7 @@ occurrences and 79 occurrence-owned paragraph pinpoints. Its
 [provenance record](https://github.com/niccoloridi/echr-py/blob/main/docs/images/mcp-research-demo.provenance.json) retains the
 three tool arguments, timings, exact item ID, package version, and script hashes.
 
-In the retained model-driven test, Claude Sonnet 5 made three read-only
+In the retained July 2026 model-driven test, Claude Sonnet 5 made three read-only
 `echr-py` calls: it selected the English judgment by exact ECLI, requested
 compact structural evidence, and asked `echr-py` to construct an
 occurrence-weighted citation network.
@@ -477,7 +483,7 @@ projects:
 | A prior-case-retrieval dataset | [ECtHR-PCR](https://github.com/TUMLegalTech/ECHR-PCR) |
 
 At the citation layer, `echr-py` combines exact printed occurrences,
-corroborated procedural-document identity, citation-owned pinpoints, verified
+uniquely corroborated procedural-document identity, citation-owned pinpoints, verified
 target paragraphs, majority/opinion/footnote provenance, and portable graph
 exports in one documented contract.
 

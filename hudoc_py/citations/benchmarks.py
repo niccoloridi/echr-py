@@ -433,11 +433,14 @@ def import_mumford(source: str | Path, out_dir: str | Path) -> dict[str, Any]:
             if "Curation" not in path.parts and "Raw_Annotations" not in path.parts:
                 continue
             parsed = parse_mumford_xmi(path)
+            portable_source = path.relative_to(root).as_posix()
             document = parsed["document"]
+            document["source_file"] = portable_source
             document_handle.write(json.dumps(document, ensure_ascii=False) + "\n")
             document_count += 1
             replacement_count += int(document["xml_illegal_character_replacements"])
             for annotation in parsed["annotations"]:
+                annotation["source_file"] = portable_source
                 annotation_handle.write(json.dumps(annotation, ensure_ascii=False) + "\n")
                 annotation_count += 1
                 curated_count += int(bool(annotation["curated"]))
