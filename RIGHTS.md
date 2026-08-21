@@ -28,9 +28,8 @@ Demonstration artifacts under `docs/` and `examples/` contain source identifiers
 short citation contexts, derived citation edges, counts, graphs, and provenance.
 They do not constitute a general corpus of Court texts.
 
-The project logo was created with OpenAI image generation and retains embedded
-content-provenance metadata. It is project artwork, not a Court or Council of
-Europe mark.
+The project logo was created with OpenAI image generation. It is project
+artwork, not a Court or Council of Europe mark.
 
 For Court website text, consult the current
 [ECHR copyright and disclaimer](https://www.echr.coe.int/en/copyright-and-disclaimer)
