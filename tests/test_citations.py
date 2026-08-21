@@ -4,7 +4,15 @@ from __future__ import annotations
 
 import pytest
 
-from hudoc_py.citations import APPNO_REGEX, CitationGraph, extract_citations, parse_scl
+from hudoc_py.citations import (
+    APPNO_REGEX,
+    CitationGraph,
+    external_source_authority,
+    extract_citations,
+    match_external_source,
+    parse_external_sources,
+    parse_scl,
+)
 from hudoc_py.models import Case
 
 # Real-shape Öcalan SCL fragment (4 refs, FR-style).
@@ -199,3 +207,77 @@ def test_to_networkx_builds_digraph():
     assert "001-100" in graph.nodes
     assert "001-200" in graph.nodes
     assert ("001-100", "001-200") in graph.edges
+
+
+# ---------------------------------------------------------------------------
+# HUDOC "International Law" field (``externalsources``)
+# ---------------------------------------------------------------------------
+
+# Real-shape fragment from Janowiec and Others v. Russia (001-144276).
+EXTERNAL_SAMPLE = (
+    "International Criminal Tribunal for the Former Yugoslavia, Furundžija case, "
+    "judgment of 10 December 1998;"
+    "UN Human Rights Committee, General Comment 20, Article 7 (Forty-fourth session, 1992);"
+    "Inter-American Court of Human Rights, Gomes Lund v. Brazil (judgment of "
+    "24 November 2010, Preliminary Objections, Merits, Reparations and Costs)"
+)
+
+
+def test_parse_external_sources_splits_and_dedupes():
+    entries = parse_external_sources(EXTERNAL_SAMPLE)
+    assert len(entries) == 3
+    assert entries[2].startswith("Inter-American Court of Human Rights, Gomes Lund")
+    assert parse_external_sources("a;a;b") == ["a", "b"]
+
+
+def test_parse_external_sources_handles_empty():
+    assert parse_external_sources(None) == []
+    assert parse_external_sources("") == []
+    assert parse_external_sources("   ;  ") == []
+
+
+def test_match_external_source_identifies_non_ecthr_authority():
+    entries = parse_external_sources(EXTERNAL_SAMPLE)
+    hit = match_external_source("Gomes Lund v. Brazil", entries)
+    assert hit is not None and "Inter-American Court" in hit
+
+
+def test_match_external_source_is_accent_insensitive():
+    entries = parse_external_sources(EXTERNAL_SAMPLE)
+    assert match_external_source("Furundzija", entries) is not None
+
+
+def test_match_external_source_ignores_unrelated_strasbourg_case():
+    entries = parse_external_sources(EXTERNAL_SAMPLE)
+    assert match_external_source("Nikolova v. Bulgaria", entries) is None
+
+
+def test_match_external_source_never_matches_on_state_words_alone():
+    """"D. v. the United Kingdom" must not attach to an unrelated entry."""
+    entries = parse_external_sources(
+        "UN Human Rights Committee, Concluding observations, United Kingdom, 1 April 1997"
+    )
+    assert match_external_source("D. v. the United Kingdom", entries) is None
+
+
+def test_match_external_source_skips_strasbourg_entries():
+    entries = parse_external_sources(
+        "European Court of Human Rights, Soering v. the United Kingdom, 7 July 1989"
+    )
+    assert match_external_source("Soering v. the United Kingdom", entries) is None
+
+
+def test_match_external_source_requires_a_name():
+    assert match_external_source(None, ["anything"]) is None
+    assert match_external_source("", ["anything"]) is None
+
+
+def test_external_source_authority_reads_the_case_field():
+    case = _make_case(itemid="001-144276", external_sources=EXTERNAL_SAMPLE)
+    assert external_source_authority(case, "Gomes Lund v. Brazil") is not None
+    assert external_source_authority(case, "Nikolova v. Bulgaria") is None
+
+
+def test_external_source_authority_handles_absent_field():
+    case = _make_case(itemid="001-000", external_sources=None)
+    assert external_source_authority(case, "Gomes Lund v. Brazil") is None

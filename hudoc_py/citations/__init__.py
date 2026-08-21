@@ -40,7 +40,14 @@ from .catalog import (
     verify_historical_catalog,
     write_historical_catalog,
 )
-from .extractor import APPNO_REGEX, extract_citations, parse_scl
+from .extractor import (
+    APPNO_REGEX,
+    external_source_authority,
+    extract_citations,
+    match_external_source,
+    parse_external_sources,
+    parse_scl,
+)
 from .graph import CitationGraph
 from .models import (
     CitationAuthority,
@@ -72,6 +79,9 @@ __all__ = [
     "APPNO_REGEX",
     "extract_citations",
     "parse_scl",
+    "parse_external_sources",
+    "match_external_source",
+    "external_source_authority",
     "CitationGraph",
     "CitationAuthority",
     "CitationAuthorityEntry",
