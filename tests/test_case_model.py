@@ -6,6 +6,7 @@ from datetime import date
 
 import pytest
 
+from hudoc_py.citations.models import CitationCandidate
 from hudoc_py.models import Case, CaseCollection
 
 # Representative HUDOC search row, fields preserved from a real response shape.
@@ -59,6 +60,15 @@ def test_parquet_array_like_lists_are_not_stringified():
     case = Case.model_validate({"appno": np.array(["38263/08"], dtype=object)})
 
     assert case.appno == ["38263/08"]
+
+
+def test_legacy_stringified_candidate_appnos_are_repaired():
+    candidate = CitationCandidate(
+        node_id="itemid:001-target",
+        appnos=["['38263/08']", "38263/08"],
+    )
+
+    assert candidate.appnos == ["38263/08"]
 
 
 def test_dates_are_parsed_to_date_objects():

@@ -1945,14 +1945,15 @@ def _merge_classified_commission_report_overlaps(
         occurrences[:] = [value for value in occurrences if value.occurrence_id not in removable]
 
 
-def _merge_duplicate_unresolved_loci(
+def _merge_compatible_duplicate_loci(
     occurrences: list[CitationOccurrence], diagnostics: list[dict[str, object]]
 ) -> None:
-    """Collapse duplicate unresolved rows for one physical printed locus.
+    """Collapse compatible duplicate rows for one physical printed locus.
 
     Target-specific rows may share a locus only when an explicit compound
-    citation group owns them. For ordinary unresolved duplicates, retaining
-    two rows would turn resolution metadata into a false occurrence count.
+    citation group owns them. If at most one document identity is present,
+    retaining duplicate rows would turn resolution metadata into a false
+    occurrence count.
     """
 
     grouped: dict[str, list[CitationOccurrence]] = defaultdict(list)
@@ -1962,15 +1963,28 @@ def _merge_duplicate_unresolved_loci(
     for locus_id, values in grouped.items():
         if len(values) < 2 or any(value.citation_group_id for value in values):
             continue
-        if any(value.resolution_scope != "unresolved" for value in values):
-            continue
-        if any(value.target_itemid or value.target_ecli or value.target_appnos for value in values):
+        target_ids = {
+            value.target_node_id
+            for value in values
+            if value.resolution_scope == "document" and value.target_node_id
+        }
+        if len(target_ids) > 1:
             continue
         if len({_key(value.raw_text) for value in values}) != 1:
+            continue
+        explicit_appno_identities = {
+            str(identity).split(":", 2)[1]
+            for value in values
+            if (identity := value.evidence.get("target_identity"))
+            and str(identity).startswith("appno:")
+        }
+        if len(explicit_appno_identities) > 1:
             continue
         keeper = max(
             values,
             key=lambda value: (
+                value.resolution_scope == "document",
+                value.resolution_scope == "application",
                 len(value.target_paragraphs),
                 value.scl_coverage == "covered",
                 len(value.discovery_methods),
@@ -4192,7 +4206,7 @@ def extract_citation_occurrences(
 
     _carry_forward_occurrences(case, spine, occurrences, owners, diagnostics)
     _merge_classified_commission_report_overlaps(occurrences)
-    _merge_duplicate_unresolved_loci(occurrences, diagnostics)
+    _merge_compatible_duplicate_loci(occurrences, diagnostics)
     _attach_source_invocations(occurrences, blocks)
     _assign_owned_pinpoints(occurrences, blocks, diagnostics)
     occurrences.sort(

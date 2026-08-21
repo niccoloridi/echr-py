@@ -3,10 +3,11 @@
 from __future__ import annotations
 
 import datetime as dt
+import re
 from collections import Counter
 from typing import Literal
 
-from pydantic import BaseModel, Field, computed_field
+from pydantic import BaseModel, Field, computed_field, field_validator
 
 ResolutionStatus = Literal[
     "resolved_identifier",
@@ -144,6 +145,19 @@ class CitationCandidate(BaseModel):
     positive_evidence: list[str] = Field(default_factory=list)
     conflicting_evidence: list[str] = Field(default_factory=list)
     title_similarity: float = 0.0
+
+    @field_validator("appnos", mode="after")
+    @classmethod
+    def _normalise_appnos(cls, values: list[str]) -> list[str]:
+        """Repair legacy Parquet rows that stringified array-valued app numbers."""
+
+        output: list[str] = []
+        for value in values:
+            matches = re.findall(r"\b\d{1,6}/\d{2,4}\b", value)
+            for appno in matches or [value.strip()]:
+                if appno and appno not in output:
+                    output.append(appno)
+        return output
 
 
 class CitationResolution(BaseModel):
