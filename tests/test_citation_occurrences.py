@@ -1744,6 +1744,74 @@ def test_conflicting_printed_appnos_never_inherit_same_name_scl_target():
     assert result.occurrences[0].scl_coverage == "not_covered"
 
 
+def test_numbered_interstate_titles_do_not_match_by_roman_numeral_substring():
+    case = Case(
+        itemid="001-source",
+        scl="Georgia v. Russia (I) [GC], no. 13255/07, ECHR 2014",
+        text="THE LAW\n75. Georgia v. Russia (II), cited above, § 114.",
+    )
+
+    result = extract_citation_occurrences(case, scope="inclusive")
+
+    assert len(result.occurrences) == 1
+    assert result.occurrences[0].raw_text == "Georgia v. Russia (II)"
+    assert result.occurrences[0].scl_coverage == "not_covered"
+
+
+def test_cited_above_prefers_unique_resolved_local_phase_over_other_scl_phase():
+    case = Case(
+        itemid="001-source",
+        scl=("Georgia v. Russia (II) (just satisfaction) [GC], no. 38263/08, 28 April 2023"),
+        text=(
+            "THE LAW\n1. Georgia v. Russia (II) [GC], no. 38263/08, "
+            "21 January 2021.\n2. Georgia v. Russia (II), cited above, § 114."
+        ),
+    )
+    scl_mention = parse_scl_mentions(case)[0]
+    full_mention = next(
+        value
+        for value in discover_citation_mentions(case).mentions
+        if value.explicit_appnos and value.target_date and value.target_date.year == 2021
+    )
+    resolutions = [
+        CitationResolution(
+            mention=scl_mention,
+            status="resolved_metadata",
+            method="fixture",
+            target=CitationCandidate(
+                node_id="itemid:001-just-satisfaction",
+                itemid="001-just-satisfaction",
+                docname="Georgia v. Russia (II) (just satisfaction)",
+                appnos=["38263/08"],
+                procedural_phase="just_satisfaction",
+            ),
+        ),
+        CitationResolution(
+            mention=full_mention,
+            status="resolved_metadata",
+            method="fixture",
+            target=CitationCandidate(
+                node_id="itemid:001-merits",
+                itemid="001-merits",
+                docname="Georgia v. Russia (II)",
+                appnos=["38263/08"],
+                procedural_phase="merits",
+            ),
+        ),
+    ]
+
+    result = extract_citation_occurrences(case, resolutions, scope="inclusive")
+    short = [
+        value
+        for value in result.occurrences
+        if value.raw_text == "Georgia v. Russia (II)" and value.target_paragraphs == ["114"]
+    ]
+
+    assert len(short) == 1
+    assert short[0].target_itemid == "001-merits"
+    assert short[0].target_paragraphs == ["114"]
+
+
 def test_occurrence_v1_rows_remain_readable_and_serialization_is_stable():
     legacy = CitationOccurrence.model_validate(
         {

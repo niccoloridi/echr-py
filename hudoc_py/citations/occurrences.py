@@ -1945,6 +1945,73 @@ def _merge_classified_commission_report_overlaps(
         occurrences[:] = [value for value in occurrences if value.occurrence_id not in removable]
 
 
+def _merge_duplicate_unresolved_loci(
+    occurrences: list[CitationOccurrence], diagnostics: list[dict[str, object]]
+) -> None:
+    """Collapse duplicate unresolved rows for one physical printed locus.
+
+    Target-specific rows may share a locus only when an explicit compound
+    citation group owns them. For ordinary unresolved duplicates, retaining
+    two rows would turn resolution metadata into a false occurrence count.
+    """
+
+    grouped: dict[str, list[CitationOccurrence]] = defaultdict(list)
+    for value in occurrences:
+        grouped[value.locus_id or value.occurrence_id].append(value)
+    removable: set[str] = set()
+    for locus_id, values in grouped.items():
+        if len(values) < 2 or any(value.citation_group_id for value in values):
+            continue
+        if any(value.resolution_scope != "unresolved" for value in values):
+            continue
+        if any(value.target_itemid or value.target_ecli or value.target_appnos for value in values):
+            continue
+        if len({_key(value.raw_text) for value in values}) != 1:
+            continue
+        keeper = max(
+            values,
+            key=lambda value: (
+                len(value.target_paragraphs),
+                value.scl_coverage == "covered",
+                len(value.discovery_methods),
+                -value.group_ordinal,
+                value.occurrence_id,
+            ),
+        )
+        removed_here: list[str] = []
+        for duplicate in values:
+            if duplicate is keeper:
+                continue
+            keeper.target_paragraphs = list(
+                dict.fromkeys([*keeper.target_paragraphs, *duplicate.target_paragraphs])
+            )
+            keeper.discovery_methods = sorted(
+                {*keeper.discovery_methods, *duplicate.discovery_methods}
+            )
+            keeper.scl_mention_ids = sorted({*keeper.scl_mention_ids, *duplicate.scl_mention_ids})
+            if duplicate.scl_coverage == "covered":
+                keeper.scl_coverage = "covered"
+            merged = keeper.evidence.get("merged_mention_ids")
+            merged_ids = [str(value) for value in merged] if isinstance(merged, list) else []
+            keeper.evidence["merged_mention_ids"] = sorted(
+                {keeper.mention_id, duplicate.mention_id, *merged_ids}
+            )
+            removable.add(duplicate.occurrence_id)
+            removed_here.append(duplicate.occurrence_id)
+        diagnostics.append(
+            {
+                "code": "duplicate_unresolved_locus_merged",
+                "source_itemid": keeper.source_itemid,
+                "block_id": keeper.source_block_id,
+                "locus_id": locus_id,
+                "kept_occurrence_id": keeper.occurrence_id,
+                "removed_occurrence_ids": sorted(removed_here),
+            }
+        )
+    if removable:
+        occurrences[:] = [value for value in occurrences if value.occurrence_id not in removable]
+
+
 def _evidence_offset(value: object, default: int = 0) -> int:
     return value if isinstance(value, int) else default
 
@@ -2018,9 +2085,29 @@ def _coverage_matches(
             matches.append(mention)
             continue
         other = _key(mention.cited_name or "")
-        if name_key and other and (name_key == other or name_key in other or other in name_key):
+        if (
+            name_key
+            and other
+            and _numbered_case_titles_compatible(
+                discovered.cited_name or "", mention.cited_name or ""
+            )
+            and (name_key == other or name_key in other or other in name_key)
+        ):
             matches.append(mention)
     return matches
+
+
+def _numbered_case_titles_compatible(left: str, right: str) -> bool:
+    """Keep numbered inter-State cases distinct during name-only matching."""
+
+    def markers(value: str) -> set[str]:
+        return {
+            match.group(1).upper() for match in re.finditer(r"\(([IVXLCDM]+)\)", value, flags=re.I)
+        }
+
+    left_markers = markers(left)
+    right_markers = markers(right)
+    return not (left_markers or right_markers) or left_markers == right_markers
 
 
 def _discovery_spine(case: Case, *, html: str | None, spine: DocumentSpine | None) -> DocumentSpine:
@@ -3940,6 +4027,40 @@ def extract_citation_occurrences(
             and start < value.block_end
             and end > value.block_start
         ]
+        # ``cited above`` and its French equivalents refer back to the
+        # document-local authority established by an earlier strong anchor.
+        # Prefer that uniquely resolved local owner over a same-title SCL row
+        # for another procedural phase. The SCL row remains present in the
+        # decision-level SCL artifact; it must not create a second occurrence
+        # at this printed locus.
+        exact_local_prior = [
+            value
+            for value in overlapping_values
+            if value.block_start == start
+            and value.block_end == end
+            and value.resolution_scope == "document"
+            and _prior_document_cue_at(discovery_block.text, start, end)
+        ]
+        if len(exact_local_prior) == 1:
+            keeper = exact_local_prior[0]
+            keeper.discovery_methods = sorted(
+                {
+                    *keeper.discovery_methods,
+                    str(mention.discovery_evidence.get("method", "text_discovery")),
+                }
+            )
+            diagnostics.append(
+                {
+                    "code": "local_prior_authority_preferred",
+                    "source_itemid": case.itemid,
+                    "block_id": discovery_block.block_id,
+                    "block_start": start,
+                    "block_end": end,
+                    "kept_occurrence_id": keeper.occurrence_id,
+                    "rejected_mention_id": mention.mention_id,
+                }
+            )
+            continue
         ids = sorted(value.mention_id for value in identities)
 
         def same_authority(
@@ -4071,6 +4192,7 @@ def extract_citation_occurrences(
 
     _carry_forward_occurrences(case, spine, occurrences, owners, diagnostics)
     _merge_classified_commission_report_overlaps(occurrences)
+    _merge_duplicate_unresolved_loci(occurrences, diagnostics)
     _attach_source_invocations(occurrences, blocks)
     _assign_owned_pinpoints(occurrences, blocks, diagnostics)
     occurrences.sort(

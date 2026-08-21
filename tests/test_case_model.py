@@ -53,6 +53,14 @@ def test_semicolon_lists_are_split():
     assert case.respondent == ["NLD"]
 
 
+def test_parquet_array_like_lists_are_not_stringified():
+    np = pytest.importorskip("numpy")
+
+    case = Case.model_validate({"appno": np.array(["38263/08"], dtype=object)})
+
+    assert case.appno == ["38263/08"]
+
+
 def test_dates_are_parsed_to_date_objects():
     case = Case.model_validate(SAMPLE_ROW)
     assert case.kp_date == date(2014, 10, 3)

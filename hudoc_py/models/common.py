@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from datetime import date, datetime
 from typing import Any, Literal, TypeAlias
 
@@ -130,9 +131,7 @@ CanonicalSection: TypeAlias = Literal[
     "appendix",
 ]
 
-BlockType: TypeAlias = Literal[
-    "heading", "paragraph", "list_item", "blockquote", "footnote"
-]
+BlockType: TypeAlias = Literal["heading", "paragraph", "list_item", "blockquote", "footnote"]
 HeadingRole: TypeAlias = Literal[
     "frontmatter",
     "toc_entry",
@@ -369,12 +368,17 @@ def split_semicolon_list(value: Any) -> list[str]:
     """
     if value is None:
         return []
-    if isinstance(value, list):
+    if isinstance(value, (list, tuple, set)):
         return [str(v).strip() for v in value if str(v).strip()]
     if isinstance(value, str):
         if not value.strip():
             return []
         return [p.strip() for p in value.split(";") if p.strip()]
+    # pandas commonly returns a NumPy array for a Parquet list column. Treat
+    # any non-string iterable as the original list rather than serialising the
+    # entire array into one value such as ``"['38263/08']"``.
+    if isinstance(value, Iterable):
+        return [str(v).strip() for v in value if str(v).strip()]
     return [str(value).strip()]
 
 
