@@ -29,3 +29,7 @@ references:
       - type: other
         value: "803981"
         description: "European Research Council grant agreement"
+  - type: grant
+    title: "King's Digital Futures Institute Fellowship"
+    authors:
+      - name: "King's College London"

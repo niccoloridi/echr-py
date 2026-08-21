@@ -40,12 +40,24 @@ run it hydrated nine documents and wrote 478,151 characters of source-ordered
 text in about 1.1 seconds at concurrency twelve, with the exact query,
 settings, item IDs, hashes, and elapsed time recorded alongside the figure.
 
-![From a HUDOC record to a verified paragraph edge](https://raw.githubusercontent.com/niccoloridi/echr-py/main/docs/images/echr-py-lineage.png)
+One inspectable chain runs from a HUDOC record to a verified paragraph edge.
+Each stage keeps its own identity, so a later stage never overwrites an earlier
+one:
 
-The lineage above is the central idea: retain enough structure and provenance
-to move from a public HUDOC record to a multilingual paragraph, a printed
-citation occurrence, an exact target document, and, when the source supplies a
-pinpoint, a verified target paragraph. [Figure provenance](https://github.com/niccoloridi/echr-py/blob/main/docs/images/echr-py-lineage-provenance.json).
+| Stage | Identity retained at that stage |
+| --- | --- |
+| HUDOC record | item ID, ECLI, language, source checksum |
+| Legal spine | canonical sections, stable block IDs, paragraph addresses, typography |
+| Source identity | majority, individual opinion, footnote, invoking paragraph |
+| Citation occurrence | exact printed span, supporting evidence, pinpoint ownership |
+| Exact target | cited document, cited application, or an explicit unresolved scope |
+| Target paragraph | printed pinpoint mapped to a verified block in the cited document |
+
+That is the central idea: retain enough structure and provenance to move from a
+public HUDOC record to a multilingual paragraph, a printed citation occurrence,
+an exact target document, and, when the source supplies a pinpoint, a verified
+target paragraph. Deterministic identity and graph layers stay separate from
+optional, evidence-verified labels.
 
 ## Start here
 
@@ -589,6 +601,8 @@ public imports, and produces provenance attestations.
 This research forms part of the Human Rights Nudge project that has received
 funding from the European Research Council (ERC) under the European Union’s
 Horizon 2020 research and innovation programme (Grant agreement No. 803981).
+
+This work was also supported by a King’s Digital Futures Institute Fellowship.
 
 ## Data responsibility
 

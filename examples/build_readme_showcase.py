@@ -100,40 +100,6 @@ def _save(fig: Any, output: Path, stem: str, provenance: dict[str, Any]) -> list
     return generated
 
 
-def lineage(output: Path) -> list[Path]:
-    fig, axis = plt.subplots(figsize=(13.2, 3.8))
-    fig.patch.set_facecolor(SURFACE)
-    axis.set_xlim(0, 1)
-    axis.set_ylim(0, 1)
-    axis.axis("off")
-    axis.text(0.02, 0.92, "One inspectable chain – from HUDOC to a verified paragraph edge", color=INK, fontsize=18, fontweight="bold")
-    cards = [
-        ("HUDOC record", "item ID · ECLI\nlanguage · checksum", BLUE),
-        ("Legal spine", "sections · stable blocks\nparagraphs · typography", BLUE),
-        ("Source identity", "majority · opinion\nfootnote · invoking para", PURPLE),
-        ("Citation occurrence", "exact span · evidence\npinpoint ownership", GOLD),
-        ("Exact target", "document/application/\nunresolved scope", GREEN),
-        ("Target paragraph", "printed § mapped to\nverified target block", GREEN),
-    ]
-    width, gap, y, height = 0.135, 0.027, 0.25, 0.38
-    for index, (title, body, colour) in enumerate(cards):
-        x = 0.02 + index * (width + gap)
-        _card(axis, x, y, width, height, title, body, colour)
-        if index:
-            axis.add_patch(
-                FancyArrowPatch(
-                    (x - gap + 0.003, y + height / 2),
-                    (x - 0.006, y + height / 2),
-                    arrowstyle="-|>",
-                    mutation_scale=12,
-                    color="#9aa5b1",
-                    linewidth=1.4,
-                )
-            )
-    axis.text(0.02, 0.09, "Deterministic identity and graph layers remain separate from optional evidence-verified labels.", color=MUTED, fontsize=10)
-    return _save(fig, output, "echr-py-lineage", {"kind": "contract-diagram", "claim_scope": "architecture"})
-
-
 def _load_edges(path: Path) -> list[dict[str, Any]]:
     return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
 
@@ -241,7 +207,6 @@ def main() -> int:
     )
     args = parser.parse_args()
     args.out.mkdir(parents=True, exist_ok=True)
-    lineage(args.out)
     ocalan_ledger(args.out, args.ocalan_edges)
     citation_layers(args.out)
     return 0
