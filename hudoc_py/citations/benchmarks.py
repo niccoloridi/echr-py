@@ -13,6 +13,7 @@ import urllib.request
 import zipfile
 from collections import Counter
 from collections.abc import Iterable
+from difflib import SequenceMatcher
 from pathlib import Path
 from typing import Any, Literal, cast
 from xml.etree import ElementTree as ET
@@ -41,11 +42,19 @@ DEFAULT_MAX_ARCHIVE_BYTES = 256 * 1024 * 1024
 DEFAULT_MAX_EXTRACTED_BYTES = 2 * 1024 * 1024 * 1024
 
 _SOURCE_FIELDS = (
-    "source_itemid", "source_id", "source", "citing_itemid", "citing_case",
+    "source_itemid",
+    "source_id",
+    "source",
+    "citing_itemid",
+    "citing_case",
     "document_id",
 )
 _TARGET_FIELDS = (
-    "target_itemid", "target_id", "target", "cited_itemid", "cited_case",
+    "target_itemid",
+    "target_id",
+    "target",
+    "cited_itemid",
+    "cited_case",
     "citation_id",
 )
 _SOURCE_APPNO_FIELDS = ("source_appno", "citing_appno", "application_number")
@@ -64,7 +73,8 @@ def _rows(path: Path) -> list[dict[str, Any]]:
     if path.suffix.casefold() == ".zip":
         with zipfile.ZipFile(path) as archive:
             supported = [
-                name for name in archive.namelist()
+                name
+                for name in archive.namelist()
                 if Path(name).suffix.casefold() in {".json", ".jsonl", ".csv", ".tsv"}
             ]
             if len(supported) != 1:
@@ -75,9 +85,11 @@ def _rows(path: Path) -> list[dict[str, Any]]:
             if suffix == ".jsonl":
                 return [json.loads(line) for line in payload.splitlines() if line]
             if suffix in {".csv", ".tsv"}:
-                return list(csv.DictReader(
-                    payload.splitlines(), delimiter="\t" if suffix == ".tsv" else ","
-                ))
+                return list(
+                    csv.DictReader(
+                        payload.splitlines(), delimiter="\t" if suffix == ".tsv" else ","
+                    )
+                )
             value = json.loads(payload)
             return _json_rows(value)
     suffix = path.suffix.casefold()
@@ -126,31 +138,35 @@ def load_competitor_citations(path: str | Path) -> list[dict[str, Any]]:
         if isinstance(row.get("citations"), list):
             source_appno = _first(row, ("appno", *_SOURCE_APPNO_FIELDS))
             for citation_ordinal, target in enumerate(row["citations"]):
-                records.append({
-                    "ordinal": f"{ordinal}:{citation_ordinal}",
-                    "source_itemid": _first(row, _SOURCE_FIELDS),
-                    "source_appno": source_appno,
-                    "target_itemid": None,
-                    "target_appno": str(target).strip() or None,
-                    "source_component": None,
-                    "opinion_id": None,
-                    "paragraph": None,
-                    "raw_text": None,
-                    "source_record": row,
-                })
+                records.append(
+                    {
+                        "ordinal": f"{ordinal}:{citation_ordinal}",
+                        "source_itemid": _first(row, _SOURCE_FIELDS),
+                        "source_appno": source_appno,
+                        "target_itemid": None,
+                        "target_appno": str(target).strip() or None,
+                        "source_component": None,
+                        "opinion_id": None,
+                        "paragraph": None,
+                        "raw_text": None,
+                        "source_record": row,
+                    }
+                )
             continue
-        records.append({
-            "ordinal": ordinal,
-            "source_itemid": _first(row, _SOURCE_FIELDS),
-            "source_appno": _first(row, _SOURCE_APPNO_FIELDS),
-            "target_itemid": _first(row, _TARGET_FIELDS),
-            "target_appno": _first(row, _TARGET_APPNO_FIELDS),
-            "source_component": _first(row, ("source_component", "component", "section")),
-            "opinion_id": _first(row, ("opinion_id", "separate_opinion_id")),
-            "paragraph": _first(row, ("paragraph", "paragraph_id", "para_id")),
-            "raw_text": _first(row, ("raw_text", "citation", "context", "text")),
-            "source_record": row,
-        })
+        records.append(
+            {
+                "ordinal": ordinal,
+                "source_itemid": _first(row, _SOURCE_FIELDS),
+                "source_appno": _first(row, _SOURCE_APPNO_FIELDS),
+                "target_itemid": _first(row, _TARGET_FIELDS),
+                "target_appno": _first(row, _TARGET_APPNO_FIELDS),
+                "source_component": _first(row, ("source_component", "component", "section")),
+                "opinion_id": _first(row, ("opinion_id", "separate_opinion_id")),
+                "paragraph": _first(row, ("paragraph", "paragraph_id", "para_id")),
+                "raw_text": _first(row, ("raw_text", "citation", "context", "text")),
+                "source_record": row,
+            }
+        )
     return records
 
 
@@ -250,8 +266,7 @@ def fetch_benchmark(
     if actual_sha256 != expected_sha256:
         partial.unlink(missing_ok=True)
         raise ValueError(
-            f"benchmark archive checksum mismatch: expected {expected_sha256}, "
-            f"got {actual_sha256}"
+            f"benchmark archive checksum mismatch: expected {expected_sha256}, got {actual_sha256}"
         )
     partial.replace(archive)
     extracted = out / "source"
@@ -261,8 +276,7 @@ def fetch_benchmark(
         extracted_bytes = sum(member.file_size for member in bundle.infolist())
         if extracted_bytes > max_extracted_bytes:
             raise ValueError(
-                f"benchmark expands to {extracted_bytes} bytes; "
-                f"limit is {max_extracted_bytes}"
+                f"benchmark expands to {extracted_bytes} bytes; limit is {max_extracted_bytes}"
             )
         for member in bundle.infolist():
             target = (extracted / member.filename).resolve()
@@ -375,29 +389,31 @@ def parse_mumford_xmi(path: str | Path, *, curated: bool | None = None) -> dict[
             "annotator": annotator,
             "curated": is_curated,
         }
-        annotations.append({
-            "schema_version": "mumford-citation-context/v1",
-            "annotation_id": hashlib.sha256(
-                json.dumps(identity, sort_keys=True).encode()
-            ).hexdigest(),
-            **metadata,
-            "curated": is_curated,
-            "annotator": annotator,
-            "source_file": str(source),
-            "source_text_sha256": hashlib.sha256(text.encode()).hexdigest(),
-            "xml_illegal_character_replacements": xml_replacements,
-            "start": start,
-            "end": end,
-            "exact_span": exact_span,
-            "citation": citation,
-            "citation_appnos": list(dict.fromkeys(
-                APPNO_REGEX.findall(f"{citation} {exact_span}")
-            )),
-            "source_label": element.attrib.get("label"),
-            "judicial_consideration": element.attrib.get("JudicialConsideration"),
-            "flag": element.attrib.get("Flag"),
-            "articles_or_protocols": articles,
-        })
+        annotations.append(
+            {
+                "schema_version": "mumford-citation-context/v1",
+                "annotation_id": hashlib.sha256(
+                    json.dumps(identity, sort_keys=True).encode()
+                ).hexdigest(),
+                **metadata,
+                "curated": is_curated,
+                "annotator": annotator,
+                "source_file": str(source),
+                "source_text_sha256": hashlib.sha256(text.encode()).hexdigest(),
+                "xml_illegal_character_replacements": xml_replacements,
+                "start": start,
+                "end": end,
+                "exact_span": exact_span,
+                "citation": citation,
+                "citation_appnos": list(
+                    dict.fromkeys(APPNO_REGEX.findall(f"{citation} {exact_span}"))
+                ),
+                "source_label": element.attrib.get("label"),
+                "judicial_consideration": element.attrib.get("JudicialConsideration"),
+                "flag": element.attrib.get("Flag"),
+                "articles_or_protocols": articles,
+            }
+        )
     return {
         "document": {
             "schema_version": "mumford-document/v1",
@@ -492,7 +508,29 @@ def import_benchmark(kind: str, source: str | Path, out_dir: str | Path) -> dict
 
 
 def _normal(value: object) -> str:
-    return normalize_reference_key(str(value or ""))
+    normalized = normalize_reference_key(str(value or ""))
+    normalized = "".join(
+        character
+        for character in unicodedata.normalize("NFKD", normalized)
+        if not unicodedata.combining(character)
+    )
+    normalized = re.sub(r"[-‑–\u2014\ufffd]+", " ", normalized)
+    # Editorial square brackets around omitted conventional material are not
+    # part of the authority name (for example ``Chahal [v. ...]``).
+    normalized = re.sub(r"[\[\]]+", " ", normalized)
+    normalized = re.sub(r"[\"'‘’“”«»]+", " ", normalized)
+    normalized = " ".join(normalized.split())
+    # Curated labels frequently omit the conventional dot and respondent
+    # article even when both are present in the exact source span.  These are
+    # orthographic title variants, not different bibliographic identities.
+    normalized = re.sub(r"\b([vc])\.\s+", r"\1 ", normalized)
+    normalized = re.sub(r"\bv\s+the\s+", "v ", normalized)
+    normalized = re.sub(
+        r"\b(?:[a-z]\.){2,}[a-z]?\.?",
+        lambda match: match.group().replace(".", ""),
+        normalized,
+    )
+    return normalized
 
 
 def _string_values(value: object) -> set[str]:
@@ -632,9 +670,7 @@ def _project_mumford_row(
 
     normalized, starts, ends = _normalized_offsets(context)
     positions = [
-        ordinal
-        for ordinal, original in enumerate(starts)
-        if block_start <= original < block_end
+        ordinal for ordinal, original in enumerate(starts) if block_start <= original < block_end
     ]
     if not normalized or not positions:
         return None, "empty_normalized_span"
@@ -648,6 +684,14 @@ def _project_mumford_row(
         candidate = (left, right, f"normalized_window_{radius}")
         if candidate[:2] not in {(value[0], value[1]) for value in windows}:
             windows.append(candidate)
+    # Old XMI exports can differ from current HUDOC HTML throughout the rest
+    # of a paragraph while retaining the printed citation itself verbatim.
+    # A unique exact occurrence span is a stronger coordinate bridge than
+    # fuzzy identity/context matching and remains fully reversible. Repeated
+    # short forms still fail closed as ambiguous.
+    occurrence_anchor = (span_start, span_end, "normalized_occurrence")
+    if occurrence_anchor[:2] not in {(value[0], value[1]) for value in windows}:
+        windows.append(occurrence_anchor)
 
     saw_ambiguous = False
     for left, right, method in windows:
@@ -674,19 +718,21 @@ def _project_mumford_row(
         if projected_normalized != source_span_normalized:
             continue
         projected = dict(row)
-        projected.update({
-            "hudoc_document_start": _integer(row.get("document_start")),
-            "hudoc_document_end": _integer(row.get("document_end")),
-            "document_start": projected_start,
-            "document_end": projected_end,
-            "benchmark_coordinate_system": "mumford_xmi_sofa",
-            "benchmark_source_text_sha256": source_text_sha256,
-            "benchmark_projection_method": method,
-            "benchmark_projected_text": projected_text,
-            "benchmark_projection_reversible": True,
-            "benchmark_source_canonical_start": source_canonical_start,
-            "benchmark_source_canonical_end": source_canonical_end,
-        })
+        projected.update(
+            {
+                "hudoc_document_start": _integer(row.get("document_start")),
+                "hudoc_document_end": _integer(row.get("document_end")),
+                "document_start": projected_start,
+                "document_end": projected_end,
+                "benchmark_coordinate_system": "mumford_xmi_sofa",
+                "benchmark_source_text_sha256": source_text_sha256,
+                "benchmark_projection_method": method,
+                "benchmark_projected_text": projected_text,
+                "benchmark_projection_reversible": True,
+                "benchmark_source_canonical_start": source_canonical_start,
+                "benchmark_source_canonical_end": source_canonical_end,
+            }
+        )
         return projected, method
     return None, "ambiguous_normalized_context" if saw_ambiguous else "unmapped_context"
 
@@ -705,7 +751,9 @@ def project_mumford_occurrences(
     curated_documents = {
         str(row.get("source_itemid")): row
         for row in documents
-        if row.get("curated", True) and row.get("source_itemid") and row.get("source_text") is not None
+        if row.get("curated", True)
+        and row.get("source_itemid")
+        and row.get("source_text") is not None
     }
     prepared: dict[str, tuple[str, str, list[int], list[int], str]] = {}
     invalid_documents: set[str] = set()
@@ -725,15 +773,9 @@ def project_mumford_occurrences(
     diagnostics: list[dict[str, Any]] = []
     input_rows = list(local_rows)
     input_source_documents = {
-        str(row.get("source_itemid"))
-        for row in input_rows
-        if row.get("source_itemid")
+        str(row.get("source_itemid")) for row in input_rows if row.get("source_itemid")
     }
-    rows = [
-        row
-        for row in input_rows
-        if str(row.get("source_itemid") or "") in curated_documents
-    ]
+    rows = [row for row in input_rows if str(row.get("source_itemid") or "") in curated_documents]
     for ordinal, row in enumerate(rows):
         itemid = str(row.get("source_itemid") or "")
         occurrence_id = _clean_text(row.get("occurrence_id")) or f"occurrence:{ordinal}"
@@ -758,11 +800,13 @@ def project_mumford_occurrences(
             methods[reason] += 1
             projected.append(value)
         else:
-            diagnostics.append({
-                "occurrence_id": occurrence_id,
-                "source_itemid": itemid or None,
-                "status": reason,
-            })
+            diagnostics.append(
+                {
+                    "occurrence_id": occurrence_id,
+                    "source_itemid": itemid or None,
+                    "status": reason,
+                }
+            )
 
     report = {
         "schema_version": "mumford-offset-projection/v1",
@@ -770,12 +814,12 @@ def project_mumford_occurrences(
         "reference_documents": len(curated_documents),
         "valid_reference_documents": len(prepared),
         "input_source_documents": len(input_source_documents),
-        "local_source_documents": len({
-            str(row.get("source_itemid")) for row in rows if row.get("source_itemid")
-        }),
-        "projected_source_documents": len({
-            str(row.get("source_itemid")) for row in projected if row.get("source_itemid")
-        }),
+        "local_source_documents": len(
+            {str(row.get("source_itemid")) for row in rows if row.get("source_itemid")}
+        ),
+        "projected_source_documents": len(
+            {str(row.get("source_itemid")) for row in projected if row.get("source_itemid")}
+        ),
         "input_occurrences": len(input_rows),
         "out_of_reference_occurrences": len(input_rows) - len(rows),
         "local_occurrences": len(rows),
@@ -797,17 +841,14 @@ def _row_id(row: dict[str, Any], ordinal: int, *, prefix: str) -> str:
     return str(value) if value else f"{prefix}:{ordinal}"
 
 
-def _coordinate_system_matches(
-    annotation: dict[str, Any], candidate: dict[str, Any]
-) -> bool:
+def _coordinate_system_matches(annotation: dict[str, Any], candidate: dict[str, Any]) -> bool:
     """Prevent unrelated XMI and full-document offsets from overlapping by chance."""
 
     annotation_hash = _clean_text(annotation.get("source_text_sha256"))
     if annotation_hash is None:
         return True
     candidate_hash = _clean_text(
-        candidate.get("benchmark_source_text_sha256")
-        or candidate.get("source_text_sha256")
+        candidate.get("benchmark_source_text_sha256") or candidate.get("source_text_sha256")
     )
     return candidate_hash == annotation_hash
 
@@ -818,9 +859,7 @@ def _identity_values(candidate: dict[str, Any]) -> set[str]:
         return cached
     values = {
         _normal(
-            candidate.get("raw_text")
-            or candidate.get("raw_span")
-            or candidate.get("raw_citation")
+            candidate.get("raw_text") or candidate.get("raw_span") or candidate.get("raw_citation")
         )
     }
     evidence = candidate.get("evidence")
@@ -830,21 +869,38 @@ def _identity_values(candidate: dict[str, Any]) -> set[str]:
         except (TypeError, ValueError, json.JSONDecodeError):
             evidence = None
     if isinstance(evidence, dict):
-        values.update({
-            _normal(evidence.get("alias")),
-            _normal(evidence.get("scl_reference")),
-        })
+        values.update(
+            {
+                _normal(evidence.get("alias")),
+                _normal(evidence.get("scl_reference")),
+            }
+        )
+        discovery = evidence.get("discovery_evidence")
+        if isinstance(discovery, dict):
+            values.add(_normal(discovery.get("printed_cited_name")))
+            titles = discovery.get("authority_candidate_titles")
+            if isinstance(titles, list):
+                values.update(_normal(value) for value in titles)
     return {value for value in values if value}
 
 
-def _identity_compatible(
-    annotation: dict[str, Any], candidate: dict[str, Any]
-) -> bool:
+def _identity_compatible(annotation: dict[str, Any], candidate: dict[str, Any]) -> bool:
     """Require bibliographic evidence before accepting even an overlapping span."""
     external_appnos = _string_values(annotation.get("citation_appnos"))
-    local_appnos = candidate.get("_benchmark_target_appnos")
+    # Detection alignment must depend on what was printed, not on a target
+    # identity attached later by the resolver.
+    local_appnos = candidate.get("_benchmark_printed_appnos")
     if not isinstance(local_appnos, set):
-        local_appnos = _string_values(candidate.get("target_appnos") or candidate.get("appnos"))
+        local_appnos = set(
+            APPNO_REGEX.findall(
+                str(
+                    candidate.get("raw_text")
+                    or candidate.get("raw_span")
+                    or candidate.get("raw_citation")
+                    or ""
+                )
+            )
+        )
     if external_appnos and local_appnos and not external_appnos.intersection(local_appnos):
         return False
 
@@ -865,10 +921,47 @@ def _identity_compatible(
             ):
                 return True
     if external_appnos and external_appnos & local_appnos:
-        return True
+        # A printed application number is strong evidence for the application,
+        # but it must not override an incompatible curator-supplied case name.
+        # Permit only close spelling/diacritic defects when both are present.
+        if not citation:
+            return True
+        if any(
+            _appno_title_compatible(citation, observed) for observed in _identity_values(candidate)
+        ):
+            return True
     reference_target = _clean_text(annotation.get("target_itemid"))
     local_target = _clean_text(candidate.get("target_itemid"))
     return bool(reference_target and reference_target == local_target)
+
+
+def _appno_title_compatible(reference: str, observed: str) -> bool:
+    """Allow minor title defects only when an exact printed appno corroborates them."""
+
+    def title_core(value: str) -> str:
+        value = _normal(value)
+        value = re.sub(r"^\d+\s*", "", value)
+        value = re.split(
+            r"\b(?:application|requ[eê]te|no|nos|n°|judgment|decision|arr[eê]t|"
+            r"d[eé]cision|ecli|series|reports?|echr)\b",
+            value,
+            maxsplit=1,
+        )[0]
+        value = re.sub(r"[^\w]+", " ", value, flags=re.UNICODE)
+        value = re.sub(
+            r"\b(?:gc|dec|chamber|merits|admissibility|just satisfaction)\b",
+            " ",
+            value,
+        )
+        return re.sub(r"\s+", " ", value).strip()
+
+    left = title_core(reference)
+    right = title_core(observed)
+    if min(len(left), len(right)) < 4:
+        return False
+    if left == right or left in right or right in left:
+        return True
+    return SequenceMatcher(None, left, right, autojunk=False).ratio() >= 0.86
 
 
 def _alignment_evidence(
@@ -901,14 +994,16 @@ def _alignment_evidence(
 
     citation = _normal(annotation.get("citation"))
     exact_span = _normal(annotation.get("exact_span"))
-    raw = str(candidate.get("_benchmark_normal_raw") or _normal(
-        candidate.get("raw_text")
-        or candidate.get("raw_span")
-        or candidate.get("raw_citation")
-    ))
-    context = str(candidate.get("_benchmark_normal_context") or _normal(
-        candidate.get("source_context") or candidate.get("context_text")
-    ))
+    raw = str(
+        candidate.get("_benchmark_normal_raw")
+        or _normal(
+            candidate.get("raw_text") or candidate.get("raw_span") or candidate.get("raw_citation")
+        )
+    )
+    context = str(
+        candidate.get("_benchmark_normal_context")
+        or _normal(candidate.get("source_context") or candidate.get("context_text"))
+    )
     if exact_span and raw == exact_span:
         methods.append("exact_span")
     elif exact_span and raw and (exact_span in raw or raw in exact_span):
@@ -916,11 +1011,16 @@ def _alignment_evidence(
     if citation and (citation == raw or citation in context):
         methods.append("normalized_citation")
     external_appnos = _string_values(annotation.get("citation_appnos"))
-    local_appnos = candidate.get("_benchmark_target_appnos")
-    if not isinstance(local_appnos, set):
-        local_appnos = _string_values(candidate.get("target_appnos") or candidate.get("appnos"))
-    if external_appnos and external_appnos & local_appnos:
+    target_appnos = candidate.get("_benchmark_target_appnos")
+    if not isinstance(target_appnos, set):
+        target_appnos = _string_values(candidate.get("target_appnos") or candidate.get("appnos"))
+    printed_appnos = candidate.get("_benchmark_printed_appnos")
+    if not isinstance(printed_appnos, set):
+        printed_appnos = set(APPNO_REGEX.findall(raw))
+    if external_appnos and external_appnos & target_appnos:
         methods.append("target_appno")
+    elif external_appnos and external_appnos & printed_appnos:
+        methods.append("printed_appno")
     if not methods or not _identity_compatible(annotation, candidate):
         return None
     weights = {
@@ -930,6 +1030,7 @@ def _alignment_evidence(
         "span_containment": 250,
         "normalized_citation": 20,
         "target_appno": 5,
+        "printed_appno": 5,
     }
     family = (
         "strict_source_span"
@@ -952,15 +1053,23 @@ def align_benchmark_annotations(
     for row in local_rows:
         candidate = dict(row)
         candidate["_benchmark_normal_raw"] = _normal(
-            candidate.get("raw_text")
-            or candidate.get("raw_span")
-            or candidate.get("raw_citation")
+            candidate.get("raw_text") or candidate.get("raw_span") or candidate.get("raw_citation")
         )
         candidate["_benchmark_normal_context"] = _normal(
             candidate.get("source_context") or candidate.get("context_text")
         )
         candidate["_benchmark_target_appnos"] = _string_values(
             candidate.get("target_appnos") or candidate.get("appnos")
+        )
+        candidate["_benchmark_printed_appnos"] = set(
+            APPNO_REGEX.findall(
+                str(
+                    candidate.get("raw_text")
+                    or candidate.get("raw_span")
+                    or candidate.get("raw_citation")
+                    or ""
+                )
+            )
         )
         candidate["_benchmark_identity_values"] = _identity_values(candidate)
         occurrence_rows.append(candidate)
@@ -975,43 +1084,49 @@ def align_benchmark_annotations(
             evidence = _alignment_evidence(annotation, candidate)
             if evidence:
                 score, methods, family = evidence
-                ranked.append((
-                    score,
-                    candidate,
-                    methods,
-                    family,
-                    _row_id(candidate, candidate_ordinal, prefix="occurrence"),
-                ))
+                ranked.append(
+                    (
+                        score,
+                        candidate,
+                        methods,
+                        family,
+                        _row_id(candidate, candidate_ordinal, prefix="occurrence"),
+                    )
+                )
         if not ranked:
-            proposals.append({
-                "ordinal": annotation_ordinal,
-                "annotation": annotation,
-                "status": "unmatched",
-            })
+            proposals.append(
+                {
+                    "ordinal": annotation_ordinal,
+                    "annotation": annotation,
+                    "status": "unmatched",
+                }
+            )
             continue
         best_score = max(value[0] for value in ranked)
         best = [value for value in ranked if value[0] == best_score]
         if len(best) != 1:
-            proposals.append({
-                "ordinal": annotation_ordinal,
-                "annotation": annotation,
-                "status": "ambiguous",
-                "candidate_occurrence_ids": sorted(
-                    value[4] for value in best
-                ),
-            })
+            proposals.append(
+                {
+                    "ordinal": annotation_ordinal,
+                    "annotation": annotation,
+                    "status": "ambiguous",
+                    "candidate_occurrence_ids": sorted(value[4] for value in best),
+                }
+            )
             continue
         score, candidate, methods, family, candidate_id = best[0]
-        proposals.append({
-            "ordinal": annotation_ordinal,
-            "annotation": annotation,
-            "status": "proposed",
-            "score": score,
-            "candidate": candidate,
-            "candidate_id": candidate_id,
-            "methods": methods,
-            "family": family,
-        })
+        proposals.append(
+            {
+                "ordinal": annotation_ordinal,
+                "annotation": annotation,
+                "status": "proposed",
+                "score": score,
+                "candidate": candidate,
+                "candidate_id": candidate_id,
+                "methods": methods,
+                "family": family,
+            }
+        )
 
     # Claim occurrences in descending evidence order. Equal-score collisions
     # are abstentions: assigning either annotation would be arbitrary.
@@ -1049,12 +1164,14 @@ def align_benchmark_annotations(
             aligned.append({**annotation, "alignment_status": "unmatched", "occurrence_id": None})
             continue
         if proposal["status"] == "ambiguous":
-            aligned.append({
-                **annotation,
-                "alignment_status": "ambiguous",
-                "occurrence_id": None,
-                "candidate_occurrence_ids": proposal["candidate_occurrence_ids"],
-            })
+            aligned.append(
+                {
+                    **annotation,
+                    "alignment_status": "ambiguous",
+                    "occurrence_id": None,
+                    "candidate_occurrence_ids": proposal["candidate_occurrence_ids"],
+                }
+            )
             continue
         candidate = proposal["candidate"]
         methods = proposal["methods"]
@@ -1062,29 +1179,30 @@ def align_benchmark_annotations(
         target_paragraphs = sorted(_string_values(candidate.get("target_paragraphs")))
         paragraph_resolutions = _object_list(candidate.get("target_paragraph_resolutions"))
         paragraph_status = _clean_text(
-            candidate.get("paragraph_resolution_status")
-            or candidate.get("target_paragraph_status")
+            candidate.get("paragraph_resolution_status") or candidate.get("target_paragraph_status")
         )
-        aligned.append({
-            **annotation,
-            "alignment_status": methods[0],
-            "alignment_family": proposal["family"],
-            "alignment_methods": methods,
-            "occurrence_id": candidate.get("occurrence_id"),
-            "local_target_itemid": target_itemid,
-            "local_target_appnos": sorted(_string_values(
-                candidate.get("target_appnos") or candidate.get("appnos")
-            )),
-            "local_target_paragraphs": target_paragraphs,
-            "local_target_paragraph_resolutions": paragraph_resolutions,
-            "local_target_paragraph_status": paragraph_status,
-            "local_resolution_scope": _clean_text(candidate.get("resolution_scope")),
-            "local_source_component": _clean_text(candidate.get("source_component")),
-            "local_scl_coverage": _clean_text(candidate.get("scl_coverage")),
-            "benchmark_projection_method": _clean_text(
-                candidate.get("benchmark_projection_method")
-            ),
-        })
+        aligned.append(
+            {
+                **annotation,
+                "alignment_status": methods[0],
+                "alignment_family": proposal["family"],
+                "alignment_methods": methods,
+                "occurrence_id": candidate.get("occurrence_id"),
+                "local_target_itemid": target_itemid,
+                "local_target_appnos": sorted(
+                    _string_values(candidate.get("target_appnos") or candidate.get("appnos"))
+                ),
+                "local_target_paragraphs": target_paragraphs,
+                "local_target_paragraph_resolutions": paragraph_resolutions,
+                "local_target_paragraph_status": paragraph_status,
+                "local_resolution_scope": _clean_text(candidate.get("resolution_scope")),
+                "local_source_component": _clean_text(candidate.get("source_component")),
+                "local_scl_coverage": _clean_text(candidate.get("scl_coverage")),
+                "benchmark_projection_method": _clean_text(
+                    candidate.get("benchmark_projection_method")
+                ),
+            }
+        )
     return aligned
 
 
@@ -1119,9 +1237,7 @@ def _ratio(numerator: int, denominator: int) -> float | None:
 
 
 def _reference_paragraphs(row: dict[str, Any]) -> set[str]:
-    for field in (
-        "target_paragraphs", "cited_paragraphs", "paragraph_pinpoints", "pinpoints"
-    ):
+    for field in ("target_paragraphs", "cited_paragraphs", "paragraph_pinpoints", "pinpoints"):
         values = _string_values(row.get(field))
         if values:
             return values
@@ -1133,9 +1249,13 @@ def _paragraph_resolution_complete(row: dict[str, Any]) -> bool:
     if status == "resolved":
         return True
     resolutions = row.get("local_target_paragraph_resolutions")
-    return isinstance(resolutions, list) and bool(resolutions) and all(
-        isinstance(value, dict) and value.get("status") in {"exact", "range"}
-        for value in resolutions
+    return (
+        isinstance(resolutions, list)
+        and bool(resolutions)
+        and all(
+            isinstance(value, dict) and value.get("status") in {"exact", "range"}
+            for value in resolutions
+        )
     )
 
 
@@ -1152,10 +1272,12 @@ def benchmark_citation_annotations(
     all_curated = [row for row in annotations if row.get("curated", True)]
     curated = (
         [
-            row for row in all_curated
+            row
+            for row in all_curated
             if str(row.get("source_label") or "").casefold() == "echr case law"
         ]
-        if reference_scope == "echr" else all_curated
+        if reference_scope == "echr"
+        else all_curated
     )
     aligned = align_benchmark_annotations(curated, local_rows)
     matched = [row for row in aligned if row.get("occurrence_id")]
@@ -1176,8 +1298,7 @@ def benchmark_citation_annotations(
             pairs.append((gold, predicted))
     strict = [row for row in matched if row.get("alignment_family") == "strict_source_span"]
     contextual = [
-        row for row in matched
-        if row.get("alignment_family") == "normalized_identity_context"
+        row for row in matched if row.get("alignment_family") == "normalized_identity_context"
     ]
     exact_document_resolved = sum(bool(row.get("local_target_itemid")) for row in matched)
     document_reference = [row for row in matched if _clean_text(row.get("target_itemid"))]
@@ -1251,9 +1372,7 @@ def benchmark_citation_annotations(
             "matching_printed_appno": application_correct,
             "conflicting_printed_appno": len(application_identified) - application_correct,
             "not_identified": len(application_reference) - len(application_identified),
-            "identification_coverage": _ratio(
-                application_correct, len(application_reference)
-            ),
+            "identification_coverage": _ratio(application_correct, len(application_reference)),
             "agreement_given_identification": _ratio(
                 application_correct, len(application_identified)
             ),
@@ -1278,15 +1397,19 @@ def benchmark_citation_annotations(
             "complete_mapping_rate": _ratio(target_paragraph_complete, len(local_pinpoints)),
             "accuracy_not_inferred_without_reference_targets": True,
         },
-        "paragraph_pinpoint_resolved": sum(bool(row.get("local_target_paragraphs")) for row in matched),
+        "paragraph_pinpoint_resolved": sum(
+            bool(row.get("local_target_paragraphs")) for row in matched
+        ),
         "resolution_abstentions": resolution_abstentions,
         "source_components": {
             component: sum(row.get("local_source_component") == component for row in matched)
-            for component in sorted({
-                str(row["local_source_component"])
-                for row in matched
-                if row.get("local_source_component") is not None
-            })
+            for component in sorted(
+                {
+                    str(row["local_source_component"])
+                    for row in matched
+                    if row.get("local_source_component") is not None
+                }
+            )
         },
         "labelled_overlap": len(pairs),
         "label_abstentions": len(matched) - len(pairs),

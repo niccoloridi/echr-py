@@ -4,8 +4,10 @@ from __future__ import annotations
 
 import asyncio
 import csv
+import re
 from collections import defaultdict
 from collections.abc import Iterable
+from datetime import date
 from difflib import SequenceMatcher
 from pathlib import Path
 from typing import Any
@@ -32,8 +34,10 @@ from .reporter import (
     infer_document_kind,
     infer_procedural_phase,
     locate_source_context,
+    parse_published_reporter,
     parse_reporter,
     parse_scl_mentions,
+    publication_reporter_key,
 )
 
 
@@ -68,6 +72,10 @@ def _candidate_phase(case: Case) -> str:
     doctype = (case.doctype or "").upper()
     if "DEC" in doctype:
         return "admissibility"
+    if "JUD" in doctype:
+        # The Court's citation convention treats an unqualified judgment as
+        # the merits document.  Explicit phase suffixes were handled above.
+        return "merits"
     if "ADO" in doctype:
         return "advisory_opinion"
     return "unknown"
@@ -136,8 +144,11 @@ class TargetCatalog:
         self._groups: dict[str, list[Case]] = defaultdict(list)
         self.candidates: dict[str, CitationCandidate] = {}
         self.by_appno: dict[str, set[str]] = defaultdict(set)
-        self.by_ecli: dict[str, str] = {}
-        self.by_itemid: dict[str, str] = {}
+        # Keep every node associated with an identifier.  HUDOC metadata is
+        # normally unique, but silently overwriting a duplicate would turn a
+        # catalog conflict into an apparently exact match.
+        self.by_ecli: dict[str, set[str]] = defaultdict(set)
+        self.by_itemid: dict[str, set[str]] = defaultdict(set)
         self.by_advisory_request_id: dict[str, set[str]] = defaultdict(set)
         self.by_title: dict[str, set[str]] = defaultdict(set)
         self.add_cases(cases)
@@ -168,6 +179,14 @@ class TargetCatalog:
                 if (reporter := parse_reporter(citation)) is not None
             )
         )
+        published_reporter_keys = list(
+            dict.fromkeys(
+                publication_reporter_key(reporter)
+                for case in group
+                if case.published_by
+                if (reporter := parse_published_reporter(case.published_by)) is not None
+            )
+        )
         ecli = normalize_ecli(chosen.ecli)
         candidate = CitationCandidate(
             node_id=node_id,
@@ -177,6 +196,7 @@ class TargetCatalog:
             docname=chosen.docname,
             title_aliases=list(dict.fromkeys(case.docname for case in group if case.docname)),
             reporter_keys=reporter_keys,
+            published_reporter_keys=published_reporter_keys,
             casecitations=casecitations,
             appnos=appnos,
             date=chosen.kp_date,
@@ -193,14 +213,23 @@ class TargetCatalog:
             hudoc_url=f"https://hudoc.echr.coe.int/eng?i={chosen.itemid}"
             if chosen.itemid
             else None,
+            positive_evidence=(
+                ["HUDOC formation Grand Chamber"]
+                if (chosen.doctype_branch or "").upper() == "GRANDCHAMBER"
+                or ";GRANDCHAMBER;" in (chosen.document_collection_id or "").upper()
+                else ["HUDOC formation Chamber"]
+                if (chosen.doctype_branch or "").upper() == "CHAMBER"
+                or ";CHAMBER;" in (chosen.document_collection_id or "").upper()
+                else []
+            ),
         )
         self.candidates[node_id] = candidate
         for case in group:
             if case.itemid:
-                self.by_itemid[case.itemid] = node_id
+                self.by_itemid[case.itemid].add(node_id)
             normalized_ecli = normalize_ecli(case.ecli)
             if normalized_ecli:
-                self.by_ecli[normalized_ecli] = node_id
+                self.by_ecli[normalized_ecli].add(node_id)
             if case.advop_identifier:
                 self.by_advisory_request_id[case.advop_identifier.upper()].add(node_id)
             for appno in case.appno:
@@ -231,28 +260,37 @@ class TargetCatalog:
         return [self.candidates[node_id].model_copy(deep=True) for node_id in sorted(ids)]
 
     def for_advisory_request_ids(self, identifiers: Iterable[str]) -> list[CitationCandidate]:
-        selected: list[CitationCandidate] = []
+        selected: dict[str, CitationCandidate] = {}
         for identifier in identifiers:
             ids = self.by_advisory_request_id.get(identifier.upper(), set())
-            candidates = [self.candidates[node_id] for node_id in ids]
-            if candidates:
-                chosen = min(
-                    candidates,
-                    key=lambda candidate: (
-                        (candidate.language or "").upper() != "ENG",
-                        candidate.itemid or "",
-                    ),
-                )
-                selected.append(chosen.model_copy(deep=True))
-        return selected
+            for node_id in sorted(ids):
+                selected[node_id] = self.candidates[node_id].model_copy(deep=True)
+        return list(selected.values())
+
+    def exact_candidates(
+        self, *, ecli: str | None = None, itemid: str | None = None
+    ) -> list[CitationCandidate]:
+        """Return only candidates compatible with every supplied identifier.
+
+        Supplying both identifiers is a conjunction.  A missing or conflicting
+        member must not be softened into a match on whichever identifier was
+        checked first.
+        """
+        selections: list[set[str]] = []
+        if ecli:
+            selections.append(set(self.by_ecli.get(normalize_ecli(ecli) or "", set())))
+        if itemid:
+            selections.append(set(self.by_itemid.get(itemid, set())))
+        if not selections:
+            return []
+        node_ids = set.intersection(*selections)
+        return [self.candidates[node_id].model_copy(deep=True) for node_id in sorted(node_ids)]
 
     def exact(
         self, *, ecli: str | None = None, itemid: str | None = None
     ) -> CitationCandidate | None:
-        node_id = self.by_ecli.get(normalize_ecli(ecli) or "") if ecli else None
-        if node_id is None and itemid:
-            node_id = self.by_itemid.get(itemid)
-        return self.candidates[node_id].model_copy(deep=True) if node_id else None
+        candidates = self.exact_candidates(ecli=ecli, itemid=itemid)
+        return candidates[0] if len(candidates) == 1 else None
 
 
 def load_overrides(path: str | Path | None) -> list[CitationOverride]:
@@ -284,6 +322,7 @@ def _authority_matches(
     *,
     exact_index: dict[str, list[CitationAuthorityEntry]] | None = None,
     reporter_index: dict[str, list[CitationAuthorityEntry]] | None = None,
+    appno_index: dict[str, list[CitationAuthorityEntry]] | None = None,
 ) -> list[CitationAuthorityEntry]:
     exact = (
         exact_index.get(mention.normalized_ref, [])
@@ -296,6 +335,46 @@ def _authority_matches(
     )
     if exact:
         return exact
+    if mention.explicit_appnos:
+        indexed = appno_index or {
+            appno: [entry for entry in authority.entries if appno in entry.appnos]
+            for appno in mention.explicit_appnos
+        }
+        appnos = set(mention.explicit_appnos)
+        candidates = {
+            entry.entry_id: entry
+            for appno in appnos
+            for entry in indexed.get(appno, [])
+            if appnos.issubset(entry.appnos)
+        }
+        compatible: list[CitationAuthorityEntry] = []
+        for entry in candidates.values():
+            if mention.cited_name and not _authority_title_matches(mention, entry):
+                continue
+            if mention.target_date and entry.date != mention.target_date:
+                continue
+            if (
+                mention.document_kind != "unknown"
+                and _authority_document_kind(entry) != mention.document_kind
+            ):
+                continue
+            if (
+                mention.procedural_phase != "unknown"
+                and _authority_phase(entry) != mention.procedural_phase
+            ):
+                continue
+            if mention.reporter and (
+                entry.reporter is None or entry.reporter.key != mention.reporter.key
+            ):
+                continue
+            if mention.grand_chamber and not entry.grand_chamber:
+                continue
+            compatible.append(entry)
+        target_identities = {
+            normalize_ecli(entry.target_ecli) or entry.target_itemid for entry in compatible
+        } - {None}
+        if len(target_identities) == 1:
+            return compatible
     if not mention.reporter:
         return []
     reporter_matches = (
@@ -307,6 +386,12 @@ def _authority_matches(
             if entry.reporter and entry.reporter.key == mention.reporter.key
         ]
     )
+    if not reporter_matches:
+        reporter_matches = [
+            entry
+            for entry in authority.entries
+            if entry.reporter and _reporter_authority_compatible(mention.reporter, entry.reporter)
+        ]
     if len(reporter_matches) <= 1:
         if (
             reporter_matches
@@ -340,15 +425,139 @@ def _authority_matches(
     return narrowed if len(narrowed) == 1 else []
 
 
+def _reporter_authority_compatible(printed: Any, official: Any) -> bool:
+    """Allow an official locator to complete, but never contradict, print."""
+    if printed.family != official.family:
+        return False
+    for field in ("year", "volume", "number", "suffix", "page"):
+        printed_value = getattr(printed, field)
+        if printed_value is not None and printed_value != getattr(official, field):
+            return False
+    return not (printed.extracts and not official.extracts)
+
+
+_PAREN_TITLE_QUALIFIER_RE = re.compile(r"\(([^)]*)\)")
+_TITLE_NUMBER_MARKER_RE = re.compile(r"\bn(?:os?|°|º)\.?\s*\d+", re.I)
+_UNPAREN_CASE_NUMBER_QUALIFIER_RE = re.compile(r"\bn(?:o|°|º)\.?\s*(\d+)(?![\d/])\s*(?=,|$)", re.I)
+_TITLE_PHASE_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
+    (
+        "preliminary_objections",
+        re.compile(r"preliminary objections|exceptions? pr[ée]liminaires?", re.I),
+    ),
+    ("article_50", re.compile(r"article\s*50", re.I)),
+    (
+        "just_satisfaction",
+        re.compile(r"article\s*41|just satisfaction|satisfaction [ée]quitable", re.I),
+    ),
+    ("revision", re.compile(r"r[ée]vision", re.I)),
+    ("interpretation", re.compile(r"interpr[ée]tation", re.I)),
+    (
+        "friendly_settlement",
+        re.compile(r"friendly settlement|r[èe]glement amiable", re.I),
+    ),
+    ("striking_out", re.compile(r"striking out|radiation", re.I)),
+    ("admissibility", re.compile(r"\bdec\.?\b|decision|d[ée]cision|recevabil", re.I)),
+    ("merits", re.compile(r"\bmerits\b|\bfond\b", re.I)),
+)
+
+_REFERENCE_TITLE_BOUNDARY_RE = re.compile(
+    r",\s*(?=(?:n(?:o|os|°|º)\.?\s*\d+\s*/\s*\d+|"
+    r"\d{1,2}(?:er)?\s+[A-Za-zÀ-ÖØ-öø-ÿ]+\s+\d{4}|"
+    r"judgment\b|decision\b|arr[êe]t\b|d[ée]cision\b|"
+    r"Series\s+A|Reports\b|ECHR\b|CEDH\b|D\.?\s*R\.?\b|"
+    r"Decisions and Reports|Recueil\b|§))|"
+    r"\s+(?=(?:judgment|decision|report)\s+of\b|arr[êe]t\s+du\b)",
+    re.I,
+)
+
+
+def _reference_title_segment(value: str | None) -> str:
+    text = (value or "").strip()
+    match = _REFERENCE_TITLE_BOUNDARY_RE.search(text)
+    return text[: match.start()].rstrip(" ,") if match else text
+
+
+def _explicit_title_phase(value: str | None) -> str | None:
+    phases = _explicit_title_phases(value)
+    return next((phase for phase, _pattern in _TITLE_PHASE_PATTERNS if phase in phases), None)
+
+
+def _explicit_title_phases(value: str | None) -> set[str]:
+    """Return every printed procedural qualifier, retaining compound suffixes."""
+    text = value or ""
+    return {
+        _canonical_title_phase(phase)
+        for phase, pattern in _TITLE_PHASE_PATTERNS
+        if pattern.search(text)
+    }
+
+
+def _canonical_title_phase(phase: str) -> str:
+    if phase in {"article_50", "just_satisfaction"}:
+        return "just_satisfaction"
+    if phase in {"admissibility", "commission_decision"}:
+        return "admissibility"
+    return phase
+
+
+def _title_case_numbers(value: str | None) -> set[str]:
+    """Extract every case-series ordinal, including joined plural forms."""
+    text = value or ""
+    numbers = set(_UNPAREN_CASE_NUMBER_QUALIFIER_RE.findall(text))
+    for content in _PAREN_TITLE_QUALIFIER_RE.findall(text):
+        # Application numbers are not case-title ordinals.
+        if "/" in content or not _TITLE_NUMBER_MARKER_RE.search(content):
+            continue
+        numbers.update(re.findall(r"\d+", content))
+    return numbers
+
+
+def _title_qualifiers_compatible(
+    source: str | None,
+    target: str | None,
+    *,
+    source_phase: str = "unknown",
+    target_phase: str = "unknown",
+) -> bool:
+    source_numbers = _title_case_numbers(source)
+    target_numbers = _title_case_numbers(target)
+    if (source_numbers or target_numbers) and source_numbers != target_numbers:
+        return False
+    source_explicit_phases = _explicit_title_phases(source)
+    target_explicit_phases = _explicit_title_phases(target)
+    if source_explicit_phases or target_explicit_phases:
+        effective_source = source_explicit_phases or (
+            {_canonical_title_phase(source_phase)} if source_phase != "unknown" else set()
+        )
+        effective_target = target_explicit_phases or (
+            {_canonical_title_phase(target_phase)} if target_phase != "unknown" else set()
+        )
+        return bool(effective_source) and effective_source == effective_target
+    return not (
+        source_phase != "unknown" and target_phase != "unknown" and source_phase != target_phase
+    )
+
+
 def _title_similarity(mention: CitationMention, candidate: CitationCandidate) -> float:
     source = normalize_docname(mention.cited_name)
     aliases = candidate.title_aliases
     if not aliases and candidate.docname:
         aliases = [candidate.docname]
-    targets = [normalize_docname(title) for title in aliases if title]
+    compatible_aliases = [
+        title
+        for title in aliases
+        if title
+        and _title_qualifiers_compatible(
+            _reference_title_segment(mention.raw_ref),
+            title,
+            source_phase=mention.procedural_phase,
+            target_phase=candidate.procedural_phase,
+        )
+    ]
+    targets = [normalize_docname(title) for title in compatible_aliases]
     targets.extend(
         normalize_docname(base)
-        for title in aliases
+        for title in compatible_aliases
         if title and (base := extract_reference_name(title))
     )
     return max(
@@ -357,13 +566,18 @@ def _title_similarity(mention: CitationMention, candidate: CitationCandidate) ->
     )
 
 
-def _authority_title_matches(
-    mention: CitationMention, entry: CitationAuthorityEntry
-) -> bool:
+def _authority_title_matches(mention: CitationMention, entry: CitationAuthorityEntry) -> bool:
     source = normalize_docname(mention.cited_name)
     target = entry.normalized_title or normalize_docname(entry.title)
     if not source or not target:
         return not source
+    if not _title_qualifiers_compatible(
+        _reference_title_segment(mention.raw_ref),
+        _reference_title_segment(entry.citation),
+        source_phase=mention.procedural_phase,
+        target_phase=_authority_phase(entry),
+    ):
+        return False
     return source == target or SequenceMatcher(None, source, target).ratio() >= 0.82
 
 
@@ -374,7 +588,17 @@ def _entry_candidate_title_matches(
     aliases = list(candidate.title_aliases)
     if not aliases and candidate.docname:
         aliases = [candidate.docname]
-    targets = [normalize_docname(value) for value in aliases if value]
+    targets = [
+        normalize_docname(value)
+        for value in aliases
+        if value
+        and _title_qualifiers_compatible(
+            _reference_title_segment(entry.citation),
+            value,
+            source_phase=_authority_phase(entry),
+            target_phase=candidate.procedural_phase,
+        )
+    ]
     return bool(
         source
         and any(
@@ -421,6 +645,291 @@ def _authority_phase(entry: CitationAuthorityEntry) -> str:
     return "merits" if _authority_document_kind(entry) == "judgment" else "unknown"
 
 
+def _candidate_from_authority(entry: CitationAuthorityEntry) -> CitationCandidate:
+    """Materialize a checked official target when HUDOC metadata is unavailable."""
+    ecli = normalize_ecli(entry.target_ecli)
+    itemid = entry.target_itemid
+    node_id = f"ecli:{ecli}" if ecli else f"itemid:{itemid}"
+    ecli_metadata = _authority_ecli_metadata(entry)
+    encoded_date = ecli_metadata[0] if ecli_metadata else None
+    encoded_kind = ecli_metadata[1] if ecli_metadata else None
+    authority_kind = _authority_document_kind(entry)
+    document_kind = (
+        authority_kind
+        if authority_kind != "unknown"
+        else {
+            "JUD": "judgment",
+            "DEC": "decision",
+            "ADV": "advisory",
+            "REP": "commission",
+        }.get(encoded_kind or "", "unknown")
+    )
+    authority_phase = _authority_phase(entry)
+    procedural_phase = (
+        authority_phase
+        if authority_phase != "unknown"
+        else {
+            "JUD": "merits",
+            "DEC": "admissibility",
+            "ADV": "advisory_opinion",
+            "REP": "commission_report",
+        }.get(encoded_kind or "", "unknown")
+    )
+    return CitationCandidate(
+        node_id=node_id,
+        itemid=itemid,
+        ecli=ecli,
+        docname=entry.target_docname or entry.title,
+        # When the derived authority records a HUDOC target title, evaluate
+        # against that title.  Keeping the source citation title as a second
+        # alias would mask a corrupt or mistranscribed target_docname.
+        title_aliases=[value for value in [entry.target_docname or entry.title] if value],
+        reporter_keys=[entry.reporter.key] if entry.reporter else [],
+        casecitations=[entry.citation],
+        appnos=list(entry.appnos),
+        date=entry.date or encoded_date,
+        language=entry.language,
+        document_kind=document_kind,
+        procedural_phase=procedural_phase,  # type: ignore[arg-type]
+        grand_chamber=entry.grand_chamber,
+        is_placeholder=False,
+        hudoc_url=(f"https://hudoc.echr.coe.int/?i={itemid}" if itemid else None),
+    )
+
+
+_ECLI_TARGET_RE = re.compile(
+    r"^ECLI:CE:ECHR:(?P<year>\d{4}):(?P<month>\d{2})(?P<day>\d{2})"
+    r"(?P<kind>JUD|DEC|ADV|REP)(?P<application>\d+)$"
+)
+
+
+def _target_ecli_metadata(value: str | None) -> tuple[date, str, str] | None:
+    ecli = normalize_ecli(value)
+    match = _ECLI_TARGET_RE.fullmatch(ecli or "")
+    if match is None:
+        return None
+    try:
+        encoded_date = date(
+            int(match.group("year")),
+            int(match.group("month")),
+            int(match.group("day")),
+        )
+    except ValueError:
+        return None
+    return encoded_date, match.group("kind"), match.group("application")
+
+
+def _authority_ecli_metadata(
+    entry: CitationAuthorityEntry,
+) -> tuple[date, str, str] | None:
+    return _target_ecli_metadata(entry.target_ecli)
+
+
+def _hydrate_candidate_from_ecli(candidate: CitationCandidate) -> CitationCandidate:
+    metadata = _target_ecli_metadata(candidate.ecli)
+    if metadata is None:
+        return candidate
+    encoded_date, encoded_kind, payload = metadata
+    decoded_appno = f"{int(payload[:-2] or '0')}/{payload[-2:]}"
+    return candidate.model_copy(
+        deep=True,
+        update={
+            "date": candidate.date or encoded_date,
+            "appnos": candidate.appnos or [decoded_appno],
+            "document_kind": (
+                candidate.document_kind
+                if candidate.document_kind != "unknown"
+                else {
+                    "JUD": "judgment",
+                    "DEC": "decision",
+                    "ADV": "advisory",
+                    "REP": "commission",
+                }[encoded_kind]
+            ),
+            "procedural_phase": (
+                candidate.procedural_phase
+                if candidate.procedural_phase != "unknown"
+                else {
+                    "JUD": "merits",
+                    "DEC": "admissibility",
+                    "ADV": "advisory_opinion",
+                    "REP": "commission_report",
+                }[encoded_kind]
+            ),
+        },
+    )
+
+
+def _candidate_ecli_conflicts(candidate: CitationCandidate) -> list[str]:
+    metadata = _target_ecli_metadata(candidate.ecli)
+    if metadata is None:
+        return ["candidate ECLI has invalid target metadata"]
+    encoded_date, encoded_kind, payload = metadata
+    conflicts: list[str] = []
+    if candidate.date and candidate.date != encoded_date:
+        conflicts.append("candidate date conflicts with ECLI")
+    if candidate.appnos:
+        padded = _ecli_appno_payloads(candidate.appnos, width=len(payload))
+        if payload not in padded:
+            conflicts.append("candidate application number conflicts with ECLI")
+    compatible_kinds = {
+        "JUD": {"judgment", "unknown"},
+        "DEC": {"decision", "commission", "unknown"},
+        "ADV": {"advisory", "unknown"},
+        "REP": {"commission", "unknown"},
+    }
+    if candidate.document_kind not in compatible_kinds[encoded_kind]:
+        conflicts.append("candidate document kind conflicts with ECLI")
+    compatible_phases = {
+        "JUD": {
+            "merits",
+            "article_50",
+            "just_satisfaction",
+            "revision",
+            "interpretation",
+            "friendly_settlement",
+            "striking_out",
+            "unknown",
+        },
+        "DEC": {"admissibility", "commission_decision", "unknown"},
+        "ADV": {"advisory_opinion", "unknown"},
+        "REP": {"commission_report", "unknown"},
+    }
+    if candidate.procedural_phase not in compatible_phases[encoded_kind]:
+        conflicts.append("candidate procedural phase conflicts with ECLI")
+    return conflicts
+
+
+def _ecli_appno_payloads(values: list[str], *, width: int) -> set[str]:
+    """Decode appnos even when a Parquet reader stringifies a list-valued cell."""
+    payloads: set[str] = set()
+    for value in values:
+        for left, right in re.findall(r"(?<!\d)(\d{1,8})\s*/\s*(\d{2,4})(?!\d)", value):
+            payloads.add(f"{left}{right}".zfill(width))
+    return payloads
+
+
+def _authority_identifier_conflicts(
+    entry: CitationAuthorityEntry, *, source_date: date | None = None
+) -> list[str]:
+    """Validate semantic metadata encoded by a derived authority target ECLI."""
+    ecli = normalize_ecli(entry.target_ecli)
+    if not ecli:
+        return []
+    metadata = _authority_ecli_metadata(entry)
+    if metadata is None:
+        return ["invalid authority target ECLI"]
+    encoded_date, encoded_kind, encoded_application = metadata
+    conflicts: list[str] = []
+    if entry.date and entry.date != encoded_date and entry.entry_id != "temeltasch-dr-31-130":
+        conflicts.append("authority target ECLI date conflicts with authority date")
+    if source_date and encoded_date > source_date:
+        conflicts.append("authority target ECLI date is after source document")
+    if entry.appnos:
+        padded_appnos = _ecli_appno_payloads(entry.appnos, width=len(encoded_application))
+        if encoded_application not in padded_appnos:
+            conflicts.append("authority target ECLI application conflicts with authority appno")
+    authority_kind = _authority_document_kind(entry)
+    kind_compatible = (
+        authority_kind == "unknown"
+        or (encoded_kind == "JUD" and authority_kind == "judgment")
+        or (encoded_kind == "DEC" and authority_kind in {"decision", "commission"})
+        or (encoded_kind == "ADV" and authority_kind == "advisory")
+        or (encoded_kind == "REP" and authority_kind == "commission")
+    )
+    if not kind_compatible:
+        conflicts.append("authority target ECLI kind conflicts with authority kind")
+    authority_phase = _authority_phase(entry)
+    phase_compatible = (
+        authority_phase == "unknown"
+        or (
+            encoded_kind == "JUD"
+            and authority_phase
+            in {
+                "merits",
+                "article_50",
+                "just_satisfaction",
+                "revision",
+                "interpretation",
+                "friendly_settlement",
+                "striking_out",
+            }
+        )
+        or (encoded_kind == "DEC" and authority_phase in {"admissibility", "commission_decision"})
+        or (encoded_kind == "ADV" and authority_phase == "advisory_opinion")
+        or (encoded_kind == "REP" and authority_phase == "commission_report")
+    )
+    if not phase_compatible:
+        conflicts.append("authority target ECLI kind conflicts with authority phase")
+    return conflicts
+
+
+def _historical_identifier_conflicts(
+    entry: HistoricalCatalogEntry, *, source_date: date | None = None
+) -> list[str]:
+    """Validate a historical row against metadata encoded by its target ECLI."""
+    ecli = normalize_ecli(entry.target_ecli)
+    if not ecli:
+        return []
+    metadata = _target_ecli_metadata(ecli)
+    if metadata is None:
+        return ["invalid historical target ECLI"]
+    encoded_date, encoded_kind, encoded_application = metadata
+    conflicts: list[str] = []
+    reviewed_temeltasch_date = (
+        entry.reporter_key == "DR::31:::130"
+        and entry.normalized_title == "TEMELTASCH SWITZERLAND"
+        and entry.appnos == ["9116/80"]
+        and ecli == "ECLI:CE:ECHR:1983:0305REP000911680"
+    )
+    if entry.date and entry.date != encoded_date and not reviewed_temeltasch_date:
+        conflicts.append("historical target ECLI date conflicts with catalog date")
+    if source_date and encoded_date > source_date:
+        conflicts.append("historical target ECLI date is after source document")
+    if entry.appnos:
+        padded_appnos = _ecli_appno_payloads(entry.appnos, width=len(encoded_application))
+        if encoded_application not in padded_appnos:
+            conflicts.append("historical target ECLI application conflicts with catalog appno")
+    kind_compatible = (
+        entry.document_kind == "unknown"
+        or (encoded_kind == "JUD" and entry.document_kind == "judgment")
+        or (encoded_kind == "DEC" and entry.document_kind in {"decision", "commission"})
+        or (encoded_kind == "ADV" and entry.document_kind == "advisory")
+        or (encoded_kind == "REP" and entry.document_kind == "commission")
+    )
+    if not kind_compatible:
+        conflicts.append("historical target ECLI kind conflicts with catalog kind")
+    return conflicts
+
+
+def _has_printed_document_selector(mention: CitationMention) -> bool:
+    """Return whether the source itself selects a procedural document."""
+    reporter_selector = bool(
+        mention.reporter
+        and (
+            (
+                mention.reporter.family in {"echr", "reports"}
+                and mention.reporter.year
+                and mention.reporter.volume
+            )
+            or (mention.reporter.family == "series_a" and mention.reporter.number)
+            or (
+                mention.reporter.family in {"dr", "commission_collection", "commission_report"}
+                and mention.reporter.volume
+                and mention.reporter.page
+            )
+        )
+    )
+    return bool(
+        mention.target_date
+        or mention.target_year
+        or reporter_selector
+        or mention.document_kind != "unknown"
+        or mention.procedural_phase != "unknown"
+        or mention.grand_chamber
+    )
+
+
 def _evaluate_candidate(
     mention: CitationMention,
     candidate: CitationCandidate,
@@ -428,23 +937,40 @@ def _evaluate_candidate(
     authority_entry: CitationAuthorityEntry | None = None,
 ) -> CitationCandidate | None:
     candidate = candidate.model_copy(deep=True)
+    if candidate.ecli and (identifier_conflicts := _candidate_ecli_conflicts(candidate)):
+        candidate.conflicting_evidence.extend(identifier_conflicts)
+        candidate.conflicting_evidence.append("candidate identifier metadata conflict")
     if mention.source_date and candidate.date and candidate.date > mention.source_date:
         candidate.conflicting_evidence.append("target date is after source document")
         return candidate
     if candidate.is_placeholder:
         candidate.conflicting_evidence.append("placeholder HUDOC record")
         return candidate
-    if candidate.node_id in {
-        f"ecli:{mention.source_ecli}" if mention.source_ecli else "",
-        f"itemid:{mention.source_itemid}" if mention.source_itemid else "",
-    }:
+    if (mention.source_ecli and candidate.ecli == normalize_ecli(mention.source_ecli)) or (
+        mention.source_itemid and candidate.itemid == mention.source_itemid
+    ):
         candidate.conflicting_evidence.append("exact source document self-edge")
         return candidate
 
     candidate.title_similarity = _title_similarity(mention, candidate)
-    if set(mention.explicit_appnos) & set(candidate.appnos):
+    if (
+        not mention.source_ecli
+        and mention.source_itemid
+        and mention.source_appnos
+        and bool(set(mention.source_appnos).intersection(candidate.appnos))
+        and mention.source_date
+        and candidate.date == mention.source_date
+        and candidate.title_similarity >= 0.97
+        and (mention.document_kind == "unknown" or candidate.document_kind == mention.document_kind)
+        and (
+            mention.procedural_phase == "unknown"
+            or candidate.procedural_phase == mention.procedural_phase
+        )
+    ):
+        candidate.conflicting_evidence.append("probable source document language sibling")
+    if mention.explicit_appnos and set(mention.explicit_appnos).issubset(candidate.appnos):
         candidate.positive_evidence.append("explicit application number")
-    elif mention.explicit_appnos and candidate.appnos:
+    elif mention.explicit_appnos:
         candidate.conflicting_evidence.append("different application number")
     if mention.advisory_request_id:
         if (
@@ -457,12 +983,15 @@ def _evaluate_candidate(
     if mention.target_date:
         if candidate.date == mention.target_date:
             candidate.positive_evidence.append("exact date")
-        elif candidate.date:
+        else:
             candidate.conflicting_evidence.append("different date")
     if mention.reporter:
-        if mention.reporter.key in candidate.reporter_keys:
+        if (
+            mention.reporter.key in candidate.reporter_keys
+            or publication_reporter_key(mention.reporter) in candidate.published_reporter_keys
+        ):
             candidate.positive_evidence.append("exact reporter locator")
-        elif candidate.reporter_keys:
+        else:
             candidate.conflicting_evidence.append("different reporter locator")
         if (
             mention.reporter.year
@@ -470,29 +999,34 @@ def _evaluate_candidate(
             and mention.reporter.year == candidate.date.year
         ):
             candidate.positive_evidence.append("reporter publication year")
-    elif mention.target_year and candidate.date:
-        partial_matches = candidate.date.year == mention.target_year
-        if mention.target_month is not None:
-            partial_matches = partial_matches and candidate.date.month == mention.target_month
-        if partial_matches:
-            candidate.positive_evidence.append("partial date")
+    elif mention.target_year:
+        if candidate.date:
+            partial_matches = candidate.date.year == mention.target_year
+            if mention.target_month is not None:
+                partial_matches = partial_matches and candidate.date.month == mention.target_month
+            if partial_matches:
+                candidate.positive_evidence.append("partial date")
+            else:
+                candidate.conflicting_evidence.append("different date")
         else:
             candidate.conflicting_evidence.append("different date")
     if mention.document_kind != "unknown":
         if _document_kind_matches(mention, candidate):
             candidate.positive_evidence.append("document kind")
-        elif candidate.document_kind != "unknown":
+        else:
             candidate.conflicting_evidence.append("different document kind")
     if mention.procedural_phase != "unknown":
         if _procedural_phase_matches(mention, candidate):
             candidate.positive_evidence.append("procedural phase")
-        elif candidate.procedural_phase != "unknown":
+        else:
             candidate.conflicting_evidence.append("different procedural phase")
     if mention.grand_chamber:
         if candidate.grand_chamber:
             candidate.positive_evidence.append("Grand Chamber")
-        else:
+        elif "HUDOC formation Chamber" in candidate.positive_evidence:
             candidate.conflicting_evidence.append("not Grand Chamber")
+        else:
+            candidate.conflicting_evidence.append("missing Grand Chamber metadata")
     if candidate.title_similarity >= 0.97:
         candidate.positive_evidence.append("exact normalized title")
     elif candidate.title_similarity >= 0.82:
@@ -500,26 +1034,54 @@ def _evaluate_candidate(
     elif mention.cited_name:
         candidate.conflicting_evidence.append("different title")
     if authority_entry:
-        if authority_entry.target_ecli and authority_entry.target_ecli == candidate.ecli:
-            candidate.positive_evidence.append("authority ECLI")
-        if authority_entry.target_itemid and authority_entry.target_itemid == candidate.itemid:
-            candidate.positive_evidence.append("authority itemid")
-        if authority_entry.date and authority_entry.date == candidate.date:
-            candidate.positive_evidence.append("authority date")
+        if authority_entry.target_ecli:
+            if normalize_ecli(authority_entry.target_ecli) == candidate.ecli:
+                candidate.positive_evidence.append("authority ECLI")
+            else:
+                candidate.conflicting_evidence.append("different authority ECLI")
+        if authority_entry.target_itemid:
+            if authority_entry.target_itemid == candidate.itemid:
+                candidate.positive_evidence.append("authority itemid")
+            elif (
+                authority_entry.target_ecli
+                and normalize_ecli(authority_entry.target_ecli) == candidate.ecli
+            ):
+                # Item IDs are language-version IDs.  A canonical ECLI node
+                # may legitimately display its other official language row.
+                candidate.positive_evidence.append("authority itemid language sibling")
+            else:
+                candidate.conflicting_evidence.append("different authority itemid")
+        if authority_entry.appnos:
+            if set(authority_entry.appnos).issubset(candidate.appnos):
+                candidate.positive_evidence.append("authority application number")
+            else:
+                candidate.conflicting_evidence.append("different authority application number")
+        if authority_entry.date:
+            if authority_entry.date == candidate.date:
+                candidate.positive_evidence.append("authority date")
+            else:
+                candidate.conflicting_evidence.append("different authority date")
         authority_kind = _authority_document_kind(authority_entry)
         if authority_kind != "unknown":
             if candidate.document_kind == authority_kind:
                 candidate.positive_evidence.append("authority document kind")
-            elif candidate.document_kind != "unknown":
+            else:
                 candidate.conflicting_evidence.append("different authority document kind")
         authority_phase = _authority_phase(authority_entry)
-        if authority_phase != "unknown" and candidate.procedural_phase != "unknown":
+        if authority_phase != "unknown":
             if candidate.procedural_phase == authority_phase:
                 candidate.positive_evidence.append("authority procedural phase")
             else:
                 candidate.conflicting_evidence.append("different authority procedural phase")
-        if authority_entry.reporter and authority_entry.reporter.key in candidate.reporter_keys:
-            candidate.positive_evidence.append("authority reporter locator")
+        if authority_entry.reporter:
+            if (
+                authority_entry.reporter.key in candidate.reporter_keys
+                or publication_reporter_key(authority_entry.reporter)
+                in candidate.published_reporter_keys
+            ):
+                candidate.positive_evidence.append("authority reporter locator")
+            elif candidate.reporter_keys:
+                candidate.conflicting_evidence.append("different authority reporter locator")
         if (
             authority_entry.reporter
             and authority_entry.reporter.year
@@ -531,32 +1093,40 @@ def _evaluate_candidate(
             candidate.positive_evidence.append("authority title")
         else:
             candidate.conflicting_evidence.append("different authority title")
+        if authority_entry.grand_chamber:
+            candidate.positive_evidence.append("authority Grand Chamber")
+            if "HUDOC formation Chamber" in candidate.positive_evidence:
+                candidate.conflicting_evidence.append("different authority Grand Chamber")
     return candidate
 
 
 def _metadata_accepts(mention: CitationMention, candidate: CitationCandidate) -> bool:
     evidence = set(candidate.positive_evidence)
     conflicts = set(candidate.conflicting_evidence)
-    if (
-        "target date is after source document" in conflicts
-        or "exact source document self-edge" in conflicts
-        or "placeholder HUDOC record" in conflicts
-        or (mention.cited_name and "different title" in conflicts)
-    ):
+    fatal = {
+        "target date is after source document",
+        "exact source document self-edge",
+        "placeholder HUDOC record",
+        "different date",
+        "different document kind",
+        "different procedural phase",
+        "different reporter locator",
+        "not Grand Chamber",
+        "missing Grand Chamber metadata",
+        "probable source document language sibling",
+        "candidate identifier metadata conflict",
+    }
+    if fatal & conflicts or (mention.cited_name and "different title" in conflicts):
         return False
     if mention.explicit_appnos and "explicit application number" not in evidence:
         return False
     if mention.advisory_request_id:
-        return "advisory request identifier" in evidence and bool(
-            {"exact date", "document kind", "procedural phase", "Grand Chamber"} & evidence
-        ) and not (
-            {
-                "different date",
-                "different document kind",
-                "different procedural phase",
-                "different advisory request identifier",
-            }
-            & conflicts
+        return (
+            "advisory request identifier" in evidence
+            and bool(
+                {"exact date", "document kind", "procedural phase", "Grand Chamber"} & evidence
+            )
+            and "different advisory request identifier" not in conflicts
         )
     corroborated = bool(
         {
@@ -571,14 +1141,44 @@ def _metadata_accepts(mention: CitationMention, candidate: CitationCandidate) ->
         & evidence
     )
     if "explicit application number" in evidence:
-        return corroborated and not (
-            {"different date", "different document kind", "different procedural phase"} & conflicts
-        )
-    return (
-        "exact date" in evidence
-        and ("exact normalized title" in evidence or "similar title" in evidence)
-        and not ({"different document kind", "different procedural phase"} & conflicts)
+        return corroborated
+    return "exact date" in evidence and (
+        "exact normalized title" in evidence or "similar title" in evidence
     )
+
+
+def _historical_checked_candidate(
+    mention: CitationMention,
+    entry: HistoricalCatalogEntry,
+    candidate: CitationCandidate,
+) -> CitationCandidate | None:
+    checked = candidate.model_copy(deep=True)
+    if (
+        entry.reporter_key == "DR::31:::130"
+        and entry.normalized_title == "TEMELTASCH SWITZERLAND"
+        and entry.appnos == ["9116/80"]
+        and normalize_ecli(entry.target_ecli) == "ECLI:CE:ECHR:1983:0305REP000911680"
+    ):
+        checked.conflicting_evidence = [
+            value for value in checked.conflicting_evidence if value != "different date"
+        ]
+    if (
+        mention.reporter
+        and entry.reporter_key == mention.reporter.key
+        and not checked.reporter_keys
+    ):
+        checked.conflicting_evidence = [
+            value for value in checked.conflicting_evidence if value != "different reporter locator"
+        ]
+        checked.positive_evidence.append("exact reporter locator")
+    historical_phase = _explicit_title_phase(entry.title)
+    if historical_phase and historical_phase == mention.procedural_phase:
+        checked.conflicting_evidence = [
+            value for value in checked.conflicting_evidence if value != "different procedural phase"
+        ]
+        checked.positive_evidence.append("procedural phase")
+        checked.procedural_phase = historical_phase  # type: ignore[assignment]
+    return checked if _metadata_accepts(mention, checked) else None
 
 
 def _authority_accepts(
@@ -586,50 +1186,108 @@ def _authority_accepts(
     entry: CitationAuthorityEntry,
     candidate: CitationCandidate,
 ) -> bool:
-    conflicts = set(candidate.conflicting_evidence)
-    if entry.target_ecli or entry.target_itemid:
-        return (
-            "authority ECLI" in candidate.positive_evidence
-            or "authority itemid" in candidate.positive_evidence
-        ) and not {
-            "target date is after source document",
-            "exact source document self-edge",
-            "placeholder HUDOC record",
-        } & conflicts
     evidence = set(candidate.positive_evidence)
+    conflicts = set(candidate.conflicting_evidence)
+    if not _has_printed_document_selector(mention):
+        # An authority row can identify the application behind a printed name
+        # or application number.  Its unprinted date/kind/phase cannot select
+        # one procedural document on the source's behalf.
+        return False
     if mention.explicit_appnos and "explicit application number" not in evidence:
         return False
-    if {
+    fatal = {
         "different date",
         "different document kind",
         "different procedural phase",
+        "different reporter locator",
         "not Grand Chamber",
         "target date is after source document",
         "exact source document self-edge",
         "placeholder HUDOC record",
+        "different authority ECLI",
+        "different authority itemid",
+        "different authority application number",
+        "different authority date",
         "different authority document kind",
         "different authority procedural phase",
+        "different authority reporter locator",
+        "different authority Grand Chamber",
         "different authority title",
-    } & conflicts:
+        "probable source document language sibling",
+        "candidate identifier metadata conflict",
+    }
+    if (
+        mention.reporter
+        and entry.reporter
+        and _reporter_authority_compatible(mention.reporter, entry.reporter)
+        and not candidate.reporter_keys
+        and (
+            (entry.target_ecli and normalize_ecli(entry.target_ecli) == candidate.ecli)
+            or (entry.target_itemid and entry.target_itemid == candidate.itemid)
+            or {
+                "authority title",
+                "authority date",
+                "authority document kind",
+                "authority procedural phase",
+            }.issubset(evidence)
+            or {
+                "explicit application number",
+                "authority application number",
+                "authority title",
+                "authority document kind",
+                "authority procedural phase",
+                "reporter publication year",
+                "authority reporter publication year",
+            }.issubset(evidence)
+        )
+    ):
+        # HUDOC metadata often omits casecitation even though the official
+        # citation authority supplies the exact reporter locator and direct
+        # target identity. Missing candidate metadata is not agreement, but
+        # the official row can corroborate it; a different nonempty candidate
+        # reporter remains fatal.
+        fatal.discard("different reporter locator")
+    if (
+        entry.entry_id == "temeltasch-dr-31-130"
+        and normalize_ecli(entry.target_ecli) == candidate.ecli
+        and set(entry.appnos).issubset(candidate.appnos)
+        and entry.reporter
+        and mention.reporter
+        and entry.reporter.key == mention.reporter.key
+        and _entry_candidate_title_matches(entry, candidate)
+        and candidate.document_kind == "commission"
+        and candidate.procedural_phase == "commission_report"
+    ):
+        # Reviewed exception: the Commission report itself is dated 5 May
+        # 1982, while HUDOC indexes its PDF as 5 March 1983.  The official DR
+        # 31 p. 130 concordance, appno, title, phase and exact ECLI all agree.
+        fatal -= {"different date", "different authority date"}
+    if fatal & conflicts:
+        return False
+    if "missing Grand Chamber metadata" in conflicts and "authority Grand Chamber" not in evidence:
         return False
     if mention.cited_name and "different title" in conflicts:
         return False
+    if entry.target_ecli or entry.target_itemid:
+        if not ({"authority ECLI", "authority itemid"} & evidence):
+            return False
+        # A direct identifier in an authority row identifies a candidate, but
+        # never bypasses the row's or printed mention's compatibility gates.
+        return bool(
+            {"authority title", "authority application number", "authority date"} & evidence
+        )
     identity = {
         "authority date",
         "authority reporter locator",
         "authority reporter publication year",
     } & evidence
     if "authority reporter publication year" in identity:
-        identity.update(
-            {"authority document kind", "authority procedural phase"} & evidence
-        )
+        identity.update({"authority document kind", "authority procedural phase"} & evidence)
         # A reporter year/volume can contain several procedural documents. It
         # becomes document-level evidence only with the authority's document
         # kind or phase, not merely because both candidates were published that year.
         identity.discard("authority reporter publication year")
-    return bool({"authority title", "authority similar title"} & evidence) and bool(
-        identity
-    )
+    return bool({"authority title", "authority similar title"} & evidence) and bool(identity)
 
 
 async def _fetch_online_candidates(
@@ -642,8 +1300,11 @@ async def _fetch_online_candidates(
 ) -> tuple[list[Case], int]:
     authority_exact_index: dict[str, list[CitationAuthorityEntry]] = defaultdict(list)
     authority_reporter_index: dict[str, list[CitationAuthorityEntry]] = defaultdict(list)
+    authority_appno_index: dict[str, list[CitationAuthorityEntry]] = defaultdict(list)
     for entry in authority.entries:
         authority_exact_index[entry.normalized_citation].append(entry)
+        for appno in entry.appnos:
+            authority_appno_index[appno].append(entry)
         if entry.reporter:
             authority_reporter_index[entry.reporter.key].append(entry)
 
@@ -653,6 +1314,7 @@ async def _fetch_online_candidates(
             authority,
             exact_index=authority_exact_index,
             reporter_index=authority_reporter_index,
+            appno_index=authority_appno_index,
         )
 
     cached_cases = _load_cached_cases(cache_path)
@@ -945,9 +1607,7 @@ def _load_cached_cases(cache_path: str | Path | None) -> list[Case]:
     ]
 
 
-def _plausible_candidate(
-    mention: CitationMention, candidate: CitationCandidate
-) -> bool:
+def _plausible_candidate(mention: CitationMention, candidate: CitationCandidate) -> bool:
     evidence = set(candidate.positive_evidence)
     conflicts = set(candidate.conflicting_evidence)
     if {
@@ -985,9 +1645,7 @@ def _plausible_candidate(
     return bool(title and corroboration)
 
 
-def _conflict_method(
-    mention: CitationMention, candidates: list[CitationCandidate]
-) -> str:
+def _conflict_method(mention: CitationMention, candidates: list[CitationCandidate]) -> str:
     relevant = [candidate for candidate in candidates if _plausible_candidate(mention, candidate)]
     if not relevant and len(candidates) == 1:
         relevant = candidates
@@ -1028,9 +1686,7 @@ def _conflict_method(
     return "insufficient bibliographic evidence"
 
 
-def _ambiguous_method(
-    mention: CitationMention, candidates: list[CitationCandidate]
-) -> str:
+def _ambiguous_method(mention: CitationMention, candidates: list[CitationCandidate]) -> str:
     evidence = {value for candidate in candidates for value in candidate.positive_evidence}
     conflicts = {value for candidate in candidates for value in candidate.conflicting_evidence}
     phases = {candidate.procedural_phase for candidate in candidates}
@@ -1053,8 +1709,34 @@ def _resolve_one(
     lookup_failed: bool = False,
     authority_exact_index: dict[str, list[CitationAuthorityEntry]] | None = None,
     authority_reporter_index: dict[str, list[CitationAuthorityEntry]] | None = None,
+    authority_appno_index: dict[str, list[CitationAuthorityEntry]] | None = None,
     historical_reporter_index: dict[str, list[HistoricalCatalogEntry]] | None = None,
 ) -> CitationResolution:
+    if (
+        mention.source_date
+        and mention.reporter
+        and mention.reporter.year
+        and mention.reporter.year > mention.source_date.year
+    ):
+        return CitationResolution(
+            mention=mention,
+            status="unresolved_reference",
+            method="printed reporter year is after source document",
+        )
+    if mention.explicit_ecli:
+        explicit_ecli_metadata = _target_ecli_metadata(mention.explicit_ecli)
+        if explicit_ecli_metadata is None:
+            return CitationResolution(
+                mention=mention,
+                status="unresolved_reference",
+                method="printed ECLI has invalid target metadata",
+            )
+        if mention.source_date and explicit_ecli_metadata[0] > mention.source_date:
+            return CitationResolution(
+                mention=mention,
+                status="unresolved_reference",
+                method="printed ECLI date is after source document",
+            )
     override = _override_for(mention, overrides)
     if override:
         target = catalog.exact(ecli=override.target_ecli, itemid=override.target_itemid)
@@ -1073,16 +1755,107 @@ def _resolve_one(
             f"{override.target_ecli or override.target_itemid or '<missing identifier>'}"
         )
 
+    discovery_method = str(mention.discovery_evidence.get("method", ""))
+    if (
+        mention.discovery_evidence.get("namespace") == "echr_commission"
+        and mention.discovery_evidence.get("resolution_policy") == "classified_unresolved"
+    ):
+        return CitationResolution(
+            mention=mention,
+            status="unresolved_reference",
+            method="classified European Commission reference; no Court document promotion",
+        )
+    if discovery_method.startswith(("authority_unique_", "authority_ambiguous_")):
+        # The official list establishes the application behind a unique
+        # applicant short form, but its unprinted date/kind/phase must not be
+        # mistaken for evidence selecting a procedural HUDOC document.
+        candidates = (
+            list(
+                {
+                    candidate.node_id: candidate
+                    for candidate in catalog.for_appnos(mention.explicit_appnos)
+                }.values()
+            )
+            if discovery_method.startswith("authority_unique_")
+            else []
+        )
+        return CitationResolution(
+            mention=mention,
+            status="unresolved_reference",
+            method=(
+                "official unique short form identifies the application; "
+                "printed evidence does not select a procedural document"
+            ),
+            candidates=candidates,
+        )
+
     if mention.explicit_ecli or mention.explicit_itemid:
-        target = catalog.exact(ecli=mention.explicit_ecli, itemid=mention.explicit_itemid)
-        if target and not target.is_placeholder:
+        exact_candidates = catalog.exact_candidates(
+            ecli=mention.explicit_ecli, itemid=mention.explicit_itemid
+        )
+        if len(exact_candidates) > 1:
+            return CitationResolution(
+                mention=mention,
+                status="ambiguous_document",
+                method="explicit identifier is duplicated in target catalog",
+                candidates=exact_candidates,
+            )
+        target = exact_candidates[0] if exact_candidates else None
+        if target and target.is_placeholder:
+            return CitationResolution(
+                mention=mention,
+                status="target_not_in_hudoc",
+                method="explicit identifier resolves only to a placeholder target",
+                candidates=[target],
+            )
+        if target:
+            candidate_ecli_conflicts = _candidate_ecli_conflicts(target)
+            if candidate_ecli_conflicts:
+                conflicted = target.model_copy(deep=True)
+                conflicted.conflicting_evidence.extend(candidate_ecli_conflicts)
+                return CitationResolution(
+                    mention=mention,
+                    status="unresolved_reference",
+                    method="; ".join(candidate_ecli_conflicts),
+                    candidates=[conflicted],
+                )
+            target = _hydrate_candidate_from_ecli(target)
+            evaluated = _evaluate_candidate(mention, target)
+            assert evaluated is not None
+            exact_conflicts = {
+                "target date is after source document",
+                "exact source document self-edge",
+                "probable source document language sibling",
+            } & set(evaluated.conflicting_evidence)
+            if exact_conflicts:
+                return CitationResolution(
+                    mention=mention,
+                    status="unresolved_reference",
+                    method="explicit identifier conflicts with source identity or chronology",
+                    candidates=[evaluated],
+                )
             return CitationResolution(
                 mention=mention,
                 status="resolved_identifier",
                 method="explicit identifier",
-                target=target,
-                candidates=[target],
+                target=evaluated,
+                candidates=[evaluated],
             )
+        if mention.explicit_ecli and mention.explicit_itemid:
+            ecli_matches = catalog.exact_candidates(ecli=mention.explicit_ecli)
+            itemid_matches = catalog.exact_candidates(itemid=mention.explicit_itemid)
+            if ecli_matches or itemid_matches:
+                return CitationResolution(
+                    mention=mention,
+                    status="unresolved_reference",
+                    method="printed ECLI and HUDOC item ID identify different documents",
+                    candidates=list(
+                        {
+                            candidate.node_id: candidate
+                            for candidate in (*ecli_matches, *itemid_matches)
+                        }.values()
+                    ),
+                )
         return CitationResolution(
             mention=mention,
             status="target_not_in_hudoc",
@@ -1099,17 +1872,21 @@ def _resolve_one(
                 if entry.reporter_key == mention.reporter.key
             ]
         )
+        historical = [
+            entry
+            for entry in historical
+            if not _historical_identifier_conflicts(entry, source_date=mention.source_date)
+        ]
         if mention.target_date:
-            dated = [entry for entry in historical if entry.date == mention.target_date]
-            if dated:
-                historical = dated
-        if mention.document_kind != "unknown":
-            typed = [
-                entry for entry in historical
-                if entry.document_kind == mention.document_kind
+            historical = [entry for entry in historical if entry.date == mention.target_date]
+        if mention.explicit_appnos:
+            historical = [
+                entry for entry in historical if set(mention.explicit_appnos).issubset(entry.appnos)
             ]
-            if typed:
-                historical = typed
+        if mention.document_kind != "unknown":
+            historical = [
+                entry for entry in historical if entry.document_kind == mention.document_kind
+            ]
         identities = {
             normalize_ecli(entry.target_ecli) or entry.target_itemid
             for entry in historical
@@ -1131,36 +1908,79 @@ def _resolve_one(
             ]
             if compatible:
                 selected = compatible[0]
-                ecli = normalize_ecli(selected.target_ecli)
-                target = CitationCandidate(
-                    node_id=f"ecli:{ecli}" if ecli else f"itemid:{selected.target_itemid}",
-                    itemid=selected.target_itemid,
-                    ecli=ecli,
-                    docname=selected.title,
-                    title_aliases=[selected.title] if selected.title else [],
-                    reporter_keys=[selected.reporter_key],
-                    appnos=list(selected.appnos),
-                    date=selected.date,
-                    document_kind=selected.document_kind,
+                exact_targets = catalog.exact_candidates(
+                    ecli=selected.target_ecli,
+                    itemid=None if selected.target_ecli else selected.target_itemid,
                 )
-                return CitationResolution(
-                    mention=mention,
-                    status="resolved_authority",
-                    method="packaged historical reporter catalog",
-                    target=target,
-                    candidates=[target],
-                )
+                historical_evaluated = [
+                    result
+                    for target in exact_targets
+                    if (result := _evaluate_candidate(mention, target)) is not None
+                ]
+                historical_accepted = [
+                    checked
+                    for candidate in historical_evaluated
+                    if (checked := _historical_checked_candidate(mention, selected, candidate))
+                    is not None
+                ]
+                if len(historical_accepted) != 1:
+                    historical = []
+                else:
+                    historical_target = historical_accepted[0]
+                    return CitationResolution(
+                        mention=mention,
+                        status="resolved_authority",
+                        method="packaged historical reporter catalog",
+                        target=historical_target,
+                        candidates=historical_evaluated,
+                    )
+
+        # HUDOC exposes the official publication locator on the target row as
+        # ``publishedby``.  When that per-document locator exactly matches the
+        # printed reporter (including volume and extracts status), it may act
+        # as corroboration before the broader authority lookup.  All ordinary
+        # metadata gates remain conjunctive, and more than one accepted
+        # canonical document is deliberately left unresolved.
+        publication_key = publication_reporter_key(mention.reporter)
+        publication_pool = [
+            *catalog.for_appnos(mention.explicit_appnos or mention.scl_appno_candidates),
+            *catalog.for_titles((mention.cited_name,)),
+        ]
+        publication_evaluated = [
+            result
+            for candidate in {
+                candidate.node_id: candidate for candidate in publication_pool
+            }.values()
+            if publication_key in candidate.published_reporter_keys
+            if (result := _evaluate_candidate(mention, candidate)) is not None
+        ]
+        publication_accepted = [
+            candidate
+            for candidate in publication_evaluated
+            if _metadata_accepts(mention, candidate)
+        ]
+        if len(publication_accepted) == 1:
+            return CitationResolution(
+                mention=mention,
+                status="resolved_metadata",
+                method="exact HUDOC publication metadata plus printed selectors",
+                target=publication_accepted[0],
+                candidates=publication_evaluated,
+            )
 
     authority_entries = _authority_matches(
         mention,
         authority,
         exact_index=authority_exact_index,
         reporter_index=authority_reporter_index,
+        appno_index=authority_appno_index,
     )
-    unavailable_entry = next(
-        (entry for entry in authority_entries if entry.target_unavailable), None
-    )
-    if unavailable_entry:
+    unavailable_entries = [entry for entry in authority_entries if entry.target_unavailable]
+    active_authority_entries = [
+        entry for entry in authority_entries if not entry.target_unavailable
+    ]
+    if unavailable_entries and not active_authority_entries:
+        unavailable_entry = unavailable_entries[0]
         return CitationResolution(
             mention=mention,
             status="target_not_in_hudoc",
@@ -1169,11 +1989,53 @@ def _resolve_one(
             authority_entry_id=unavailable_entry.entry_id,
             documented_exclusion=True,
         )
-    for entry in authority_entries:
+    authority_evaluated: list[CitationCandidate] = []
+    authority_accepted: list[tuple[CitationAuthorityEntry, CitationCandidate]] = []
+    authority_preflight_conflicts: list[str] = []
+    for entry in active_authority_entries:
+        identifier_conflicts = _authority_identifier_conflicts(
+            entry, source_date=mention.source_date
+        )
+        if identifier_conflicts:
+            authority_preflight_conflicts.extend(identifier_conflicts)
+            continue
         pool: list[CitationCandidate] = []
-        exact = catalog.exact(ecli=entry.target_ecli, itemid=entry.target_itemid)
-        if exact:
-            pool = [exact]
+        ecli_targets = catalog.exact_candidates(ecli=entry.target_ecli) if entry.target_ecli else []
+        itemid_targets = (
+            catalog.exact_candidates(itemid=entry.target_itemid) if entry.target_itemid else []
+        )
+        if entry.target_ecli and entry.target_itemid:
+            if ecli_targets or itemid_targets:
+                ecli_nodes = {candidate.node_id for candidate in ecli_targets}
+                itemid_nodes = {candidate.node_id for candidate in itemid_targets}
+                common_nodes = ecli_nodes & itemid_nodes
+                if common_nodes:
+                    pool = [
+                        candidate for candidate in ecli_targets if candidate.node_id in common_nodes
+                    ]
+                else:
+                    # Both identifiers exist but point to disjoint canonical
+                    # nodes. Never manufacture or select one side of a hybrid.
+                    if ecli_targets and itemid_targets:
+                        authority_preflight_conflicts.append(
+                            "authority ECLI and item ID identify different documents"
+                        )
+                        authority_evaluated.extend(
+                            list(
+                                {
+                                    candidate.node_id: candidate
+                                    for candidate in (*ecli_targets, *itemid_targets)
+                                }.values()
+                            )
+                        )
+                        continue
+                    pool = [*ecli_targets, *itemid_targets]
+            else:
+                pool = [_candidate_from_authority(entry)]
+        elif ecli_targets or itemid_targets:
+            pool = [*ecli_targets, *itemid_targets]
+        elif entry.target_ecli or entry.target_itemid:
+            pool = [_candidate_from_authority(entry)]
         else:
             appnos = entry.appnos or mention.explicit_appnos or mention.scl_appno_candidates
             candidates = [
@@ -1183,28 +2045,76 @@ def _resolve_one(
             ]
             pool = list({candidate.node_id: candidate for candidate in candidates}.values())
             if not pool:
-                pool = [
-                    catalog.candidates[node_id]
-                    for node_id in sorted(catalog.candidates)
-                ]
-        evaluated = [
+                pool = [catalog.candidates[node_id] for node_id in sorted(catalog.candidates)]
+        authority_candidates_evaluated = [
             result
             for candidate in pool
             if (result := _evaluate_candidate(mention, candidate, authority_entry=entry))
             is not None
         ]
-        accepted = [
-            candidate for candidate in evaluated if _authority_accepts(mention, entry, candidate)
-        ]
-        if len(accepted) == 1:
+        authority_evaluated.extend(authority_candidates_evaluated)
+        authority_accepted.extend(
+            (entry, candidate)
+            for candidate in authority_candidates_evaluated
+            if _authority_accepts(mention, entry, candidate)
+        )
+
+    accepted_by_node: dict[str, list[tuple[CitationAuthorityEntry, CitationCandidate]]] = (
+        defaultdict(list)
+    )
+    for entry, candidate in authority_accepted:
+        accepted_by_node[candidate.node_id].append((entry, candidate))
+    if len(accepted_by_node) == 1:
+        selected_pair = min(
+            next(iter(accepted_by_node.values())), key=lambda value: value[0].entry_id
+        )
+        return CitationResolution(
+            mention=mention,
+            status="resolved_authority",
+            method="official citation authority",
+            target=selected_pair[1],
+            candidates=list(
+                {candidate.node_id: candidate for candidate in authority_evaluated}.values()
+            ),
+            authority_entry_id=selected_pair[0].entry_id,
+        )
+    if len(accepted_by_node) > 1:
+        return CitationResolution(
+            mention=mention,
+            status="ambiguous_document",
+            method="official citation authority identifies multiple compatible documents",
+            candidates=[values[0][1] for _, values in sorted(accepted_by_node.items())],
+        )
+
+    if authority_entries:
+        if authority_evaluated:
             return CitationResolution(
                 mention=mention,
-                status="resolved_authority",
-                method="official citation authority",
-                target=accepted[0],
-                candidates=evaluated,
-                authority_entry_id=entry.entry_id,
+                status="unresolved_reference",
+                method=_conflict_method(mention, authority_evaluated),
+                candidates=authority_evaluated,
+                authority_entry_id=authority_entries[0].entry_id,
             )
+        if authority_preflight_conflicts:
+            return CitationResolution(
+                mention=mention,
+                status="unresolved_reference",
+                method="; ".join(sorted(set(authority_preflight_conflicts))),
+                authority_entry_id=authority_entries[0].entry_id,
+            )
+        if lookup_failed:
+            return CitationResolution(
+                mention=mention,
+                status="unresolved_reference",
+                method="HUDOC target lookup failed",
+                authority_entry_id=authority_entries[0].entry_id,
+            )
+        return CitationResolution(
+            mention=mention,
+            status="target_not_in_hudoc",
+            method="authority target absent from catalog",
+            authority_entry_id=authority_entries[0].entry_id,
+        )
 
     appnos = mention.explicit_appnos or mention.scl_appno_candidates
     metadata_pool = [
@@ -1213,13 +2123,15 @@ def _resolve_one(
         *catalog.for_titles((mention.cited_name,)),
     ]
     metadata_pool = list({candidate.node_id: candidate for candidate in metadata_pool}.values())
-    evaluated = [
+    metadata_evaluated = [
         result
         for candidate in metadata_pool
         if (result := _evaluate_candidate(mention, candidate)) is not None
     ]
-    accepted = [candidate for candidate in evaluated if _metadata_accepts(mention, candidate)]
-    if len(accepted) == 1:
+    metadata_accepted = [
+        candidate for candidate in metadata_evaluated if _metadata_accepts(mention, candidate)
+    ]
+    if len(metadata_accepted) == 1:
         if mention.advisory_request_id:
             method = "advisory request identifier plus corroborating metadata"
         elif mention.explicit_appnos:
@@ -1230,46 +2142,24 @@ def _resolve_one(
             mention=mention,
             status="resolved_metadata",
             method=method,
-            target=accepted[0],
-            candidates=evaluated,
+            target=metadata_accepted[0],
+            candidates=metadata_evaluated,
         )
-    plausible = [candidate for candidate in evaluated if _plausible_candidate(mention, candidate)]
-    if len(accepted) > 1 or len(plausible) > 1:
+    plausible = [
+        candidate for candidate in metadata_evaluated if _plausible_candidate(mention, candidate)
+    ]
+    if len(metadata_accepted) > 1 or len(plausible) > 1:
         return CitationResolution(
             mention=mention,
             status="ambiguous_document",
-            method=_ambiguous_method(mention, plausible or accepted),
-            candidates=evaluated,
-        )
-    if authority_entries:
-        if evaluated:
-            return CitationResolution(
-                mention=mention,
-                status="unresolved_reference",
-                method=_conflict_method(mention, evaluated),
-                candidates=evaluated,
-                authority_entry_id=authority_entries[0].entry_id,
-            )
-        if lookup_failed:
-            return CitationResolution(
-                mention=mention,
-                status="unresolved_reference",
-                method="HUDOC target lookup failed",
-                candidates=evaluated,
-                authority_entry_id=authority_entries[0].entry_id,
-            )
-        return CitationResolution(
-            mention=mention,
-            status="target_not_in_hudoc",
-            method="authority target absent from catalog",
-            candidates=evaluated,
-            authority_entry_id=authority_entries[0].entry_id,
+            method=_ambiguous_method(mention, plausible or metadata_accepted),
+            candidates=metadata_evaluated,
         )
     return CitationResolution(
         mention=mention,
         status="unresolved_reference",
-        method=_conflict_method(mention, evaluated),
-        candidates=evaluated,
+        method=_conflict_method(mention, metadata_evaluated),
+        candidates=metadata_evaluated,
     )
 
 
@@ -1395,8 +2285,11 @@ async def resolve_citations(
     override_list = list(overrides or [])
     authority_exact_index: dict[str, list[CitationAuthorityEntry]] = defaultdict(list)
     authority_reporter_index: dict[str, list[CitationAuthorityEntry]] = defaultdict(list)
+    authority_appno_index: dict[str, list[CitationAuthorityEntry]] = defaultdict(list)
     for entry in authority.entries:
         authority_exact_index[entry.normalized_citation].append(entry)
+        for appno in entry.appnos:
+            authority_appno_index[appno].append(entry)
         if entry.reporter:
             authority_reporter_index[entry.reporter.key].append(entry)
     historical_reporter_index: dict[str, list[HistoricalCatalogEntry]] = defaultdict(list)
@@ -1412,6 +2305,7 @@ async def resolve_citations(
             lookup_failed=lookup_errors > 0,
             authority_exact_index=authority_exact_index,
             authority_reporter_index=authority_reporter_index,
+            authority_appno_index=authority_appno_index,
             historical_reporter_index=historical_reporter_index,
         )
         for mention in mention_list

@@ -53,10 +53,15 @@ def build_historical_catalog(
 ) -> HistoricalCitationCatalog:
     """Build an exact reporter index with source provenance and no network I/O."""
     authority = authority or load_authority()
-    by_identity: dict[tuple[str, str, str], HistoricalCatalogEntry] = {}
+    # Do not key-overwrite conflicting source rows.  Duplicate reporter/title/
+    # date keys are precisely where a compact catalog must preserve ambiguity.
+    entries_by_payload: dict[str, HistoricalCatalogEntry] = {}
     for value in authority.entries:
         if value.reporter is None or value.reporter.family not in {
-            "series_a", "dr", "commission_collection", "commission_report"
+            "series_a",
+            "dr",
+            "commission_collection",
+            "commission_report",
         }:
             continue
         entry = HistoricalCatalogEntry(
@@ -69,11 +74,14 @@ def build_historical_catalog(
             target_ecli=value.target_ecli,
             target_itemid=value.target_itemid,
         )
-        by_identity[(entry.reporter_key, entry.normalized_title, str(entry.date or ""))] = entry
+        entries_by_payload[entry.model_dump_json()] = entry
     for case in cases or []:
         reporter = _metadata_reporter(case)
         if reporter is None or reporter.family not in {
-            "series_a", "dr", "commission_collection", "commission_report"
+            "series_a",
+            "dr",
+            "commission_collection",
+            "commission_report",
         }:
             continue
         from ..bilingual.ecli import normalize_docname
@@ -88,10 +96,16 @@ def build_historical_catalog(
             target_ecli=case.ecli,
             target_itemid=case.itemid,
         )
-        by_identity[(entry.reporter_key, entry.normalized_title, str(entry.date or ""))] = entry
+        entries_by_payload[entry.model_dump_json()] = entry
     entries = sorted(
-        by_identity.values(),
-        key=lambda value: (value.reporter_key, value.normalized_title, str(value.date or "")),
+        entries_by_payload.values(),
+        key=lambda value: (
+            value.reporter_key,
+            value.normalized_title,
+            str(value.date or ""),
+            value.target_ecli or "",
+            value.target_itemid or "",
+        ),
     )
     return HistoricalCitationCatalog(
         source_url=authority.source_url,
@@ -105,9 +119,7 @@ def build_historical_catalog(
     )
 
 
-def write_historical_catalog(
-    catalog: HistoricalCitationCatalog, path: str | Path
-) -> Path:
+def write_historical_catalog(catalog: HistoricalCitationCatalog, path: str | Path) -> Path:
     target = Path(path)
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(catalog.model_dump_json(indent=2) + "\n", encoding="utf-8")

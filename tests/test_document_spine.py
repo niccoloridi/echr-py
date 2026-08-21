@@ -60,8 +60,8 @@ def test_html_spine_preserves_inline_typography_without_promoting_block_style():
     block = spine.blocks[0]
     soering = next(run for run in block.inline_runs if run.text == "Soering")
     ocalan = next(run for run in block.inline_runs if run.text == "Öcalan")
-    assert block.text[soering.start:soering.end] == "Soering"
-    assert block.text[ocalan.start:ocalan.end] == "Öcalan"
+    assert block.text[soering.start : soering.end] == "Soering"
+    assert block.text[ocalan.start : ocalan.end] == "Öcalan"
     assert soering.italic and not soering.bold
     assert ocalan.italic and ocalan.bold
     assert "font-style" not in block.source_style
@@ -79,12 +79,36 @@ def test_inline_tags_do_not_invent_spaces_inside_citation_punctuation():
 
     assert spine is not None
     block = spine.blocks[0]
-    assert block.text == (
-        "1. See Ukraine v. Russia (re Crimea), and Andrejeva, cited above, § 77."
-    )
+    assert block.text == ("1. See Ukraine v. Russia (re Crimea), and Andrejeva, cited above, § 77.")
     styled = [run for run in block.inline_runs if run.italic]
     assert [run.text for run in styled] == ["re Crimea", "Andrejeva"]
-    assert all(block.text[run.start:run.end] == run.text for run in styled)
+    assert all(block.text[run.start : run.end] == run.text for run in styled)
+
+
+def test_nested_word_lists_keep_canonical_heading_separate_from_subheadings():
+    sections = segment_html(
+        """
+        <ul><li><span>THE FACTS</span><ol><li><span>CIRCUMSTANCES</span></li></ol></li></ul>
+        <p>1. Facts here.</p>
+        <ul><li><span>THE LAW</span><ol><li><span>ARTICLE 3</span></li></ol></li></ul>
+        <p>2. Legal reasoning here.</p>
+        <ul><li><span>FOR THESE REASONS, THE COURT</span></li></ul>
+        <p>1. Holds that there has been a violation.</p>
+        """,
+        doctype="HEJUD",
+        document_id="001-nested-lists",
+    )
+
+    assert sections.spine is not None
+    headings = [block for block in sections.spine.blocks if block.type == "heading"]
+    assert [block.text for block in headings] == [
+        "THE FACTS",
+        "THE LAW",
+        "ARTICLE 3",
+        "FOR THESE REASONS, THE COURT",
+    ]
+    law = next(block for block in sections.spine.blocks if "Legal reasoning" in block.text)
+    assert law.section == "the_law"
 
 
 def test_numbered_legal_paragraph_owns_adjacent_unnumbered_html_blocks():
@@ -103,12 +127,9 @@ def test_numbered_legal_paragraph_owns_adjacent_unnumbered_html_blocks():
     assert spine is not None
     numbered = next(block for block in spine.blocks if block.para_num == 79)
     continuations = [
-        block for block in spine.blocks
-        if block.text.startswith(("Its reasoning", "It has"))
+        block for block in spine.blocks if block.text.startswith(("Its reasoning", "It has"))
     ]
-    after_heading = next(
-        block for block in spine.blocks if block.text.startswith("This block")
-    )
+    after_heading = next(block for block in spine.blocks if block.text.startswith("This block"))
     next_numbered = next(block for block in spine.blocks if block.para_num == 80)
 
     assert numbered.para_id == numbered.legal_para_id == "79"
@@ -143,9 +164,10 @@ def test_hudoc_footnote_is_typed_linked_and_does_not_collide_with_opinion_paras(
     body = next(block for block in spine.blocks if block.type == "footnote")
     assert source.footnote_references[0].footnote_id == "ftn1"
     assert source.footnote_references[0].label == "1"
-    assert source.text[
-        source.footnote_references[0].start:source.footnote_references[0].end
-    ] == "[1]"
+    assert (
+        source.text[source.footnote_references[0].start : source.footnote_references[0].end]
+        == "[1]"
+    )
     assert body.footnote_id == "ftn1"
     assert body.para_num is None
     assert body.para_id == "fn-ftn1"
@@ -171,7 +193,7 @@ def test_footnote_reference_offset_follows_dom_anchor_not_identical_plain_text()
     source = next(block for block in sections.spine.blocks if "actual note" in block.text)
     reference = source.footnote_references[0]
     assert reference.start == source.text.rindex("[1]")
-    assert source.text[reference.start:reference.end] == "[1]"
+    assert source.text[reference.start : reference.end] == "[1]"
 
 
 def test_footnote_shared_across_majority_and_opinion_has_neutral_context():
@@ -211,16 +233,12 @@ def test_multi_paragraph_footnote_is_one_logical_body_with_opinion_context():
     )
     assert sections.spine is not None
     footnote = sections.spine.footnotes[0]
-    bodies = [
-        block for block in sections.spine.blocks
-        if block.block_id in footnote.body_block_ids
-    ]
+    bodies = [block for block in sections.spine.blocks if block.block_id in footnote.body_block_ids]
     invoking = next(block for block in sections.spine.blocks if "I disagree" in block.text)
     assert len(bodies) == 2
     assert [body.para_id for body in bodies] == ["fn-ftn2", "fn-ftn2-2"]
     assert footnote.text == (
-        "First footnote paragraph.\n\n"
-        "Second footnote paragraph with further reasons."
+        "First footnote paragraph.\n\nSecond footnote paragraph with further reasons."
     )
     assert footnote.reference_para_ids == [invoking.para_id]
     assert invoking.opinion_id is not None
@@ -238,9 +256,7 @@ def test_multi_paragraph_footnote_is_one_logical_body_with_opinion_context():
 
 
 def test_orphan_footnote_reference_and_body_are_diagnostics():
-    missing_body = segment_html(
-        '<p>1. Text<a href="#_ftn3">[3]</a>.</p>', document_id="missing"
-    )
+    missing_body = segment_html('<p>1. Text<a href="#_ftn3">[3]</a>.</p>', document_id="missing")
     orphan_body = segment_html(
         '<div id="_ftn4"><p>[4] Orphan text.</p></div>', document_id="orphan"
     )

@@ -12,7 +12,7 @@ from ..models import Case
 from .models import CitationMention, ProceduralPhase, ReporterLocator
 
 APPNO_REGEX = re.compile(r"\b(\d{1,6}/\d{2,4})\b")
-ECLI_REGEX = re.compile(r"\b(ECLI:CE:ECHR:\d{4}:\d{4}(?:JUD|DEC|ADV)\d+)\b", re.I)
+ECLI_REGEX = re.compile(r"\b(ECLI:CE:ECHR:\d{4}:\d{4}(?:JUD|DEC|ADV|REP)\d+)\b", re.I)
 ITEMID_REGEX = re.compile(r"\b(001-\d+|003-\d{4,}-\d{4,})\b")
 ADVISORY_REQUEST_REGEX = re.compile(r"\b(P16[-‐‑–\u2014]\d{4}[-‐‑–\u2014]\d{3})\b", re.I)
 _PARA_RE = re.compile(
@@ -66,7 +66,7 @@ _PARTIAL_DATE_RE = re.compile(
 )
 
 _SERIES_RE = re.compile(
-    r"(?:Series|s[ée]rie)\s+A\s+n(?:o\.?|°|º)\s*(?P<number>\d+)"
+    r"(?:Series|s[ée]rie)\s+A\s+n\s*(?:o\.?|°|º)\s*(?P<number>\d+)"
     r"(?:(?:[-‑–]|\s+)(?P<suffix>[A-Z]))?",
     re.I,
 )
@@ -147,6 +147,17 @@ def normalize_reference_key(value: str) -> str:
     return normalize_reference(normalized).strip(" ,").casefold()
 
 
+def _citation_fragment(raw: str) -> str:
+    """Stop a malformed SCL fragment before adjacent domestic legislation."""
+    boundary = re.search(
+        r"(?<=[.)])\s+(?=(?:Law|Act|Code|Loi|D[ée]cret|Gesetz)\s+"
+        r"n(?:o|os|°|º)\b)",
+        raw,
+        re.I,
+    )
+    return raw[: boundary.start()].rstrip() if boundary else raw
+
+
 def _hash(value: str) -> str:
     return hashlib.sha256(value.encode("utf-8")).hexdigest()
 
@@ -195,7 +206,7 @@ def parse_reporter(raw: str) -> ReporterLocator | None:
             family="reports",
             year=int(match.group("year")),
             volume=match.group("volume"),
-            extracts="extract" in raw.lower(),
+            extracts="extract" in raw.lower() or "extrait" in raw.lower(),
             raw=match.group(0),
         )
     if match := _ECHR_RE.search(raw):
@@ -225,6 +236,56 @@ def parse_reporter(raw: str) -> ReporterLocator | None:
     return None
 
 
+def publication_reporter_key(reporter: ReporterLocator) -> str:
+    """Return an exact key for per-document publication metadata.
+
+    HUDOC's ``publishedby`` spells the modern reporter as ``Reports of
+    Judgments and Decisions``, while judgments normally print ``ECHR`` (or
+    ``CEDH``).  These are two names for the same publication.  The key keeps
+    the volume and extracts flag, so the equivalence cannot degrade into a
+    year-only match.
+    """
+    family = "reports" if reporter.family in {"echr", "reports"} else reporter.family
+    return ":".join(
+        (
+            family.upper(),
+            str(reporter.year or ""),
+            (reporter.volume or "").upper(),
+            reporter.number or "",
+            (reporter.suffix or "").upper(),
+            str(reporter.page or ""),
+            "EXTRACTS" if reporter.extracts else "FULL",
+        )
+    )
+
+
+def parse_published_reporter(raw: str) -> ReporterLocator | None:
+    """Parse HUDOC's per-document ``publishedby`` field.
+
+    Unlike historical printed ``Reports`` citations, the metadata spelling is
+    also used for the 2000-onward ECHR series.  Keeping this extension local to
+    publication metadata avoids changing how free-form authority text is
+    interpreted.
+    """
+    if match := re.search(
+        r"(?:Reports(?:\s+of\s+Judgments\s+and\s+Decisions)?|"
+        r"Recueil(?:\s+des\s+arr[êe]ts\s+et\s+d[ée]cisions)?)"
+        r"\s+(?P<year>(?:19|20)\d{2})"
+        r"(?:(?:[-‑–]|\s+)(?P<volume>[IVX]+))?",
+        raw,
+        re.I,
+    ):
+        lowered = raw.casefold()
+        return ReporterLocator(
+            family="reports",
+            year=int(match.group("year")),
+            volume=match.group("volume"),
+            extracts="extract" in lowered or "extrait" in lowered,
+            raw=match.group(0),
+        )
+    return parse_reporter(raw)
+
+
 def infer_procedural_phase(raw: str) -> ProceduralPhase:
     text = normalize_reference(raw).lower()
     if "preliminary objection" in text or "exceptions préliminaires" in text:
@@ -239,6 +300,8 @@ def infer_procedural_phase(raw: str) -> ProceduralPhase:
         return "striking_out"
     if "revision" in text or "révision" in text:
         return "revision"
+    if "interpretation" in text or "interprétation" in text:
+        return "interpretation"
     if "advisory opinion" in text or "avis consultatif" in text:
         return "advisory_opinion"
     if (
@@ -271,6 +334,7 @@ def infer_document_kind(raw: str) -> str:
         "article_50",
         "just_satisfaction",
         "revision",
+        "interpretation",
         "striking_out",
         "friendly_settlement",
     }:
@@ -283,16 +347,42 @@ def extract_reference_name(raw: str) -> str | None:
     # ``judgment of DATE``.  Try that grammar before the permissive modern
     # name matcher, whose next comma may be the one after the printed date.
     if match := _FRENCH_LEADING_NAME_RE.match(raw):
-        return match.group("name").strip(" ,")
+        name = _strip_name_bibliography(match.group("name").strip(" ,"))
+        return _strip_institutional_prefix(name)
     if match := _HISTORICAL_NAME_RE.match(raw):
-        return match.group("name").strip(" ,")
+        name = _strip_name_bibliography(match.group("name").strip(" ,"))
+        return _strip_institutional_prefix(name)
     match = _NAME_RE.match(raw)
     if match:
-        return match.group("name").strip(" ,")
+        return _strip_institutional_prefix(
+            _strip_name_bibliography(match.group("name").strip(" ,"))
+        )
     head = raw.split(",", 1)[0].strip()
     if re.match(r"^(?:Case\s+[‘\"“]|Advisory opinion|Decision on|Inter-State)", head, re.I):
         return head
     return head if re.search(r"\s(?:v\.|c\.|contre|against)\s", head, re.I) else None
+
+
+def _strip_institutional_prefix(name: str) -> str:
+    """Keep Commission labels out of the cited party title."""
+    return re.sub(
+        r"^(?:(?:European\s+)?Commission\s+of\s+Human\s+Rights|"
+        r"Commission\s+europ[ée]enne\s+des\s+droits\s+de\s+l['’]homme)\s*,\s*",
+        "",
+        name,
+        flags=re.I,
+    ).strip()
+
+
+def _strip_name_bibliography(name: str) -> str:
+    """Remove an app-number tail absorbed before a later historical date cue."""
+    return re.sub(
+        r"\s*,?\s*(?:applications?|requ[êe]tes?)?\s*"
+        r"n(?:o|os|°|º)\.?\s*\d{1,6}/\d{2,4}.*$",
+        "",
+        name,
+        flags=re.I,
+    ).strip(" ,")
 
 
 def extract_respondent(name: str | None) -> str | None:
@@ -312,7 +402,7 @@ def parse_scl_mentions(case: Case) -> list[CitationMention]:
     source_key = normalize_ecli(case.ecli) or case.itemid or ";".join(case.appno) or "unknown"
     for ordinal, fragment in enumerate(fragments):
         raw = fragment
-        parsed = normalize_reference(fragment)
+        parsed = _citation_fragment(normalize_reference(fragment))
         normalized = normalize_reference_key(parsed)
         reference_hash = _hash(normalized)
         mention_id = _hash(f"{source_key}|{ordinal}|{parsed.casefold()}")
@@ -339,9 +429,7 @@ def parse_scl_mentions(case: Case) -> list[CitationMention]:
                 explicit_ecli=normalize_ecli(ecli_match.group(1)) if ecli_match else None,
                 explicit_itemid=itemid_match.group(1) if itemid_match else None,
                 advisory_request_id=(
-                    normalize_reference(advisory_match.group(1)).upper()
-                    if advisory_match
-                    else None
+                    normalize_reference(advisory_match.group(1)).upper() if advisory_match else None
                 ),
                 explicit_appnos=list(dict.fromkeys(APPNO_REGEX.findall(parsed))),
                 scl_appno_candidates=list(dict.fromkeys(case.sclappnos)),

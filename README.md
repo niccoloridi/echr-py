@@ -204,6 +204,10 @@ External, self-referential, ambiguous, and rejected candidates remain typed
 diagnostics. Only exact document resolutions enter the inclusive document
 graph; only verified target paragraphs enter the paragraph graph.
 
+Commission-era report and admissibility references with Commission-specific
+dates or complete `D.R.` locators are retained as classified, unresolved
+occurrences. They cannot be silently promoted to a nearby Court judgment.
+
 ## Rich legal structure
 
 `rich_sections=True` builds a source-order document spine rather than a bag of

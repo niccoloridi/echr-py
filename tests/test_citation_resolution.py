@@ -15,8 +15,12 @@ from hudoc_py.citations import (
     CitationAuthoritySource,
     CitationGraph,
     CitationOverride,
+    HistoricalCatalogEntry,
+    HistoricalCitationCatalog,
     IncompleteCitationResolutionError,
     ReporterLocator,
+    build_historical_catalog,
+    discover_citation_mentions,
     load_authority,
     parse_reporter,
     parse_scl_mentions,
@@ -84,6 +88,8 @@ def _albert_targets() -> list[Case]:
 def test_reporter_parser_covers_official_families():
     series = parse_reporter("Series A no. 234-B")
     assert series and series.key == "SERIES_A:::234:B:"
+    spaced_series = parse_reporter("série A n o 172")
+    assert spaced_series and spaced_series.key == "SERIES_A:::172::"
     reports = parse_reporter("Reports of Judgments and Decisions 1996-VI")
     assert reports and reports.family == "reports" and reports.volume == "VI"
     echr = parse_reporter("ECHR 2004-X (extracts)")
@@ -143,17 +149,62 @@ def test_commission_word_order_and_unpunctuated_decision_are_parsed():
     assert commission.document_kind == "commission"
     assert commission.procedural_phase == "commission_decision"
     assert commission.reporter and commission.reporter.family == "commission_collection"
-    assert parse_scl_mentions(_case(scl="Example v. State (dec), no. 1/99"))[
+    assert (
+        parse_scl_mentions(_case(scl="Example v. State (dec), no. 1/99"))[0].procedural_phase
+        == "admissibility"
+    )
+
+
+def test_commission_label_is_not_absorbed_into_cited_case_name():
+    mention = parse_scl_mentions(
+        _case(
+            scl=(
+                "European Commission of Human Rights, Chrysostomos and "
+                "Papachrysostomou v. Turkey, report of 8 July 1993"
+            )
+        )
+    )[0]
+
+    assert mention.cited_name == "Chrysostomos and Papachrysostomou v. Turkey"
+    assert mention.respondent == "Turkey"
+
+
+def test_commission_report_ecli_is_parsed():
+    mention = parse_scl_mentions(_case(scl="Example v. State, ECLI:CE:ECHR:1993:0708REP00123456"))[
         0
-    ].procedural_phase == "admissibility"
+    ]
+
+    assert mention.explicit_ecli == "ECLI:CE:ECHR:1993:0708REP00123456"
+
+
+def test_appno_before_historical_date_is_not_absorbed_into_case_name():
+    mention = parse_scl_mentions(
+        _case(scl=("Example v. State, no. 1234/56, judgment of 1 January 1999, Reports 1999-I"))
+    )[0]
+
+    assert mention.cited_name == "Example v. State"
+    assert mention.explicit_appnos == ["1234/56"]
+
+
+def test_trailing_domestic_law_is_not_part_of_scl_identity():
+    mention = parse_scl_mentions(
+        _case(
+            scl=(
+                "Barjamaj v. Greece (no. 36657/11, § 17, 2 May 2013). "
+                "Law no. 3907/2011 applied thereafter"
+            )
+        )
+    )[0]
+
+    assert mention.explicit_appnos == ["36657/11"]
+    assert "3907/2011" not in mention.normalized_ref
 
 
 def test_protocol_16_request_identifier_is_structured_evidence():
     mention = parse_scl_mentions(
         _case(
             scl=(
-                "Advisory opinion concerning an issue [GC], request no. "
-                "P16‑2018‑001, 10 April 2019"
+                "Advisory opinion concerning an issue [GC], request no. P16‑2018‑001, 10 April 2019"
             )
         )
     )[0]
@@ -165,9 +216,7 @@ def test_hudoc_itemid_does_not_capture_paragraph_ranges():
     paragraph = parse_scl_mentions(
         _case(scl="Example v. State, no. 1/99, §§ 176-79, 1 January 2000")
     )[0]
-    explicit = parse_scl_mentions(
-        _case(scl="Advisory opinion, HUDOC item 003-1339293-1397515")
-    )[0]
+    explicit = parse_scl_mentions(_case(scl="Advisory opinion, HUDOC item 003-1339293-1397515"))[0]
     assert paragraph.explicit_itemid is None
     assert explicit.explicit_itemid == "003-1339293-1397515"
 
@@ -247,8 +296,10 @@ def test_partial_date_is_parsed_without_mistaking_reporter_year_for_decision_dat
 
 def test_historical_english_and_french_name_and_paragraph_forms():
     english = parse_scl_mentions(
-        _case(scl="Swedish Engine Drivers' Union judgment of 6 February 1976, "
-        "Series A no. 20, para. 48")
+        _case(
+            scl="Swedish Engine Drivers' Union judgment of 6 February 1976, "
+            "Series A no. 20, para. 48"
+        )
     )[0]
     french = parse_scl_mentions(
         _case(scl="Arrêt Golder du 21 février 1975, série A no 18, par. 27")
@@ -277,10 +328,7 @@ def test_historical_scl_name_stops_before_unpunctuated_judgment_date():
 
 def test_same_date_and_reporter_cannot_promote_a_different_printed_title():
     source = _case(
-        scl=(
-            "Assenov and Others v. Bulgaria judgment of 28 October 1998, "
-            "Reports 1998, §§ 144-150"
-        )
+        scl=("Assenov and Others v. Bulgaria judgment of 28 October 1998, Reports 1998, §§ 144-150")
     )
     authority = CitationAuthority(
         source_url="test",
@@ -319,9 +367,7 @@ def test_same_date_and_reporter_cannot_promote_a_different_printed_title():
 
 
 def test_exact_application_number_with_conflicting_title_is_not_a_document_target():
-    source = _case(
-        scl="Assenov and Others v. Bulgaria, no. 24760/94, 28 October 1998"
-    )
+    source = _case(scl="Assenov and Others v. Bulgaria, no. 24760/94, 28 October 1998")
     wrong = _case(
         itemid="001-wrong",
         ecli="ECLI:CE:ECHR:1998:1028JUD002476094",
@@ -341,6 +387,35 @@ def test_exact_application_number_with_conflicting_title_is_not_a_document_targe
     assert resolution.target is None
     assert resolution.status == "unresolved_reference"
     assert resolution.candidates[0].conflicting_evidence == ["different title"]
+
+
+def test_official_short_form_never_promotes_unprinted_procedural_metadata():
+    source = _case(
+        scl="",
+        text="THE LAW\n\n1. Stummer, cited above, § 88.",
+    )
+    mention = discover_citation_mentions(source).mentions[0]
+    target = _case(
+        itemid="001-stummer",
+        ecli="ECLI:CE:ECHR:2011:0707JUD003745202",
+        appno="37452/02",
+        docname="CASE OF STUMMER v. AUSTRIA",
+        kpdate="2011-07-07",
+    )
+
+    resolution = asyncio.run(
+        resolve_citations(
+            [source],
+            mentions=[mention],
+            authority=CitationAuthority(source_url="test", entries=[]),
+            catalog=[target],
+        )
+    ).resolutions[0]
+
+    assert resolution.target is None
+    assert resolution.status == "unresolved_reference"
+    assert [candidate.itemid for candidate in resolution.candidates] == ["001-stummer"]
+    assert "does not select a procedural document" in resolution.method
 
 
 def test_reporter_authority_selects_merits_not_article_50():
@@ -420,7 +495,13 @@ def test_reviewed_dr_concordance_resolves_commission_report_despite_index_date()
         kpdate="1983-03-05",
         documentcollectionid="CASELAW;REPORTS;ENG",
     )
-    resolution = asyncio.run(resolve_citations([source], catalog=[report])).resolutions[0]
+    resolution = asyncio.run(
+        resolve_citations(
+            [source],
+            catalog=[report],
+            authority=CitationAuthority(source_url="test", entries=[]),
+        )
+    ).resolutions[0]
     assert resolution.status == "resolved_authority"
     assert resolution.target and resolution.target.ecli == report.ecli
 
@@ -539,6 +620,230 @@ def test_future_dated_candidate_is_rejected():
     assert result.edges == []
 
 
+def test_explicit_identifier_cannot_resolve_the_source_document_or_a_future_document():
+    source = _case(scl=None, kpdate="2005-05-12")
+    self_mention = parse_scl_mentions(
+        source.model_copy(update={"scl": f"Öcalan v. Turkey, {source.ecli}"})
+    )[0]
+    future = _case(
+        itemid="001-future",
+        ecli="ECLI:CE:ECHR:2030:0101JUD000000100",
+        appno="1/00",
+        docname="CASE OF FUTURE v. STATE",
+        kpdate="2030-01-01",
+    )
+    future_mention = self_mention.model_copy(
+        update={
+            "mention_id": "future",
+            "explicit_ecli": future.ecli,
+            "cited_name": "Future v. State",
+        }
+    )
+
+    self_result = asyncio.run(
+        resolve_citations([source], mentions=[self_mention], catalog=[source])
+    ).resolutions[0]
+    future_result = asyncio.run(
+        resolve_citations([source], mentions=[future_mention], catalog=[future])
+    ).resolutions[0]
+
+    assert not self_result.resolved
+    assert "identity or chronology" in self_result.method
+    assert not future_result.resolved
+    assert "after source" in future_result.method
+
+
+def test_conflicting_printed_ecli_and_itemid_fail_closed():
+    ecli_target = _albert_targets()[0]
+    item_target = _case(
+        itemid="001-other",
+        ecli="ECLI:CE:ECHR:1984:0101JUD000000100",
+        appno="1/80",
+        docname="CASE OF OTHER v. STATE",
+        kpdate="1984-01-01",
+    )
+    source = _case(scl=f"Albert and Le Compte v. Belgium, {ecli_target.ecli}")
+    mention = parse_scl_mentions(source)[0].model_copy(
+        update={"explicit_itemid": item_target.itemid}
+    )
+    resolution = asyncio.run(
+        resolve_citations([source], mentions=[mention], catalog=[ecli_target, item_target])
+    ).resolutions[0]
+
+    assert not resolution.resolved
+    assert resolution.method == "printed ECLI and HUDOC item ID identify different documents"
+    assert {candidate.itemid for candidate in resolution.candidates} == {
+        ecli_target.itemid,
+        item_target.itemid,
+    }
+
+
+def test_grouped_application_numbers_require_complete_candidate_coverage():
+    source = _case(
+        scl="Joined v. State, nos. 100/00 and 200/00, 1 January 2001",
+        kpdate="2026-01-01",
+    )
+    partial = _case(
+        itemid="001-partial",
+        ecli="ECLI:CE:ECHR:2001:0101JUD000010000",
+        appno="100/00",
+        docname="CASE OF JOINED v. STATE",
+        kpdate="2001-01-01",
+    )
+    resolution = asyncio.run(
+        resolve_citations(
+            [source],
+            catalog=[partial],
+            authority=CitationAuthority(source_url="test", entries=[]),
+        )
+    ).resolutions[0]
+
+    assert not resolution.resolved
+    assert "different application number" in resolution.candidates[0].conflicting_evidence
+
+
+def test_missing_asserted_date_does_not_promote_an_appno_match():
+    source = _case(
+        scl="Example v. State, no. 100/00, 1 January 2001",
+        kpdate="2026-01-01",
+    )
+    target = _case(
+        itemid="001-undated",
+        ecli="ECLI:CE:ECHR:2001:0101JUD000010000",
+        appno="100/00",
+        docname="CASE OF EXAMPLE v. STATE",
+        kpdate=None,
+    )
+    resolution = asyncio.run(
+        resolve_citations(
+            [source],
+            catalog=[target],
+            authority=CitationAuthority(source_url="test", entries=[]),
+        )
+    ).resolutions[0]
+
+    assert not resolution.resolved
+    assert "different date" in resolution.candidates[0].conflicting_evidence
+
+
+def test_reporter_conflict_is_fatal_even_when_title_and_date_agree():
+    source = _case(
+        scl="Example v. State, 1 January 2001, Series A no. 100",
+        kpdate="2026-01-01",
+    )
+    target = _case(
+        itemid="001-reporter-conflict",
+        ecli="ECLI:CE:ECHR:2001:0101JUD000010000",
+        appno="100/00",
+        docname="CASE OF EXAMPLE v. STATE",
+        kpdate="2001-01-01",
+        casecitation="Series A no. 101",
+    )
+    empty_historical = HistoricalCitationCatalog(
+        source_url="test", content_sha256="test", entries=[]
+    )
+    resolution = asyncio.run(
+        resolve_citations(
+            [source],
+            catalog=[target],
+            authority=CitationAuthority(source_url="test", entries=[]),
+            historical_catalog=empty_historical,
+        )
+    ).resolutions[0]
+
+    assert not resolution.resolved
+    assert "different reporter locator" in resolution.candidates[0].conflicting_evidence
+
+
+def test_exact_hudoc_published_by_matches_printed_echr_reporter():
+    source = _case(
+        scl="Example v. State, no. 100/00, ECHR 2001-II (extracts)",
+        kpdate="2026-01-01",
+    )
+    target = _case(
+        itemid="001-published-by",
+        ecli="ECLI:CE:ECHR:2001:0101JUD000010000",
+        appno="100/00",
+        docname="CASE OF EXAMPLE v. STATE",
+        kpdate="2001-01-01",
+        publishedby="Reports of Judgments and Decisions 2001-II (extracts)",
+    )
+    resolution = asyncio.run(
+        resolve_citations(
+            [source],
+            catalog=[target],
+            authority=CitationAuthority(source_url="test", entries=[]),
+        )
+    ).resolutions[0]
+
+    assert resolution.status == "resolved_metadata"
+    assert resolution.target and resolution.target.itemid == target.itemid
+    assert "exact reporter locator" in resolution.target.positive_evidence
+
+
+@pytest.mark.parametrize(
+    "published_by",
+    [
+        "Reports of Judgments and Decisions 2001-III (extracts)",
+        "Reports of Judgments and Decisions 2001-II",
+    ],
+)
+def test_hudoc_published_by_requires_exact_volume_and_extracts(published_by):
+    source = _case(
+        scl="Example v. State, no. 100/00, ECHR 2001-II (extracts)",
+        kpdate="2026-01-01",
+    )
+    target = _case(
+        itemid="001-published-by-conflict",
+        ecli="ECLI:CE:ECHR:2001:0101JUD000010000",
+        appno="100/00",
+        docname="CASE OF EXAMPLE v. STATE",
+        kpdate="2001-01-01",
+        publishedby=published_by,
+    )
+    resolution = asyncio.run(
+        resolve_citations(
+            [source],
+            catalog=[target],
+            authority=CitationAuthority(source_url="test", entries=[]),
+        )
+    ).resolutions[0]
+
+    assert not resolution.resolved
+    assert "different reporter locator" in resolution.candidates[0].conflicting_evidence
+
+
+def test_exact_hudoc_publication_does_not_override_kind_or_ambiguity():
+    source = _case(
+        scl="Example v. State (dec.), no. 100/00, ECHR 2001-II",
+        kpdate="2026-01-01",
+    )
+    targets = [
+        _case(
+            itemid=f"001-published-{ordinal}",
+            ecli=f"ECLI:CE:ECHR:2001:0{ordinal}01JUD000010000",
+            appno="100/00",
+            docname="CASE OF EXAMPLE v. STATE",
+            kpdate=f"2001-0{ordinal}-01",
+            publishedby="Reports of Judgments and Decisions 2001-II",
+        )
+        for ordinal in (1, 2)
+    ]
+    resolution = asyncio.run(
+        resolve_citations(
+            [source],
+            catalog=targets,
+            authority=CitationAuthority(source_url="test", entries=[]),
+        )
+    ).resolutions[0]
+
+    assert not resolution.resolved
+    assert all(
+        "different document kind" in candidate.conflicting_evidence
+        for candidate in resolution.candidates
+    )
+
+
 def test_non_unique_reporter_volume_does_not_resolve_without_corroboration():
     reporter = ReporterLocator(family="echr", year=2004, volume="X", raw="ECHR 2004-X")
     authority = CitationAuthority(
@@ -613,6 +918,1347 @@ def test_same_reporter_volume_cannot_override_explicit_appno():
     resolution = result.resolutions[0]
     assert resolution.resolved
     assert resolution.target and resolution.target.ecli == right.ecli
+
+
+def test_direct_authority_id_does_not_bypass_printed_or_authority_conflicts():
+    target = _case(
+        itemid="001-authority-target",
+        ecli="ECLI:CE:ECHR:2001:0102JUD000010000",
+        appno="999/00",
+        docname="CASE OF EXAMPLE v. STATE",
+        kpdate="2001-01-02",
+    )
+    source = _case(
+        scl="Example v. State, no. 100/00, 1 January 2001",
+        kpdate="2026-01-01",
+    )
+    mention = parse_scl_mentions(source)[0]
+    authority = CitationAuthority(
+        source_url="test",
+        entries=[
+            CitationAuthorityEntry(
+                entry_id="conflicting-direct-id",
+                citation=source.scl,
+                normalized_citation=mention.normalized_ref,
+                title="Example v. State",
+                normalized_title="EXAMPLE STATE",
+                appnos=["100/00"],
+                date="2001-01-01",
+                document_kind="judgment",
+                target_ecli=target.ecli,
+                target_itemid=target.itemid,
+            )
+        ],
+    )
+    resolution = asyncio.run(
+        resolve_citations([source], authority=authority, catalog=[target])
+    ).resolutions[0]
+
+    assert not resolution.resolved
+    assert "ECLI date" in resolution.method
+
+
+def test_official_authority_can_supply_checked_target_when_hudoc_metadata_is_absent():
+    source = _case(
+        scl="Example v. State, no. 100/00, judgment of 1 January 2001",
+        kpdate="2026-01-01",
+    )
+    authority = CitationAuthority(
+        source_url="test",
+        entries=[
+            CitationAuthorityEntry(
+                entry_id="official-example",
+                # Deliberately not an exact normalized citation: this exercises
+                # the complete-appno plus compatible printed-evidence path.
+                citation="Example v. State, no. 100/00, 1 January 2001",
+                normalized_citation="example v. state, no. 100/00, 1 january 2001",
+                title="Example v. State",
+                normalized_title="EXAMPLE STATE",
+                appnos=["100/00"],
+                date="2001-01-01",
+                document_kind="judgment",
+                procedural_phase="merits",
+                target_ecli="ECLI:CE:ECHR:2001:0101JUD000010000",
+                target_itemid="001-official-example",
+            )
+        ],
+    )
+
+    resolution = asyncio.run(
+        resolve_citations([source], authority=authority, catalog=[])
+    ).resolutions[0]
+
+    assert resolution.status == "resolved_authority"
+    assert resolution.target
+    assert resolution.target.itemid == "001-official-example"
+    assert resolution.target.appnos == ["100/00"]
+
+
+@pytest.mark.parametrize(
+    ("scl", "authority_values"),
+    [
+        (
+            "Different v. State, no. 100/00, judgment of 1 January 2001",
+            {},
+        ),
+        (
+            "Example v. State, no. 100/00, judgment of 2 January 2001",
+            {},
+        ),
+        (
+            "Example v. State, nos. 100/00 and 200/00, judgment of 1 January 2001",
+            {},
+        ),
+        (
+            "Example v. State, no. 100/00, decision of 1 January 2001",
+            {},
+        ),
+    ],
+)
+def test_official_authority_fails_closed_on_incompatible_printed_evidence(scl, authority_values):
+    source = _case(scl=scl, kpdate="2026-01-01")
+    values = {
+        "entry_id": "official-example",
+        "citation": "Example v. State, no. 100/00, 1 January 2001",
+        "normalized_citation": "example v. state, no. 100/00, 1 january 2001",
+        "title": "Example v. State",
+        "normalized_title": "EXAMPLE STATE",
+        "appnos": ["100/00"],
+        "date": "2001-01-01",
+        "document_kind": "judgment",
+        "procedural_phase": "merits",
+        "target_ecli": "ECLI:CE:ECHR:2001:0101JUD000010000",
+        "target_itemid": "001-official-example",
+    }
+    values.update(authority_values)
+    authority = CitationAuthority(source_url="test", entries=[CitationAuthorityEntry(**values)])
+
+    resolution = asyncio.run(
+        resolve_citations([source], authority=authority, catalog=[])
+    ).resolutions[0]
+
+    assert not resolution.resolved
+
+
+def test_duplicate_exact_authority_rows_cannot_select_the_first_document():
+    source = _case(
+        scl="Example v. State, no. 100/00, judgment of 1 January 2001",
+        kpdate="2026-01-01",
+    )
+    mention = parse_scl_mentions(source)[0]
+    entries = [
+        CitationAuthorityEntry(
+            entry_id=f"official-example-{ordinal}",
+            citation=source.scl,
+            normalized_citation=mention.normalized_ref,
+            title="Example v. State",
+            normalized_title="EXAMPLE STATE",
+            appnos=["100/00"],
+            date="2001-01-01",
+            document_kind="judgment",
+            procedural_phase="merits",
+            target_ecli=None,
+            target_itemid=f"001-official-example-{ordinal}",
+        )
+        for ordinal in range(1, 3)
+    ]
+
+    resolution = asyncio.run(
+        resolve_citations([source], authority=CitationAuthority(source_url="test", entries=entries))
+    ).resolutions[0]
+
+    assert resolution.status == "ambiguous_document"
+    assert len(resolution.candidates) == 2
+
+
+def test_active_authority_target_is_not_hidden_by_unavailable_language_sibling():
+    source = _case(
+        scl="Example v. State, no. 100/00, judgment of 1 January 2001",
+        kpdate="2026-01-01",
+    )
+    mention = parse_scl_mentions(source)[0]
+    common = {
+        "citation": source.scl,
+        "normalized_citation": mention.normalized_ref,
+        "title": "Example v. State",
+        "normalized_title": "EXAMPLE STATE",
+        "appnos": ["100/00"],
+        "date": "2001-01-01",
+        "document_kind": "judgment",
+        "procedural_phase": "merits",
+    }
+    authority = CitationAuthority(
+        source_url="test",
+        entries=[
+            CitationAuthorityEntry(
+                entry_id="official-example-unavailable",
+                target_unavailable=True,
+                coverage_note="French version unavailable",
+                **common,
+            ),
+            CitationAuthorityEntry(
+                entry_id="official-example-active",
+                target_ecli="ECLI:CE:ECHR:2001:0101JUD000010000",
+                target_itemid="001-official-example",
+                **common,
+            ),
+        ],
+    )
+
+    resolution = asyncio.run(
+        resolve_citations([source], authority=authority, catalog=[])
+    ).resolutions[0]
+
+    assert resolution.status == "resolved_authority"
+    assert resolution.target and resolution.target.itemid == "001-official-example"
+
+
+def test_authority_appno_and_title_without_printed_document_selector_stays_application_scope():
+    source = _case(scl="Example v. State, no. 100/00", kpdate="2026-01-01")
+    mention = parse_scl_mentions(source)[0]
+    authority = CitationAuthority(
+        source_url="test",
+        entries=[
+            CitationAuthorityEntry(
+                entry_id="official-example",
+                citation=source.scl,
+                normalized_citation=mention.normalized_ref,
+                title="Example v. State",
+                normalized_title="EXAMPLE STATE",
+                appnos=["100/00"],
+                date="2001-01-01",
+                document_kind="judgment",
+                procedural_phase="merits",
+                target_ecli="ECLI:CE:ECHR:2001:0101JUD000010000",
+                target_itemid="001-official-example",
+            )
+        ],
+    )
+
+    resolution = asyncio.run(
+        resolve_citations([source], authority=authority, catalog=[])
+    ).resolutions[0]
+
+    assert not resolution.resolved
+
+
+def test_authority_conflicting_ecli_and_itemid_are_not_synthesized_together():
+    source = _case(
+        scl="Example v. State, no. 100/00, judgment of 1 January 2001",
+        kpdate="2026-01-01",
+    )
+    mention = parse_scl_mentions(source)[0]
+    first = _case(
+        itemid="001-first",
+        ecli="ECLI:CE:ECHR:2001:0101JUD000010000",
+        appno="100/00",
+        docname="CASE OF EXAMPLE v. STATE",
+        kpdate="2001-01-01",
+    )
+    second = first.model_copy(
+        update={
+            "itemid": "001-second",
+            "ecli": "ECLI:CE:ECHR:2001:0101JUD000020000",
+        }
+    )
+    authority = CitationAuthority(
+        source_url="test",
+        entries=[
+            CitationAuthorityEntry(
+                entry_id="conflicting-identifiers",
+                citation=source.scl,
+                normalized_citation=mention.normalized_ref,
+                title="Example v. State",
+                normalized_title="EXAMPLE STATE",
+                appnos=["100/00"],
+                date="2001-01-01",
+                document_kind="judgment",
+                procedural_phase="merits",
+                target_ecli=first.ecli,
+                target_itemid=second.itemid,
+            )
+        ],
+    )
+
+    resolution = asyncio.run(
+        resolve_citations([source], authority=authority, catalog=[first, second])
+    ).resolutions[0]
+
+    assert not resolution.resolved
+    assert {candidate.itemid for candidate in resolution.candidates} == {
+        first.itemid,
+        second.itemid,
+    }
+
+
+@pytest.mark.parametrize(
+    "entry_values",
+    [
+        {
+            "date": "2002-02-02",
+            "target_ecli": "ECLI:CE:ECHR:2001:0101JUD000010000",
+        },
+        {
+            "document_kind": "decision",
+            "procedural_phase": "admissibility",
+            "target_ecli": "ECLI:CE:ECHR:2001:0101JUD000010000",
+        },
+    ],
+)
+def test_synthetic_authority_target_validates_ecli_date_and_kind(entry_values):
+    source = _case(
+        scl="Example v. State, no. 100/00, judgment of 1 January 2001",
+        kpdate="2026-01-01",
+    )
+    mention = parse_scl_mentions(source)[0]
+    values = {
+        "entry_id": "invalid-ecli-metadata",
+        "citation": source.scl,
+        "normalized_citation": mention.normalized_ref,
+        "title": "Example v. State",
+        "normalized_title": "EXAMPLE STATE",
+        "appnos": ["100/00"],
+        "date": "2001-01-01",
+        "document_kind": "judgment",
+        "procedural_phase": "merits",
+        "target_ecli": "ECLI:CE:ECHR:2001:0101JUD000010000",
+        "target_itemid": "001-official-example",
+    }
+    values.update(entry_values)
+    authority = CitationAuthority(source_url="test", entries=[CitationAuthorityEntry(**values)])
+
+    resolution = asyncio.run(
+        resolve_citations([source], authority=authority, catalog=[])
+    ).resolutions[0]
+
+    assert not resolution.resolved
+    assert "ECLI" in resolution.method
+
+
+def test_synthetic_authority_target_docname_must_match_authority_title():
+    source = _case(
+        scl="Example v. State, no. 100/00, judgment of 1 January 2001",
+        kpdate="2026-01-01",
+    )
+    mention = parse_scl_mentions(source)[0]
+    authority = CitationAuthority(
+        source_url="test",
+        entries=[
+            CitationAuthorityEntry(
+                entry_id="conflicting-target-title",
+                citation=source.scl,
+                normalized_citation=mention.normalized_ref,
+                title="Example v. State",
+                normalized_title="EXAMPLE STATE",
+                appnos=["100/00"],
+                date="2001-01-01",
+                document_kind="judgment",
+                procedural_phase="merits",
+                target_ecli="ECLI:CE:ECHR:2001:0101JUD000010000",
+                target_itemid="001-official-example",
+                target_docname="ENTIRELY DIFFERENT v. OTHER",
+            )
+        ],
+    )
+
+    resolution = asyncio.run(
+        resolve_citations([source], authority=authority, catalog=[])
+    ).resolutions[0]
+
+    assert not resolution.resolved
+    assert "different title" in resolution.candidates[0].conflicting_evidence
+
+
+def test_synthetic_authority_target_cannot_self_cite_by_itemid():
+    source = _case(
+        itemid="001-source-only",
+        ecli=None,
+        scl="Example v. State, no. 100/00, judgment of 1 January 2001",
+        kpdate="2026-01-01",
+    )
+    mention = parse_scl_mentions(source)[0]
+    authority = CitationAuthority(
+        source_url="test",
+        entries=[
+            CitationAuthorityEntry(
+                entry_id="self-target",
+                citation=source.scl,
+                normalized_citation=mention.normalized_ref,
+                title="Example v. State",
+                normalized_title="EXAMPLE STATE",
+                appnos=["100/00"],
+                date="2001-01-01",
+                document_kind="judgment",
+                procedural_phase="merits",
+                target_ecli="ECLI:CE:ECHR:2001:0101JUD000010000",
+                target_itemid=source.itemid,
+            )
+        ],
+    )
+
+    resolution = asyncio.run(
+        resolve_citations([source], authority=authority, catalog=[])
+    ).resolutions[0]
+
+    assert not resolution.resolved
+    assert "exact source document self-edge" in resolution.candidates[0].conflicting_evidence
+
+
+def test_printed_reporter_requires_target_reporter_metadata():
+    source = _case(
+        scl="Example v. State, no. 100/00, 1 January 2001, ECHR 2001-I",
+        kpdate="2026-01-01",
+    )
+    target = _case(
+        itemid="001-no-reporter",
+        ecli="ECLI:CE:ECHR:2001:0101JUD000010000",
+        appno="100/00",
+        docname="CASE OF EXAMPLE v. STATE",
+        kpdate="2001-01-01",
+        casecitation=None,
+    )
+
+    resolution = asyncio.run(
+        resolve_citations(
+            [source],
+            catalog=[target],
+            authority=CitationAuthority(source_url="test", entries=[]),
+        )
+    ).resolutions[0]
+
+    assert not resolution.resolved
+    assert "different reporter locator" in resolution.candidates[0].conflicting_evidence
+
+
+def test_synthetic_authority_ecli_cannot_hide_future_date_when_row_date_is_missing():
+    source = _case(
+        scl="Future v. State, no. 100/00, judgment, ECHR 2030-I",
+        kpdate="2020-01-01",
+    )
+    mention = parse_scl_mentions(source)[0]
+    reporter = parse_reporter("ECHR 2030-I")
+    authority = CitationAuthority(
+        source_url="test",
+        entries=[
+            CitationAuthorityEntry(
+                entry_id="future-ecli",
+                citation=source.scl,
+                normalized_citation=mention.normalized_ref,
+                title="Future v. State",
+                normalized_title="FUTURE STATE",
+                appnos=["100/00"],
+                document_kind="judgment",
+                procedural_phase="merits",
+                reporter=reporter,
+                target_ecli="ECLI:CE:ECHR:2030:0101JUD000010000",
+                target_itemid="001-future",
+            )
+        ],
+    )
+
+    resolution = asyncio.run(
+        resolve_citations([source], authority=authority, catalog=[])
+    ).resolutions[0]
+
+    assert not resolution.resolved
+    assert "after source" in resolution.method
+
+
+def test_synthetic_authority_ecli_application_must_match_authority_appno():
+    source = _case(
+        scl="Example v. State, no. 100/00, judgment of 1 January 2001",
+        kpdate="2026-01-01",
+    )
+    mention = parse_scl_mentions(source)[0]
+    authority = CitationAuthority(
+        source_url="test",
+        entries=[
+            CitationAuthorityEntry(
+                entry_id="wrong-ecli-appno",
+                citation=source.scl,
+                normalized_citation=mention.normalized_ref,
+                title="Example v. State",
+                normalized_title="EXAMPLE STATE",
+                appnos=["100/00"],
+                date="2001-01-01",
+                document_kind="judgment",
+                procedural_phase="merits",
+                target_ecli="ECLI:CE:ECHR:2001:0101JUD000020000",
+                target_itemid="001-wrong-appno",
+            )
+        ],
+    )
+
+    resolution = asyncio.run(
+        resolve_citations([source], authority=authority, catalog=[])
+    ).resolutions[0]
+
+    assert not resolution.resolved
+    assert "application" in resolution.method
+
+
+@pytest.mark.parametrize(
+    "target_docname",
+    [
+        "CASE OF EXAMPLE v. STATE (No. 2)",
+        "CASE OF EXAMPLE v. STATE (ARTICLE 50)",
+    ],
+)
+def test_synthetic_authority_target_title_qualifiers_are_identity_bearing(target_docname):
+    source = _case(
+        scl="Example v. State (no. 1), no. 100/00, judgment of 1 January 2001",
+        kpdate="2026-01-01",
+    )
+    mention = parse_scl_mentions(source)[0]
+    authority = CitationAuthority(
+        source_url="test",
+        entries=[
+            CitationAuthorityEntry(
+                entry_id="wrong-qualified-title",
+                citation=source.scl,
+                normalized_citation=mention.normalized_ref,
+                title="Example v. State (no. 1)",
+                normalized_title="EXAMPLE STATE NO 1",
+                appnos=["100/00"],
+                date="2001-01-01",
+                document_kind="judgment",
+                procedural_phase="merits",
+                target_ecli="ECLI:CE:ECHR:2001:0101JUD000010000",
+                target_itemid="001-wrong-title",
+                target_docname=target_docname,
+            )
+        ],
+    )
+
+    resolution = asyncio.run(
+        resolve_citations([source], authority=authority, catalog=[])
+    ).resolutions[0]
+
+    assert not resolution.resolved
+    assert "different title" in resolution.candidates[0].conflicting_evidence
+
+
+def test_cross_language_source_sibling_abstains_when_source_has_no_ecli():
+    source = _case(
+        itemid="001-source-eng",
+        ecli=None,
+        appno="100/00",
+        docname="CASE OF EXAMPLE v. STATE",
+        scl="Example v. State, no. 100/00, judgment of 1 January 2001",
+        kpdate="2001-01-01",
+    )
+    mention = parse_scl_mentions(source)[0]
+    authority = CitationAuthority(
+        source_url="test",
+        entries=[
+            CitationAuthorityEntry(
+                entry_id="language-sibling",
+                citation=source.scl,
+                normalized_citation=mention.normalized_ref,
+                title="Example v. State",
+                normalized_title="EXAMPLE STATE",
+                appnos=["100/00"],
+                date="2001-01-01",
+                document_kind="judgment",
+                procedural_phase="merits",
+                target_ecli="ECLI:CE:ECHR:2001:0101JUD000010000",
+                target_itemid="001-source-fre",
+                target_docname="CASE OF EXAMPLE v. STATE",
+            )
+        ],
+    )
+
+    resolution = asyncio.run(
+        resolve_citations([source], authority=authority, catalog=[])
+    ).resolutions[0]
+
+    assert not resolution.resolved
+    assert any(
+        "language sibling" in value for value in resolution.candidates[0].conflicting_evidence
+    )
+
+
+def test_synthetic_advisory_ecli_kind_is_accepted():
+    source = _case(
+        scl=("Advisory opinion concerning an issue [GC], request no. P16-2018-001, 10 April 2019"),
+        kpdate="2026-01-01",
+    )
+    mention = parse_scl_mentions(source)[0]
+    authority = CitationAuthority(
+        source_url="test",
+        entries=[
+            CitationAuthorityEntry(
+                entry_id="official-advisory",
+                citation=source.scl,
+                normalized_citation=mention.normalized_ref,
+                title="Advisory opinion concerning an issue",
+                normalized_title="ADVISORY OPINION CONCERNING AN ISSUE",
+                date="2019-04-10",
+                document_kind="advisory",
+                procedural_phase="advisory_opinion",
+                grand_chamber=True,
+                target_ecli="ECLI:CE:ECHR:2019:0410ADV000000001",
+                target_itemid="003-advisory",
+            )
+        ],
+    )
+
+    resolution = asyncio.run(
+        resolve_citations([source], authority=authority, catalog=[])
+    ).resolutions[0]
+
+    assert resolution.status == "resolved_authority"
+
+
+@pytest.mark.parametrize(
+    ("printed_title", "target_title"),
+    [
+        ("Example v. State No. 1", "CASE OF EXAMPLE v. STATE No. 2"),
+        (
+            "Example v. State (revision no. 2)",
+            "CASE OF EXAMPLE v. STATE (revision no. 3)",
+        ),
+    ],
+)
+def test_all_numbered_case_qualifiers_are_hard_identity_evidence(printed_title, target_title):
+    source = _case(
+        scl=f"{printed_title}, no. 100/00, judgment of 1 January 2001",
+        kpdate="2026-01-01",
+    )
+    mention = parse_scl_mentions(source)[0]
+    authority = CitationAuthority(
+        source_url="test",
+        entries=[
+            CitationAuthorityEntry(
+                entry_id="number-conflict",
+                citation=source.scl,
+                normalized_citation=mention.normalized_ref,
+                title=printed_title,
+                normalized_title="EXAMPLE STATE",
+                appnos=["100/00"],
+                date="2001-01-01",
+                document_kind="judgment",
+                procedural_phase=mention.procedural_phase,
+                target_ecli="ECLI:CE:ECHR:2001:0101JUD000010000",
+                target_itemid="001-number-conflict",
+                target_docname=target_title,
+            )
+        ],
+    )
+
+    resolution = asyncio.run(
+        resolve_citations([source], authority=authority, catalog=[])
+    ).resolutions[0]
+
+    assert not resolution.resolved
+    assert "different title" in resolution.candidates[0].conflicting_evidence
+
+
+def test_future_printed_reporter_year_fails_without_target_date_or_ecli():
+    source = _case(
+        scl="Example v. State, no. 100/00, judgment, ECHR 2030-I",
+        kpdate="2020-01-01",
+    )
+    mention = parse_scl_mentions(source)[0]
+    authority = CitationAuthority(
+        source_url="test",
+        entries=[
+            CitationAuthorityEntry(
+                entry_id="future-itemid-only",
+                citation=source.scl,
+                normalized_citation=mention.normalized_ref,
+                title="Example v. State",
+                normalized_title="EXAMPLE STATE",
+                appnos=["100/00"],
+                document_kind="judgment",
+                procedural_phase="merits",
+                reporter=parse_reporter("ECHR 2030-I"),
+                target_itemid="001-future",
+            )
+        ],
+    )
+
+    resolution = asyncio.run(
+        resolve_citations([source], authority=authority, catalog=[])
+    ).resolutions[0]
+
+    assert not resolution.resolved
+    assert "reporter year is after" in resolution.method
+
+
+def test_explicit_future_ecli_fails_even_when_catalog_date_is_missing():
+    ecli = "ECLI:CE:ECHR:2030:0101JUD000020000"
+    source = _case(
+        scl=f"Future v. State, {ecli}",
+        kpdate="2020-01-01",
+    )
+    target = _case(
+        itemid="001-future",
+        ecli=ecli,
+        appno="200/00",
+        docname="CASE OF FUTURE v. STATE",
+        kpdate=None,
+    )
+
+    resolution = asyncio.run(resolve_citations([source], catalog=[target])).resolutions[0]
+
+    assert not resolution.resolved
+    assert "ECLI date is after" in resolution.method
+
+
+def test_explicit_ecli_hydration_blocks_undated_cross_language_self_sibling():
+    ecli = "ECLI:CE:ECHR:2001:0101JUD000010000"
+    source = _case(
+        itemid="001-source-eng",
+        ecli=None,
+        appno="100/00",
+        docname="CASE OF EXAMPLE v. STATE",
+        scl=f"Example v. State, {ecli}",
+        kpdate="2001-01-01",
+    )
+    target = _case(
+        itemid="001-source-fre",
+        ecli=ecli,
+        appno="100/00;200/00",
+        docname="CASE OF EXAMPLE v. STATE",
+        kpdate=None,
+    )
+
+    resolution = asyncio.run(resolve_citations([source], catalog=[target])).resolutions[0]
+
+    assert not resolution.resolved
+    assert any(
+        "language sibling" in value for value in resolution.candidates[0].conflicting_evidence
+    )
+
+
+@pytest.mark.parametrize(
+    ("printed", "ecli"),
+    [
+        (
+            "Example v. State, no. 100/00, Commission decision of 1 January 2001",
+            "ECLI:CE:ECHR:2001:0101REP000010000",
+        ),
+        (
+            "Example v. State, no. 100/00, report of the Commission of 1 January 2001",
+            "ECLI:CE:ECHR:2001:0101DEC000010000",
+        ),
+    ],
+)
+def test_synthetic_authority_ecli_phase_cannot_cross_decision_and_report(printed, ecli):
+    source = _case(scl=printed, kpdate="2026-01-01")
+    mention = parse_scl_mentions(source)[0]
+    authority = CitationAuthority(
+        source_url="test",
+        entries=[
+            CitationAuthorityEntry(
+                entry_id="phase-conflict",
+                citation=source.scl,
+                normalized_citation=mention.normalized_ref,
+                title="Example v. State",
+                normalized_title="EXAMPLE STATE",
+                appnos=["100/00"],
+                date="2001-01-01",
+                document_kind=mention.document_kind,
+                procedural_phase=mention.procedural_phase,
+                target_ecli=ecli,
+                target_itemid="001-phase-conflict",
+            )
+        ],
+    )
+
+    resolution = asyncio.run(
+        resolve_citations([source], authority=authority, catalog=[])
+    ).resolutions[0]
+
+    assert not resolution.resolved
+    assert "ECLI kind" in resolution.method
+
+
+def test_interpretation_is_a_distinct_judgment_phase_and_cannot_match_merits():
+    source = _case(
+        scl=(
+            "Hentrich v. France (interpretation), 3 July 1997, "
+            "Reports of Judgments and Decisions 1997-IV"
+        ),
+        kpdate="2026-01-01",
+    )
+    mention = parse_scl_mentions(source)[0]
+    assert mention.procedural_phase == "interpretation"
+    assert mention.document_kind == "judgment"
+    target = _case(
+        itemid="001-hentrich-merits",
+        ecli="ECLI:CE:ECHR:1997:0703JUD001368888",
+        appno="13688/88",
+        docname="CASE OF HENTRICH v. FRANCE",
+        kpdate="1997-07-03",
+    )
+
+    resolution = asyncio.run(
+        resolve_citations(
+            [source],
+            catalog=[target],
+            authority=CitationAuthority(source_url="test", entries=[]),
+        )
+    ).resolutions[0]
+
+    assert not resolution.resolved
+
+
+def test_compound_procedural_title_qualifiers_must_match_as_a_complete_set():
+    source = _case(
+        scl=(
+            "The Very Long Applicant Association v. State "
+            "(just satisfaction - striking out), no. 100/00, "
+            "judgment of 1 January 2001"
+        ),
+        kpdate="2026-01-01",
+    )
+    target = _case(
+        itemid="001-wrong-compound-phase",
+        ecli="ECLI:CE:ECHR:2001:0101JUD000010000",
+        appno="100/00",
+        docname=(
+            "CASE OF THE VERY LONG APPLICANT ASSOCIATION v. STATE "
+            "(JUST SATISFACTION - FRIENDLY SETTLEMENT)"
+        ),
+        kpdate="2001-01-01",
+    )
+
+    resolution = asyncio.run(
+        resolve_citations(
+            [source],
+            catalog=[target],
+            authority=CitationAuthority(source_url="test", entries=[]),
+        )
+    ).resolutions[0]
+
+    assert not resolution.resolved
+    assert "different title" in resolution.candidates[0].conflicting_evidence
+
+
+@pytest.mark.parametrize(
+    ("printed_title", "target_title"),
+    [
+        (
+            "Times Newspapers Ltd v. State (No. 1 and No. 2)",
+            "Times Newspapers Ltd v. State (No. 3 and No. 2)",
+        ),
+        (
+            "Hyde Park and Others v. State (nos. 5 and 6)",
+            "Hyde Park and Others v. State (nos. 5 and 7)",
+        ),
+        (
+            "Hyde Park et autres c. État (nos 5 et 6)",
+            "Hyde Park et autres c. État (nos 5 et 7)",
+        ),
+    ],
+)
+def test_all_joined_case_number_qualifiers_are_identity_bearing(printed_title, target_title):
+    source = _case(
+        scl=f"{printed_title}, no. 100/00, judgment of 1 January 2001",
+        kpdate="2026-01-01",
+    )
+    target = _case(
+        itemid="001-wrong-case-number",
+        ecli="ECLI:CE:ECHR:2001:0101JUD000010000",
+        appno="100/00",
+        docname=f"CASE OF {target_title}",
+        kpdate="2001-01-01",
+    )
+
+    resolution = asyncio.run(
+        resolve_citations(
+            [source],
+            catalog=[target],
+            authority=CitationAuthority(source_url="test", entries=[]),
+        )
+    ).resolutions[0]
+
+    assert not resolution.resolved
+    assert "different title" in resolution.candidates[0].conflicting_evidence
+
+
+def test_partial_echr_reporter_year_cannot_select_unprinted_volume_or_phase():
+    source = _case(
+        scl="Example v. State, no. 100/00, ECHR 2001",
+        kpdate="2026-01-01",
+    )
+    authority = CitationAuthority(
+        source_url="test",
+        entries=[
+            CitationAuthorityEntry(
+                entry_id="unprinted-volume",
+                citation="Example v. State, no. 100/00, 1 January 2001, ECHR 2001-I",
+                normalized_citation=("example v. state, no. 100/00, 1 january 2001, echr 2001-i"),
+                title="Example v. State",
+                normalized_title="EXAMPLE STATE",
+                appnos=["100/00"],
+                date="2001-01-01",
+                document_kind="judgment",
+                procedural_phase="merits",
+                reporter=parse_reporter("ECHR 2001-I"),
+                target_ecli="ECLI:CE:ECHR:2001:0101JUD000010000",
+                target_itemid="001-unprinted-volume",
+            )
+        ],
+    )
+
+    resolution = asyncio.run(
+        resolve_citations([source], authority=authority, catalog=[])
+    ).resolutions[0]
+
+    assert not resolution.resolved
+
+
+def test_bare_dr_volume_cannot_inherit_an_unprinted_page_from_authority():
+    source = _case(
+        scl="Example v. State, no. 100/00, D.R. 31",
+        kpdate="2026-01-01",
+    )
+    mention = parse_scl_mentions(source)[0]
+    assert mention.reporter and mention.reporter.page is None
+    authority = CitationAuthority(
+        source_url="test",
+        entries=[
+            CitationAuthorityEntry(
+                entry_id="unprinted-dr-page",
+                citation=(
+                    "Example v. State, no. 100/00, Commission decision of "
+                    "1 January 2001, D.R. 31, p. 130"
+                ),
+                normalized_citation="example state 100/00 dr 31 130",
+                title="Example v. State",
+                normalized_title="EXAMPLE STATE",
+                appnos=["100/00"],
+                date="2001-01-01",
+                document_kind="commission",
+                procedural_phase="commission_decision",
+                reporter=parse_reporter("D.R. 31, p. 130"),
+                target_ecli="ECLI:CE:ECHR:2001:0101DEC000010000",
+                target_itemid="001-unprinted-dr-page",
+            )
+        ],
+    )
+
+    resolution = asyncio.run(
+        resolve_citations([source], authority=authority, catalog=[])
+    ).resolutions[0]
+
+    assert not resolution.resolved
+
+
+def test_explicit_ecli_cannot_override_conflicting_catalog_metadata():
+    ecli = "ECLI:CE:ECHR:2001:0101JUD000010000"
+    source = _case(
+        ecli=None,
+        itemid="001-source-language",
+        appno="100/00",
+        docname="CASE OF EXAMPLE v. STATE",
+        scl=f"Example v. State, no. 100/00, {ecli}",
+        kpdate="2005-01-01",
+    )
+    corrupt_target = _case(
+        itemid="001-corrupt-target",
+        ecli=ecli,
+        appno="999/99",
+        docname="CASE OF EXAMPLE v. STATE",
+        kpdate="2000-01-01",
+    )
+
+    resolution = asyncio.run(resolve_citations([source], catalog=[corrupt_target])).resolutions[0]
+
+    assert not resolution.resolved
+    assert "candidate date conflicts with ECLI" in resolution.method
+    assert "candidate application number conflicts with ECLI" in resolution.method
+
+
+def test_itemid_only_authority_cannot_bypass_candidate_ecli_metadata_conflict():
+    source = _case(
+        scl="Example v. State, no. 100/00, judgment of 1 January 2001",
+        kpdate="2026-01-01",
+    )
+    mention = parse_scl_mentions(source)[0]
+    corrupt_target = _case(
+        itemid="001-itemid-only-corrupt",
+        ecli="ECLI:CE:ECHR:2001:0101JUD000020000",
+        appno="100/00",
+        docname="CASE OF EXAMPLE v. STATE",
+        kpdate="2001-01-01",
+    )
+    authority = CitationAuthority(
+        source_url="test",
+        entries=[
+            CitationAuthorityEntry(
+                entry_id="itemid-only",
+                citation=source.scl,
+                normalized_citation=mention.normalized_ref,
+                title="Example v. State",
+                normalized_title="EXAMPLE STATE",
+                appnos=["100/00"],
+                date="2001-01-01",
+                document_kind="judgment",
+                procedural_phase="merits",
+                target_itemid=corrupt_target.itemid,
+            )
+        ],
+    )
+
+    resolution = asyncio.run(
+        resolve_citations([source], catalog=[corrupt_target], authority=authority)
+    ).resolutions[0]
+
+    assert not resolution.resolved
+    assert "candidate identifier metadata conflict" in (
+        resolution.candidates[0].conflicting_evidence
+    )
+
+
+def test_historical_catalog_target_ecli_must_agree_with_catalog_identity():
+    source = _case(
+        scl=("Example v. State, no. 100/00, judgment of 1 January 2001, Series A no. 100"),
+        kpdate="2026-01-01",
+    )
+    mention = parse_scl_mentions(source)[0]
+    corrupt_ecli = "ECLI:CE:ECHR:2001:0101JUD000020000"
+    corrupt_target = _case(
+        itemid="001-corrupt-historical",
+        ecli=corrupt_ecli,
+        appno="100/00",
+        docname="CASE OF EXAMPLE v. STATE",
+        kpdate="2001-01-01",
+    )
+    historical = HistoricalCitationCatalog(
+        source_url="test",
+        content_sha256="test",
+        entries=[
+            HistoricalCatalogEntry(
+                reporter_key=mention.reporter.key,
+                title="Example v. State",
+                normalized_title="EXAMPLE STATE",
+                appnos=["100/00"],
+                date=mention.target_date,
+                document_kind="judgment",
+                target_ecli=corrupt_ecli,
+                target_itemid=corrupt_target.itemid,
+            )
+        ],
+    )
+
+    resolution = asyncio.run(
+        resolve_citations(
+            [source],
+            catalog=[corrupt_target],
+            authority=CitationAuthority(source_url="test", entries=[]),
+            historical_catalog=historical,
+        )
+    ).resolutions[0]
+
+    assert not resolution.resolved
+    assert resolution.target is None
+
+
+def test_printed_grand_chamber_requires_known_or_officially_corroborated_formation():
+    source = _case(
+        scl="Example v. State [GC], no. 100/00, 1 January 2001",
+        kpdate="2026-01-01",
+    )
+    unknown = _case(
+        itemid="001-unknown-formation",
+        ecli="ECLI:CE:ECHR:2001:0101JUD000010000",
+        appno="100/00",
+        docname="CASE OF EXAMPLE v. STATE",
+        kpdate="2001-01-01",
+        doctypebranch=None,
+        documentcollectionid="CASELAW;JUDGMENTS;ENG",
+    )
+    chamber = unknown.model_copy(
+        update={
+            "itemid": "001-known-chamber",
+            "ecli": "ECLI:CE:ECHR:2001:0101JUD000010001",
+            "doctype_branch": "CHAMBER",
+            "document_collection_id": "CASELAW;JUDGMENTS;CHAMBER;ENG",
+        }
+    )
+    empty = CitationAuthority(source_url="test", entries=[])
+
+    unknown_result = asyncio.run(
+        resolve_citations([source], authority=empty, catalog=[unknown])
+    ).resolutions[0]
+    chamber_result = asyncio.run(
+        resolve_citations([source], authority=empty, catalog=[chamber])
+    ).resolutions[0]
+    assert not unknown_result.resolved
+    assert "missing Grand Chamber metadata" in unknown_result.candidates[0].conflicting_evidence
+    assert not chamber_result.resolved
+    assert "not Grand Chamber" in chamber_result.candidates[0].conflicting_evidence
+
+    mention = parse_scl_mentions(source)[0]
+    authority = CitationAuthority(
+        source_url="test",
+        entries=[
+            CitationAuthorityEntry(
+                entry_id="official-gc",
+                citation=source.scl,
+                normalized_citation=mention.normalized_ref,
+                title="Example v. State",
+                normalized_title="EXAMPLE STATE",
+                appnos=["100/00"],
+                date="2001-01-01",
+                document_kind="judgment",
+                procedural_phase="merits",
+                grand_chamber=True,
+                target_ecli=unknown.ecli,
+                target_itemid=unknown.itemid,
+            )
+        ],
+    )
+    corroborated = asyncio.run(
+        resolve_citations([source], authority=authority, catalog=[unknown])
+    ).resolutions[0]
+    assert corroborated.resolved
+    assert corroborated.target and corroborated.target.itemid == unknown.itemid
+
+
+def test_advisory_request_retains_all_same_title_candidates_and_abstains():
+    source = _case(
+        scl=("Advisory opinion concerning an issue [GC], request no. P16-2018-001, 10 April 2019"),
+        kpdate="2026-01-01",
+    )
+    values = {
+        "ecli": None,
+        "appno": None,
+        "advopidentifier": "P16-2018-001",
+        "docname": "ADVISORY OPINION CONCERNING AN ISSUE",
+        "doctype": "HEADO",
+        "doctypebranch": "GRANDCHAMBER",
+        "kpdate": "2019-04-10",
+        "documentcollectionid": "CASELAW;ADVISORYOPINIONS;GRANDCHAMBER;ENG",
+    }
+    first = _case(itemid="003-advisory-one", **values)
+    second = _case(itemid="003-advisory-two", **values)
+    resolution = asyncio.run(
+        resolve_citations(
+            [source],
+            catalog=[first, second],
+            authority=CitationAuthority(source_url="test", entries=[]),
+        )
+    ).resolutions[0]
+
+    assert resolution.status == "ambiguous_document"
+    assert {candidate.itemid for candidate in resolution.candidates} == {
+        first.itemid,
+        second.itemid,
+    }
+
+
+def test_historical_catalog_retains_conflicting_duplicate_keys_and_resolution_abstains():
+    reporter = ReporterLocator(family="series_a", number="100", raw="Series A no. 100")
+    authority = CitationAuthority(
+        source_url="test",
+        entries=[
+            CitationAuthorityEntry(
+                entry_id=f"duplicate-{ordinal}",
+                citation="Example v. State, 1 January 2001, Series A no. 100",
+                normalized_citation="example v. state, 1 january 2001, series a no. 100",
+                title="Example v. State",
+                normalized_title="EXAMPLE STATE",
+                date="2001-01-01",
+                document_kind="judgment",
+                reporter=reporter,
+                target_ecli=ecli,
+                target_itemid=f"001-duplicate-{ordinal}",
+            )
+            for ordinal, ecli in enumerate(
+                (
+                    "ECLI:CE:ECHR:2001:0101JUD000010000",
+                    "ECLI:CE:ECHR:2001:0101JUD000020000",
+                ),
+                start=1,
+            )
+        ],
+    )
+    historical = build_historical_catalog(authority=authority)
+    assert len(historical.entries) == 2
+
+    source = _case(
+        scl="Example v. State, 1 January 2001, Series A no. 100",
+        kpdate="2026-01-01",
+    )
+    targets = [
+        _case(
+            itemid=entry.target_itemid,
+            ecli=entry.target_ecli,
+            appno=f"{ordinal}/00",
+            docname="CASE OF EXAMPLE v. STATE",
+            kpdate="2001-01-01",
+        )
+        for ordinal, entry in enumerate(historical.entries, start=1)
+    ]
+    resolution = asyncio.run(
+        resolve_citations(
+            [source],
+            catalog=targets,
+            authority=CitationAuthority(source_url="empty", entries=[]),
+            historical_catalog=historical,
+        )
+    ).resolutions[0]
+    assert not resolution.resolved
+
+
+@pytest.mark.parametrize(
+    ("scl", "target_values", "expected_conflict"),
+    [
+        (
+            "Example v. State, no. 100/00, 1 January 2001, Series A no. 100",
+            {"kpdate": "2001-01-02"},
+            "different date",
+        ),
+        (
+            "Example v. State, nos. 100/00 and 200/00, 1 January 2001, Series A no. 100",
+            {"appno": "100/00"},
+            "different application number",
+        ),
+        (
+            "Example v. State, judgment of 1 January 2001, Series A no. 100",
+            {
+                "doctype": "HEDEC",
+                "documentcollectionid": "CASELAW;DECISIONS;CHAMBER;ENG",
+            },
+            "different document kind",
+        ),
+        (
+            "Example v. State, judgment of 1 January 2001, Series A no. 100",
+            {"docname": "CASE OF EXAMPLE v. STATE (ARTICLE 50)"},
+            "different procedural phase",
+        ),
+        (
+            "Example v. State [GC], no. 100/00, 1 January 2001, Series A no. 100",
+            {
+                "doctypebranch": "CHAMBER",
+                "documentcollectionid": "CASELAW;JUDGMENTS;CHAMBER;ENG",
+            },
+            "not Grand Chamber",
+        ),
+    ],
+)
+def test_historical_reporter_never_bypasses_printed_metadata_conflicts(
+    scl, target_values, expected_conflict
+):
+    source = _case(scl=scl, kpdate="2026-01-01")
+    mention = parse_scl_mentions(source)[0]
+    values = {
+        "itemid": "001-historical-target",
+        "ecli": "ECLI:CE:ECHR:2001:0101JUD000010000",
+        "appno": "100/00;200/00",
+        "docname": "CASE OF EXAMPLE v. STATE",
+        "kpdate": "2001-01-01",
+        **target_values,
+    }
+    target = _case(**values)
+    historical = HistoricalCitationCatalog(
+        source_url="test",
+        content_sha256="test",
+        entries=[
+            HistoricalCatalogEntry(
+                reporter_key=mention.reporter.key,
+                title="Example v. State",
+                normalized_title="EXAMPLE STATE",
+                appnos=list(mention.explicit_appnos),
+                date=mention.target_date,
+                document_kind=mention.document_kind,
+                target_ecli=target.ecli,
+                target_itemid=target.itemid,
+            )
+        ],
+    )
+    resolution = asyncio.run(
+        resolve_citations(
+            [source],
+            catalog=[target],
+            authority=CitationAuthority(source_url="test", entries=[]),
+            historical_catalog=historical,
+        )
+    ).resolutions[0]
+
+    assert not resolution.resolved
+    assert expected_conflict in resolution.candidates[0].conflicting_evidence
+
+
+@pytest.mark.parametrize("mode", ["self", "future"])
+def test_historical_reporter_never_bypasses_self_or_future_conflicts(mode):
+    source = _case(scl=None, kpdate="2005-05-12")
+    if mode == "self":
+        target = source
+        cited_date = "12 May 2005"
+        title = "Öcalan v. Turkey"
+    else:
+        target = _case(
+            itemid="001-historical-future",
+            ecli="ECLI:CE:ECHR:2030:0101JUD000010000",
+            appno="100/00",
+            docname="CASE OF FUTURE v. STATE",
+            kpdate="2030-01-01",
+        )
+        cited_date = "1 January 2030"
+        title = "Future v. State"
+    source.scl = f"{title}, {cited_date}, Series A no. 100"
+    mention = parse_scl_mentions(source)[0]
+    historical = HistoricalCitationCatalog(
+        source_url="test",
+        content_sha256="test",
+        entries=[
+            HistoricalCatalogEntry(
+                reporter_key=mention.reporter.key,
+                title=title,
+                normalized_title=title.upper().replace(" v. ", " "),
+                date=mention.target_date,
+                document_kind="judgment",
+                target_ecli=target.ecli,
+                target_itemid=target.itemid,
+            )
+        ],
+    )
+    resolution = asyncio.run(
+        resolve_citations(
+            [source],
+            catalog=[target],
+            authority=CitationAuthority(source_url="test", entries=[]),
+            historical_catalog=historical,
+        )
+    ).resolutions[0]
+    assert not resolution.resolved
+    conflict = (
+        "exact source document self-edge"
+        if mode == "self"
+        else "target date is after source document"
+    )
+    assert conflict in resolution.candidates[0].conflicting_evidence
+
+
+def test_duplicate_itemid_catalog_key_is_ambiguous_not_last_write_wins():
+    first = _case(
+        itemid="001-duplicate-itemid",
+        ecli="ECLI:CE:ECHR:2001:0101JUD000010000",
+        appno="100/00",
+        docname="CASE OF FIRST v. STATE",
+        kpdate="2001-01-01",
+    )
+    second = first.model_copy(
+        update={
+            "ecli": "ECLI:CE:ECHR:2001:0101JUD000020000",
+            "docname": "CASE OF SECOND v. STATE",
+        }
+    )
+    source = _case(scl="HUDOC item 001-duplicate-itemid")
+    mention = parse_scl_mentions(source)[0].model_copy(
+        update={"explicit_itemid": "001-duplicate-itemid"}
+    )
+    resolution = asyncio.run(
+        resolve_citations([source], mentions=[mention], catalog=[first, second])
+    ).resolutions[0]
+    assert resolution.status == "ambiguous_document"
+    assert len(resolution.candidates) == 2
 
 
 def test_explicit_ecli_resolves_exact_document():
@@ -851,10 +2497,7 @@ def test_placeholder_target_fetches_substantive_ecli_sibling():
 
 def test_advisory_request_identifier_drives_online_discovery():
     source = _case(
-        scl=(
-            "Advisory opinion concerning an issue [GC], request no. "
-            "P16-2018-001, 10 April 2019"
-        ),
+        scl=("Advisory opinion concerning an issue [GC], request no. P16-2018-001, 10 April 2019"),
         kpdate="2026-01-01",
     )
     target = _case(
@@ -885,10 +2528,7 @@ def test_advisory_request_identifier_drives_online_discovery():
 
 def test_advisory_request_collapses_languages_and_excludes_legal_summary():
     source = _case(
-        scl=(
-            "Advisory opinion concerning an issue [GC], request no. "
-            "P16-2018-001, 10 April 2019"
-        ),
+        scl=("Advisory opinion concerning an issue [GC], request no. P16-2018-001, 10 April 2019"),
         kpdate="2026-01-01",
     )
     base = {
@@ -1102,12 +2742,8 @@ def test_french_authority_import_and_identity_safe_language_merge(tmp_path, monk
         )
 
     monkeypatch.setattr(authority_module, "_pdf_text", text)
-    english = authority_module.import_authority_pdf(
-        english_pdf, tmp_path / "eng", language="eng"
-    )
-    french = authority_module.import_authority_pdf(
-        french_pdf, tmp_path / "fra", language="fra"
-    )
+    english = authority_module.import_authority_pdf(english_pdf, tmp_path / "eng", language="eng")
+    french = authority_module.import_authority_pdf(french_pdf, tmp_path / "fra", language="fra")
     merged = authority_module.merge_authorities([english, french], tmp_path / "merged")
 
     assert french.updated_through == "2026-07-17"
@@ -1125,27 +2761,31 @@ def test_merge_upgrades_legacy_v1_language_and_source_provenance():
         source_url="https://www.echr.coe.int/documents/d/echr/case_law_references_eng",
         updated_through="2026-07-10",
         source_sha256="a" * 64,
-        entries=[authority_entry_from_citation(
-            "Example v. France, no. 12345/20, § ..., 17 July 2026"
-        )],
+        entries=[
+            authority_entry_from_citation("Example v. France, no. 12345/20, § ..., 17 July 2026")
+        ],
     )
     french = CitationAuthority(
         schema_version="citation-authority/v2",
         source_url="https://www.echr.coe.int/documents/d/echr/Case_law_references_FRA",
         updated_through="2026-07-17",
         source_sha256="b" * 64,
-        sources=[CitationAuthoritySource(
-            language="fra",
-            url="https://www.echr.coe.int/documents/d/echr/Case_law_references_FRA",
-            retrieved_at="2026-07-17T00:00:00+00:00",
-            updated_through="2026-07-17",
-            sha256="b" * 64,
-            entry_count=1,
-        )],
-        entries=[authority_entry_from_citation(
-            "Example c. France, no. 12345/20, § ..., 17 juillet 2026",
-            language="fra",
-        )],
+        sources=[
+            CitationAuthoritySource(
+                language="fra",
+                url="https://www.echr.coe.int/documents/d/echr/Case_law_references_FRA",
+                retrieved_at="2026-07-17T00:00:00+00:00",
+                updated_through="2026-07-17",
+                sha256="b" * 64,
+                entry_count=1,
+            )
+        ],
+        entries=[
+            authority_entry_from_citation(
+                "Example c. France, no. 12345/20, § ..., 17 juillet 2026",
+                language="fra",
+            )
+        ],
     )
 
     merged = authority_module.merge_authorities([legacy, french])
@@ -1243,10 +2883,7 @@ def test_packaged_authority_has_full_provenance_and_supplements():
     assert len(linked) == 41_676
     by_id = {entry.entry_id: entry for entry in authority.entries}
     assert all(len(entry.equivalent_entry_ids) == 1 for entry in linked)
-    assert all(
-        by_id[entry.equivalent_entry_ids[0]].language != entry.language
-        for entry in linked
-    )
+    assert all(by_id[entry.equivalent_entry_ids[0]].language != entry.language for entry in linked)
 
 
 def test_packaged_authority_representative_rows_are_clean_and_structured():
@@ -1282,9 +2919,7 @@ def test_packaged_authority_representative_rows_are_clean_and_structured():
     by_id = {entry.entry_id: entry for entry in authority.entries}
     assert by_id["advisory-competence-2004"].target_itemid == "003-1339293-1397515"
     assert by_id["paul-audrey-edwards-admissibility-2001"].target_unavailable is True
-    assert by_id["temeltasch-dr-31-130"].target_ecli == (
-        "ECLI:CE:ECHR:1983:0305REP000911680"
-    )
+    assert by_id["temeltasch-dr-31-130"].target_ecli == ("ECLI:CE:ECHR:1983:0305REP000911680")
 
 
 def test_resolution_report_json_contract():

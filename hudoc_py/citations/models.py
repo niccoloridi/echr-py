@@ -30,6 +30,7 @@ ProceduralPhase = Literal[
     "article_50",
     "just_satisfaction",
     "revision",
+    "interpretation",
     "striking_out",
     "friendly_settlement",
     "advisory_opinion",
@@ -127,6 +128,7 @@ class CitationCandidate(BaseModel):
     docname: str | None = None
     title_aliases: list[str] = Field(default_factory=list)
     reporter_keys: list[str] = Field(default_factory=list)
+    published_reporter_keys: list[str] = Field(default_factory=list)
     casecitations: list[str] = Field(default_factory=list)
     appnos: list[str] = Field(default_factory=list)
     date: dt.date | None = None
@@ -377,9 +379,7 @@ class CitationOccurrence(BaseModel):
 
     schema_version: Literal[
         "citation-occurrence/v1", "citation-occurrence/v2", "citation-occurrence/v3"
-    ] = (
-        "citation-occurrence/v3"
-    )
+    ] = "citation-occurrence/v3"
     occurrence_id: str
     locus_id: str | None = None
     citation_group_id: str | None = None

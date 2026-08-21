@@ -130,6 +130,15 @@ preliminary paragraph occurrences, and rejected candidates. A raw application
 number is promoted only when a compatible case name occurs in the same
 citation envelope; otherwise it remains a typed diagnostic.
 
+Historical European Commission reports and admissibility decisions are also
+retained when the printed source supplies a Commission-specific date or an
+application number with a complete `D.R.` volume-and-page locator. These rows
+carry the `echr_commission` namespace and remain explicitly unresolved: a bare
+`D.R.` volume, a nearby date, or a Court judgment for the same application can
+never promote them into a Court-document edge. Nested application-number spans
+are folded into the complete Commission envelope, and compatible overlapping
+SCL provenance is merged into one physical locus.
+
 ## Precision rules
 
 Full citation envelopes, SCL forms, application numbers corroborated by a case

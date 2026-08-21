@@ -28,9 +28,7 @@ _PARA_NUM_RE = re.compile(r"^\s*(\d{1,4})\.\s+\S")
 _CSS_RULE_RE = re.compile(r"\.([A-Za-z0-9_-]+)\s*\{([^}]*)\}")
 _CSS_DECL_RE = re.compile(r"([A-Za-z-]+)\s*:\s*([^;]+)")
 _FONT_SIZE_RE = re.compile(r"(-?\d+(?:\.\d+)?)pt", re.IGNORECASE)
-_BLOCK_RE = re.compile(
-    r"\S(?:.*?\S)?(?=(?:\r\r\n|\r?\n[ \t]*\r?\n)|\Z)", re.DOTALL
-)
+_BLOCK_RE = re.compile(r"\S(?:.*?\S)?(?=(?:\r\r\n|\r?\n[ \t]*\r?\n)|\Z)", re.DOTALL)
 _FOOTNOTE_ANCHOR_RE = re.compile(r"^_?ftn(?P<label>\d+)$", re.IGNORECASE)
 
 _CANONICAL_HEADING_RE = re.compile(
@@ -92,8 +90,7 @@ def _combined_style(classes: Iterable[str], styles: dict[str, dict[str, str]]) -
 
 def _inline_style(value: object) -> dict[str, str]:
     return {
-        key.strip().lower(): item.strip()
-        for key, item in _CSS_DECL_RE.findall(str(value or ""))
+        key.strip().lower(): item.strip() for key, item in _CSS_DECL_RE.findall(str(value or ""))
     }
 
 
@@ -110,7 +107,22 @@ def _element_text(element: Tag) -> str:
     return " ".join(element.get_text(separator="", strip=False).split())
 
 
-def _style_flags(node: NavigableString, root: Tag, styles: dict[str, dict[str, str]]) -> tuple[bool, bool]:
+def _list_item_lead_text(element: Tag) -> str:
+    """Return a list item's own label without flattening nested list bodies."""
+    values: list[str] = []
+    for child in element.children:
+        if isinstance(child, Tag) and (child.name or "").lower() in {"ol", "ul"}:
+            break
+        if isinstance(child, NavigableString):
+            values.append(str(child))
+        elif isinstance(child, Tag):
+            values.append(child.get_text(separator="", strip=False))
+    return " ".join("".join(values).split())
+
+
+def _style_flags(
+    node: NavigableString, root: Tag, styles: dict[str, dict[str, str]]
+) -> tuple[bool, bool]:
     """Return inherited bold/italic flags without promoting them to block style."""
     bold = italic = False
     parent = node.parent
@@ -155,14 +167,18 @@ def _inline_runs(element: Tag, text: str, styles: dict[str, dict[str, str]]) -> 
     found: list[InlineTextRun] = []
     for node, start, end in _dom_text_ranges(element, text):
         bold, italic = _style_flags(node, element, styles)
-        found.append(InlineTextRun(text=text[start:end], start=start, end=end, bold=bold, italic=italic))
+        found.append(
+            InlineTextRun(text=text[start:end], start=start, end=end, bold=bold, italic=italic)
+        )
 
     # Fill separator/punctuation gaps so runs form a complete, auditable view.
     complete: list[InlineTextRun] = []
     cursor = 0
     for run in found:
         if run.start > cursor:
-            complete.append(InlineTextRun(text=text[cursor:run.start], start=cursor, end=run.start))
+            complete.append(
+                InlineTextRun(text=text[cursor : run.start], start=cursor, end=run.start)
+            )
         complete.append(run)
         cursor = run.end
     if cursor < len(text):
@@ -198,13 +214,15 @@ def _footnote_references(element: Tag, text: str) -> list[FootnoteReference]:
             continue
         start = anchor_ranges[0][0]
         end = anchor_ranges[-1][1]
-        references.append(FootnoteReference(
-            footnote_id=footnote_id,
-            label=label,
-            start=start,
-            end=end,
-            target_anchor=str(anchor.get("href")),
-        ))
+        references.append(
+            FootnoteReference(
+                footnote_id=footnote_id,
+                label=label,
+                start=start,
+                end=end,
+                target_anchor=str(anchor.get("href")),
+            )
+        )
     return references
 
 
@@ -321,8 +339,12 @@ def _make_blocks(
         source_tag = record.get("source_tag")
         style = dict(record.get("source_style", {}))
         is_footnote = record.get("type") == "footnote"
-        heading_level, evidence = (None, []) if is_footnote else _heading_evidence(
-            text, source_tag=str(source_tag) if source_tag else None, style=style
+        heading_level, evidence = (
+            (None, [])
+            if is_footnote
+            else _heading_evidence(
+                text, source_tag=str(source_tag) if source_tag else None, style=style
+            )
         )
         para_match = None if is_footnote else _PARA_NUM_RE.match(text)
         block_type = cast(
@@ -457,7 +479,7 @@ def build_spine_from_html(html: str, *, document_id: str | None = None) -> Docum
     records: list[dict[str, Any]] = []
     cursor = 0
     for element in soup.find_all(["p", "h1", "h2", "h3", "h4", "h5", "h6", "li", "blockquote"]):
-        text = _element_text(element)
+        text = _list_item_lead_text(element) if element.name == "li" else _element_text(element)
         if not text:
             continue
         classes: list[str] = []
@@ -480,8 +502,7 @@ def build_spine_from_html(html: str, *, document_id: str | None = None) -> Docum
         block_type = (
             "footnote"
             if parsed_footnote is not None
-            else
-            "list_item"
+            else "list_item"
             if element.name == "li"
             else "blockquote"
             if element.name == "blockquote"
@@ -514,47 +535,51 @@ def build_spine_from_html(html: str, *, document_id: str | None = None) -> Docum
     for footnote_id, block_ids in references.items():
         if footnote_id not in body_groups:
             source = next(block for block in spine.blocks if block.block_id == block_ids[0])
-            spine.diagnostics.append(SegmentationDiagnostic(
-                code="footnote_body_missing",
-                severity="warning",
-                message=f"Footnote reference {footnote_id} has no body.",
-                block_index=spine.blocks.index(source),
-            ))
+            spine.diagnostics.append(
+                SegmentationDiagnostic(
+                    code="footnote_body_missing",
+                    severity="warning",
+                    message=f"Footnote reference {footnote_id} has no body.",
+                    block_index=spine.blocks.index(source),
+                )
+            )
     footnotes: list[DocumentFootnote] = []
     for footnote_id, bodies in body_groups.items():
         label = footnote_id.removeprefix("ftn")
         invoking_ids = list(dict.fromkeys(references.get(footnote_id, [])))
-        invoking_blocks = [
-            block for block in spine.blocks if block.block_id in set(invoking_ids)
-        ]
-        invoking_para_ids = list(dict.fromkeys(
-            para_id
-            for block in invoking_blocks
-            if (para_id := block.legal_para_id or block.para_id) is not None
-        ))
+        invoking_blocks = [block for block in spine.blocks if block.block_id in set(invoking_ids)]
+        invoking_para_ids = list(
+            dict.fromkeys(
+                para_id
+                for block in invoking_blocks
+                if (para_id := block.legal_para_id or block.para_id) is not None
+            )
+        )
         for block in bodies:
             block.referenced_by_block_ids = invoking_ids
             block.referenced_by_para_ids = invoking_para_ids
-        first_text = re.sub(
-            rf"^\s*\[?{re.escape(label)}\]?[.)]?\s*", "", bodies[0].text, count=1
-        )
+        first_text = re.sub(rf"^\s*\[?{re.escape(label)}\]?[.)]?\s*", "", bodies[0].text, count=1)
         body_text = "\n\n".join([first_text, *(block.text for block in bodies[1:])])
         if not invoking_ids:
-            spine.diagnostics.append(SegmentationDiagnostic(
-                code="footnote_reference_missing",
-                severity="warning",
-                message=f"Footnote body {label} has no inline reference.",
-                block_index=spine.blocks.index(bodies[0]),
-            ))
-        footnotes.append(DocumentFootnote(
-            footnote_id=footnote_id,
-            label=label,
-            text=body_text,
-            body_block_id=bodies[0].block_id,
-            body_block_ids=[block.block_id for block in bodies],
-            reference_block_ids=invoking_ids,
-            reference_para_ids=invoking_para_ids,
-        ))
+            spine.diagnostics.append(
+                SegmentationDiagnostic(
+                    code="footnote_reference_missing",
+                    severity="warning",
+                    message=f"Footnote body {label} has no inline reference.",
+                    block_index=spine.blocks.index(bodies[0]),
+                )
+            )
+        footnotes.append(
+            DocumentFootnote(
+                footnote_id=footnote_id,
+                label=label,
+                text=body_text,
+                body_block_id=bodies[0].block_id,
+                body_block_ids=[block.block_id for block in bodies],
+                reference_block_ids=invoking_ids,
+                reference_para_ids=invoking_para_ids,
+            )
+        )
     spine.footnotes = footnotes
     return spine
 
@@ -583,12 +608,14 @@ def link_footnote_context(spine: DocumentSpine) -> None:
             for reference in references
         }
         if len(contexts) != 1:
-            spine.diagnostics.append(SegmentationDiagnostic(
-                code="footnote_multiple_source_contexts",
-                severity="warning",
-                message=f"Footnote {footnote.label} is invoked from multiple contexts.",
-                block_index=spine.blocks.index(bodies[0]),
-            ))
+            spine.diagnostics.append(
+                SegmentationDiagnostic(
+                    code="footnote_multiple_source_contexts",
+                    severity="warning",
+                    message=f"Footnote {footnote.label} is invoked from multiple contexts.",
+                    block_index=spine.blocks.index(bodies[0]),
+                )
+            )
             # A physically terminal note may otherwise inherit the last
             # opinion's metadata even when it is also invoked by the majority.
             # Preserve every backlink, but keep the source component neutral.

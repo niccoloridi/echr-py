@@ -84,24 +84,29 @@ def test_fetch_benchmark_rejects_oversize_and_bad_checksum(tmp_path):
 def test_competitor_jsonl_import_and_exact_scope_comparison(tmp_path):
     path = tmp_path / "ecthr-pcr.jsonl"
     path.write_text(
-        json.dumps({
-            "citing_itemid": "001-source",
-            "cited_itemid": "001-target",
-            "citing_appno": "1/01",
-            "cited_appno": "2/02",
-            "paragraph_id": "42",
-        }) + "\n",
+        json.dumps(
+            {
+                "citing_itemid": "001-source",
+                "cited_itemid": "001-target",
+                "citing_appno": "1/01",
+                "cited_appno": "2/02",
+                "paragraph_id": "42",
+            }
+        )
+        + "\n",
         encoding="utf-8",
     )
 
     competitor = load_competitor_citations(path)
     report = compare_citation_exports(
-        [{
-            "source_itemid": "001-source",
-            "target_itemid": "001-target",
-            "source_appno": "1/01",
-            "target_appno": "2/02",
-        }],
+        [
+            {
+                "source_itemid": "001-source",
+                "target_itemid": "001-target",
+                "source_appno": "1/01",
+                "target_appno": "2/02",
+            }
+        ],
         competitor,
     )
 
@@ -176,24 +181,28 @@ def test_mumford_appno_is_read_from_exact_span_when_attribute_has_name_only(tmp_
 
 
 def test_benchmark_alignment_is_conservative_and_scores_optional_labels():
-    annotations = [{
-        "annotation_id": "a1",
-        "source_itemid": "001-123456",
-        "citation": "Alpha v. State, no. 12/34",
-        "exact_span": "Alpha v. State, no. 12/34",
-        "citation_appnos": ["12/34"],
-        "judicial_consideration": "Applied",
-        "curated": True,
-    }]
-    local = [{
-        "occurrence_id": "o1",
-        "source_itemid": "001-123456",
-        "raw_span": "Alpha v. State, no. 12/34",
-        "target_appnos": "12/34",
-        "target_itemid": "001-654321",
-        "target_paragraphs": ["9"],
-        "source_component": "majority",
-    }]
+    annotations = [
+        {
+            "annotation_id": "a1",
+            "source_itemid": "001-123456",
+            "citation": "Alpha v. State, no. 12/34",
+            "exact_span": "Alpha v. State, no. 12/34",
+            "citation_appnos": ["12/34"],
+            "judicial_consideration": "Applied",
+            "curated": True,
+        }
+    ]
+    local = [
+        {
+            "occurrence_id": "o1",
+            "source_itemid": "001-123456",
+            "raw_span": "Alpha v. State, no. 12/34",
+            "target_appnos": "12/34",
+            "target_itemid": "001-654321",
+            "target_paragraphs": ["9"],
+            "source_component": "majority",
+        }
+    ]
 
     aligned = align_benchmark_annotations(annotations, local)
     assert aligned[0]["occurrence_id"] == "o1"
@@ -209,6 +218,73 @@ def test_benchmark_alignment_is_conservative_and_scores_optional_labels():
     assert report["paragraph_pinpoint_resolved"] == 1
     assert report["treatment_macro_f1"] == 1.0
     assert report["treatment_krippendorff_alpha"] == 1.0
+
+
+@pytest.mark.parametrize(
+    ("citation", "printed"),
+    [
+        ("M.S.S v. Belgium and Greece", "M.S.S. v. Belgium and Greece"),
+        ("Ilașcu and Others v. Moldova and Russia", "Ilaşcu and Others"),
+        ("Guiso-Gallisay v. Italy", "Guiso Gallisay v. Italy"),
+        ("Guiso-Gallisay v. Italy", "Guiso�Gallisay v. Italy"),
+        (
+            "Chahal v. the United Kingdom",
+            "Chahal [v. the United Kingdom, 15 November 1996]",
+        ),
+    ],
+)
+def test_benchmark_identity_accepts_initial_and_diacritic_orthography(citation, printed):
+    row = align_benchmark_annotations(
+        [
+            {
+                "annotation_id": "a1",
+                "source_itemid": "001-source",
+                "start": 10,
+                "end": 30,
+                "citation": citation,
+                "exact_span": printed,
+            }
+        ],
+        [
+            {
+                "occurrence_id": "o1",
+                "source_itemid": "001-source",
+                "document_start": 10,
+                "document_end": 30,
+                "raw_text": printed,
+                "evidence": {"scl_reference": f"{printed} [GC]"},
+            }
+        ],
+    )[0]
+
+    assert row["alignment_status"] == "source_offsets"
+
+
+def test_benchmark_identity_uses_structured_printed_short_name_evidence():
+    row = align_benchmark_annotations(
+        [
+            {
+                "annotation_id": "a1",
+                "source_itemid": "001-source",
+                "start": 10,
+                "end": 40,
+                "citation": "Richardson v. the United Kingdom",
+                "exact_span": "Richardson, cited above",
+            }
+        ],
+        [
+            {
+                "occurrence_id": "o1",
+                "source_itemid": "001-source",
+                "document_start": 10,
+                "document_end": 40,
+                "raw_text": "Richardson, cited above",
+                "evidence": {"discovery_evidence": {"printed_cited_name": "Richardson"}},
+            }
+        ],
+    )[0]
+
+    assert row["alignment_status"] == "source_offsets"
 
 
 def test_repeated_equal_candidates_remain_ambiguous():
@@ -394,10 +470,7 @@ def test_appno_corroborates_name_context_in_multi_citation_paragraph():
         "exact_span": "Alpha v. State (cited above)",
         "citation_appnos": ["12/34"],
     }
-    context = (
-        "See Alpha v. State (cited above), no. 12/34 and "
-        "Beta v. State, no. 56/78."
-    )
+    context = "See Alpha v. State (cited above), no. 12/34 and Beta v. State, no. 56/78."
     candidates = [
         {
             "occurrence_id": "alpha",
@@ -419,6 +492,58 @@ def test_appno_corroborates_name_context_in_multi_citation_paragraph():
     assert row["alignment_methods"] == ["normalized_citation", "target_appno"]
 
 
+def test_printed_appno_aligns_an_unresolved_occurrence_without_faking_resolution():
+    annotation = {
+        "source_itemid": "001-123456",
+        "start": 10,
+        "end": 48,
+        "citation": "Alphaa v. State",
+        "exact_span": "Alpha v. State, no. 12/34",
+        "citation_appnos": ["12/34"],
+    }
+    candidate = {
+        "occurrence_id": "alpha-unresolved",
+        "source_itemid": "001-123456",
+        "document_start": 10,
+        "document_end": 48,
+        "raw_text": "Alpha v. State, no. 12/34",
+        "target_appnos": [],
+        "resolution_scope": "unresolved",
+    }
+
+    aligned = align_benchmark_annotations([annotation], [candidate])[0]
+    report = benchmark_citation_annotations([annotation], [candidate])
+
+    assert aligned["alignment_status"] == "source_offsets"
+    assert "printed_appno" in aligned["alignment_methods"]
+    assert report["application_identification"]["automatically_identified"] == 0
+    assert report["exact_document_resolution"]["resolved"] == 0
+
+
+def test_printed_appno_does_not_override_an_incompatible_citation_identity():
+    annotation = {
+        "source_itemid": "001-123456",
+        "start": 10,
+        "end": 48,
+        "citation": "Bakır and Others v. Turkey",
+        "exact_span": "Öner and Türk v. Turkey, no. 12/34",
+        "citation_appnos": ["12/34"],
+    }
+    candidate = {
+        "occurrence_id": "oner-unresolved",
+        "source_itemid": "001-123456",
+        "document_start": 10,
+        "document_end": 48,
+        "raw_text": "Öner and Türk v. Turkey, no. 12/34",
+        "target_appnos": [],
+        "resolution_scope": "unresolved",
+    }
+
+    aligned = align_benchmark_annotations([annotation], [candidate])[0]
+
+    assert aligned["alignment_status"] == "unmatched"
+
+
 def test_mumford_projection_maps_full_context_into_xmi_offsets():
     sofa = "I. THE ISSUE\r\r\n42.\u00a0 See Alpha v. State, no. 12/34, § 9."
     context = "42. See Alpha v. State, no. 12/34, § 9."
@@ -426,24 +551,28 @@ def test_mumford_projection_maps_full_context_into_xmi_offsets():
     block_start = context.index("Alpha")
     block_end = block_start + len(raw)
     original_start = 1234 + block_start
-    documents = [{
-        "source_itemid": "001-source",
-        "source_text": sofa,
-        "source_text_sha256": hashlib.sha256(sofa.encode()).hexdigest(),
-        "curated": True,
-    }]
-    occurrences = [{
-        "occurrence_id": "o1",
-        "source_itemid": "001-source",
-        "source_component": "majority",
-        "source_section": "the_law",
-        "source_context": context,
-        "block_start": block_start,
-        "block_end": block_end,
-        "document_start": original_start,
-        "document_end": original_start + len(raw),
-        "raw_text": raw,
-    }]
+    documents = [
+        {
+            "source_itemid": "001-source",
+            "source_text": sofa,
+            "source_text_sha256": hashlib.sha256(sofa.encode()).hexdigest(),
+            "curated": True,
+        }
+    ]
+    occurrences = [
+        {
+            "occurrence_id": "o1",
+            "source_itemid": "001-source",
+            "source_component": "majority",
+            "source_section": "the_law",
+            "source_context": context,
+            "block_start": block_start,
+            "block_end": block_end,
+            "document_start": original_start,
+            "document_end": original_start + len(raw),
+            "raw_text": raw,
+        }
+    ]
 
     projected, report = project_mumford_occurrences(documents, occurrences)
 
@@ -483,6 +612,33 @@ def test_mumford_projection_abstains_on_opinions_and_ambiguous_contexts():
         "ambiguous_normalized_context": 1,
         "outside_reference_component": 1,
     }
+
+
+def test_mumford_projection_uses_a_unique_printed_span_when_context_drifted():
+    context = (
+        "42. Current HTML has substantially revised surrounding words; Alpha v. State, no. 12/34."
+    )
+    raw = "Alpha v. State, no. 12/34"
+    sofa = "42. Older XMI had different surrounding prose; Alpha v. State, no. 12/34."
+    start = context.index(raw)
+    documents = [{"source_itemid": "001-source", "source_text": sofa, "curated": True}]
+    occurrences = [
+        {
+            "occurrence_id": "o1",
+            "source_itemid": "001-source",
+            "source_component": "majority",
+            "source_section": "the_law",
+            "source_context": context,
+            "block_start": start,
+            "block_end": start + len(raw),
+            "raw_text": raw,
+        }
+    ]
+
+    projected, report = project_mumford_occurrences(documents, occurrences)
+
+    assert report["statuses"] == {"normalized_occurrence": 1}
+    assert projected[0]["benchmark_projected_text"] == raw
 
 
 def test_source_overlap_requires_compatible_citation_identity():
@@ -562,23 +718,27 @@ def test_xmi_hash_mismatch_disables_offset_evidence():
 
 
 def test_benchmark_decodes_nested_parquet_style_json_columns():
-    annotations = [{
-        "source_itemid": "001-source",
-        "citation": "Alpha v. State",
-        "exact_span": "Alpha v. State, no. 12/34",
-        "citation_appnos": ["12/34"],
-    }]
-    local = [{
-        "occurrence_id": "o1",
-        "source_itemid": "001-source",
-        "raw_text": "Alpha v. State, no. 12/34",
-        "target_itemid": "001-target",
-        "target_appnos": '["12/34"]',
-        "target_paragraphs": '["9"]',
-        "target_paragraph_resolutions": '[{"status": "exact"}]',
-        "paragraph_resolution_status": "resolved",
-        "resolution_scope": "document",
-    }]
+    annotations = [
+        {
+            "source_itemid": "001-source",
+            "citation": "Alpha v. State",
+            "exact_span": "Alpha v. State, no. 12/34",
+            "citation_appnos": ["12/34"],
+        }
+    ]
+    local = [
+        {
+            "occurrence_id": "o1",
+            "source_itemid": "001-source",
+            "raw_text": "Alpha v. State, no. 12/34",
+            "target_itemid": "001-target",
+            "target_appnos": '["12/34"]',
+            "target_paragraphs": '["9"]',
+            "target_paragraph_resolutions": '[{"status": "exact"}]',
+            "paragraph_resolution_status": "resolved",
+            "resolution_scope": "document",
+        }
+    ]
 
     report = benchmark_citation_annotations(annotations, local)
 
@@ -615,16 +775,11 @@ def test_published_mumford_audit_matches_code_and_documented_counts():
 
     recovery = audit["selected_annotation_recovery"]
     claim = (root / "docs" / "claim-audit.md").read_text(encoding="utf-8")
-    methodology = (root / "docs" / "mumford-methodology-audit.md").read_text(
-        encoding="utf-8"
-    )
-    documented = (
-        f"{recovery['aligned_one_to_one']:,}/{recovery['denominator']:,}"
-    )
+    methodology = (root / "docs" / "mumford-methodology-audit.md").read_text(encoding="utf-8")
+    documented = f"{recovery['aligned_one_to_one']:,}/{recovery['denominator']:,}"
     assert documented in claim
     assert (
-        f"{recovery['aligned_one_to_one']:,}\nof the "
-        f"{recovery['denominator']:,}"
+        f"{recovery['aligned_one_to_one']:,}\nof the {recovery['denominator']:,}"
     ) in methodology
     documented_rate = f"{recovery['rate']:.1%}"
     assert documented_rate in claim
@@ -645,21 +800,23 @@ def test_published_mumford_audit_matches_code_and_documented_counts():
         assert f"{numerator:,}/{denominator:,}" in claim
 
     reproduced = reproduction["byte_identical_sha256"]
-    assert reproduced["occurrences_jsonl"] == audit["inclusive_occurrences"][
-        "occurrences_jsonl_sha256"
-    ]
-    assert reproduced["occurrence_report"] == audit["inclusive_occurrences"][
-        "report_sha256"
-    ]
-    assert reproduced["paragraph_edges_jsonl"] == audit["inclusive_occurrences"][
-        "paragraph_edges_jsonl_sha256"
-    ]
-    assert reproduced["projected_occurrences_jsonl"] == audit["offset_projection"][
-        "projected_jsonl_sha256"
-    ]
-    assert reproduced["projection_diagnostics_jsonl"] == audit["offset_projection"][
-        "diagnostics_jsonl_sha256"
-    ]
+    assert (
+        reproduced["occurrences_jsonl"]
+        == audit["inclusive_occurrences"]["occurrences_jsonl_sha256"]
+    )
+    assert reproduced["occurrence_report"] == audit["inclusive_occurrences"]["report_sha256"]
+    assert (
+        reproduced["paragraph_edges_jsonl"]
+        == audit["inclusive_occurrences"]["paragraph_edges_jsonl_sha256"]
+    )
+    assert (
+        reproduced["projected_occurrences_jsonl"]
+        == audit["offset_projection"]["projected_jsonl_sha256"]
+    )
+    assert (
+        reproduced["projection_diagnostics_jsonl"]
+        == audit["offset_projection"]["diagnostics_jsonl_sha256"]
+    )
     assert reproduced["comparison_json"] == audit["outputs"]["comparison_json_sha256"]
 
 
@@ -672,48 +829,77 @@ def test_cli_projects_full_mumford_occurrences_before_comparison(tmp_path):
     local = tmp_path / "occurrences.jsonl"
     output = tmp_path / "comparison.json"
     projected = tmp_path / "projected.jsonl"
-    documents.write_text(json.dumps({
-        "source_itemid": "001-source",
-        "source_text": sofa,
-        "source_text_sha256": checksum,
-        "curated": True,
-    }) + "\n", encoding="utf-8")
+    documents.write_text(
+        json.dumps(
+            {
+                "source_itemid": "001-source",
+                "source_text": sofa,
+                "source_text_sha256": checksum,
+                "curated": True,
+            }
+        )
+        + "\n",
+        encoding="utf-8",
+    )
     start = sofa.index("Alpha")
-    reference.write_text(json.dumps({
-        "source_itemid": "001-source",
-        "source_text_sha256": checksum,
-        "start": start,
-        "end": start + len(raw),
-        "citation": "Alpha v. State",
-        "exact_span": raw,
-        "source_label": "ECHR case law",
-        "curated": True,
-    }) + "\n", encoding="utf-8")
+    reference.write_text(
+        json.dumps(
+            {
+                "source_itemid": "001-source",
+                "source_text_sha256": checksum,
+                "start": start,
+                "end": start + len(raw),
+                "citation": "Alpha v. State",
+                "exact_span": raw,
+                "source_label": "ECHR case law",
+                "curated": True,
+            }
+        )
+        + "\n",
+        encoding="utf-8",
+    )
     context = "42. See Alpha v. State, no. 12/34."
     block_start = context.index("Alpha")
-    local.write_text(json.dumps({
-        "occurrence_id": "o1",
-        "source_itemid": "001-source",
-        "source_component": "majority",
-        "source_section": "the_law",
-        "source_context": context,
-        "block_start": block_start,
-        "block_end": block_start + len(raw),
-        "document_start": 999,
-        "document_end": 999 + len(raw),
-        "raw_text": raw,
-    }) + "\n", encoding="utf-8")
+    local.write_text(
+        json.dumps(
+            {
+                "occurrence_id": "o1",
+                "source_itemid": "001-source",
+                "source_component": "majority",
+                "source_section": "the_law",
+                "source_context": context,
+                "block_start": block_start,
+                "block_end": block_start + len(raw),
+                "document_start": 999,
+                "document_end": 999 + len(raw),
+                "raw_text": raw,
+            }
+        )
+        + "\n",
+        encoding="utf-8",
+    )
 
-    result = cli_main([
-        "citations", "benchmark", "compare",
-        "--kind", "mumford",
-        "--reference", str(reference),
-        "--local", str(local),
-        "--documents", str(documents),
-        "--reference-scope", "echr",
-        "--projected-out", str(projected),
-        "--out", str(output),
-    ])
+    result = cli_main(
+        [
+            "citations",
+            "benchmark",
+            "compare",
+            "--kind",
+            "mumford",
+            "--reference",
+            str(reference),
+            "--local",
+            str(local),
+            "--documents",
+            str(documents),
+            "--reference-scope",
+            "echr",
+            "--projected-out",
+            str(projected),
+            "--out",
+            str(output),
+        ]
+    )
 
     report = json.loads(output.read_text(encoding="utf-8"))
     assert result == 0
@@ -728,10 +914,10 @@ def test_mumford_illegal_xml_reference_is_repaired_without_offset_drift(tmp_path
     folder.mkdir()
     path = folder / "CURATION_USER.xmi"
     path.write_text(
-        '''<xmi:XMI xmlns:xmi="http://www.omg.org/XMI" xmlns:cas="http:///cas.ecore"
+        """<xmi:XMI xmlns:xmi="http://www.omg.org/XMI" xmlns:cas="http:///cas.ecore"
  xmlns:custom="http:///custom.ecore"><cas:Sofa sofaString="Al&#30;Skeini" />
  <custom:Span begin="0" end="9" Citation="Al&#30;Skeini"
- JudicialConsideration="Neutral" /></xmi:XMI>''',
+ JudicialConsideration="Neutral" /></xmi:XMI>""",
         encoding="utf-8",
     )
     parsed = parse_mumford_xmi(path)

@@ -90,11 +90,16 @@ def authority_entry_from_citation(
     # The Court's master list supplies the official reporter form for judgments
     # without repeating the word "judgment" in every row. Explicit decision,
     # advisory-opinion, Article 50, and other qualifiers have already won above.
-    if document_kind == "unknown" and reporter and reporter.family in {
-        "series_a",
-        "reports",
-        "echr",
-    }:
+    if (
+        document_kind == "unknown"
+        and reporter
+        and reporter.family
+        in {
+            "series_a",
+            "reports",
+            "echr",
+        }
+    ):
         document_kind = "judgment"
         procedural_phase = "merits"
     return CitationAuthorityEntry(
@@ -197,9 +202,7 @@ def import_authority_pdf(
     if updated_through is None and (match := _UPDATED_RE.search(text)):
         parsed = parse_reference_date(match.group(1))
         updated_through = parsed.isoformat() if parsed else match.group(1)
-    entries = [
-        authority_entry_from_citation(citation, language=language) for citation in citations
-    ]
+    entries = [authority_entry_from_citation(citation, language=language) for citation in citations]
     by_citation = {entry.normalized_citation: index for index, entry in enumerate(entries)}
     for supplement in _packaged_supplement_entries():
         existing_index = by_citation.get(supplement.normalized_citation)
@@ -228,14 +231,16 @@ def import_authority_pdf(
         imported_at=retrieved_at,
         parser_version="7",
         coverage="full",
-        sources=[CitationAuthoritySource(
-            language=language,
-            url=source_url,
-            retrieved_at=retrieved_at,
-            updated_through=updated_through,
-            sha256=hashlib.sha256(payload).hexdigest(),
-            entry_count=sum(entry.entry_source == "official_master" for entry in entries),
-        )],
+        sources=[
+            CitationAuthoritySource(
+                language=language,
+                url=source_url,
+                retrieved_at=retrieved_at,
+                updated_through=updated_through,
+                sha256=hashlib.sha256(payload).hexdigest(),
+                entry_count=sum(entry.entry_source == "official_master" for entry in entries),
+            )
+        ],
         entries=entries,
     )
     out = Path(out_dir)
@@ -280,14 +285,16 @@ def _authority_sources(authority: CitationAuthority) -> list[CitationAuthoritySo
     if not authority.source_sha256:
         return []
     language = _authority_language(authority)
-    return [CitationAuthoritySource(
-        language=language,
-        url=authority.source_url,
-        retrieved_at=authority.imported_at,
-        updated_through=authority.updated_through,
-        sha256=authority.source_sha256,
-        entry_count=sum(entry.entry_source == "official_master" for entry in authority.entries),
-    )]
+    return [
+        CitationAuthoritySource(
+            language=language,
+            url=authority.source_url,
+            retrieved_at=authority.imported_at,
+            updated_through=authority.updated_through,
+            sha256=authority.source_sha256,
+            entry_count=sum(entry.entry_source == "official_master" for entry in authority.entries),
+        )
+    ]
 
 
 def merge_authorities(
@@ -390,11 +397,25 @@ def load_authority(path: str | Path | None = None) -> CitationAuthority:
         resource = data.joinpath("citation_authority.json")
         if not resource.is_file():
             resource = data.joinpath("citation_authority_eng.json")
-        return CitationAuthority.model_validate_json(resource.read_text(encoding="utf-8"))
+        authority = CitationAuthority.model_validate_json(resource.read_text(encoding="utf-8"))
+        return _upgrade_legacy_authority_phases(authority)
     candidate = Path(path)
     if candidate.is_dir():
         candidate = candidate / "citation-authority.json"
-    return CitationAuthority.model_validate_json(candidate.read_text(encoding="utf-8"))
+    authority = CitationAuthority.model_validate_json(candidate.read_text(encoding="utf-8"))
+    return _upgrade_legacy_authority_phases(authority)
+
+
+def _upgrade_legacy_authority_phases(authority: CitationAuthority) -> CitationAuthority:
+    """Correct phases introduced after authority-v2 without rewriting old files."""
+    entries = [
+        entry.model_copy(update={"procedural_phase": "interpretation", "document_kind": "judgment"})
+        if infer_procedural_phase(entry.citation) == "interpretation"
+        and entry.procedural_phase != "interpretation"
+        else entry
+        for entry in authority.entries
+    ]
+    return authority.model_copy(update={"entries": entries})
 
 
 def save_authority(authority: CitationAuthority, path: str | Path) -> Path:
