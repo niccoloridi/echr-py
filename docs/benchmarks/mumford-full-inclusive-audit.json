@@ -16,11 +16,11 @@
   "software": {
     "name": "echr-py",
     "version": "0.2.0",
-    "git_commit": "c084bbfc306acb2462cbc2adc0b29c985142274e",
+    "git_commit": "e63bf3c025d3ad62917f7ac7cd05aacef5bdcca4",
     "worktree_dirty_at_run": false,
     "source_snapshot_note": "The benchmark was evaluated directly from a clean detached worktree at this commit; the per-file hashes independently identify the code used.",
     "benchmarks_py_sha256": "8967a678c69b8b19580e7f528b9194652b2ca2362ba8a778789b6a76a2a952d2",
-    "occurrences_py_sha256": "2d82388b79438c75fe45ae85c210068f470e99194cdb7bb146e4ac7c8cb43256",
+    "occurrences_py_sha256": "37b1b4f294bafec2e1a9509eff867f43f926a39ad201cbcb81f6e6323ba583d8",
     "resolver_py_sha256": "fda79b7402ca93d1a695833e132639a6c2b827ee0975a393b2a667666ee9f85b",
     "reporter_py_sha256": "18cac8f4c3dfe0a7e295608ff086bbc5604bc3442b2ec65b44644e8364e21796",
     "paragraphs_py_sha256": "2b2eeaaef5dc4d5ebbf53594f23e2e64356d5295cdb682de39635a803bf43777",
@@ -32,15 +32,15 @@
   },
   "independent_reproduction": {
     "date": "2026-08-21",
-    "git_commit": "c084bbfc306acb2462cbc2adc0b29c985142274e",
+    "git_commit": "e63bf3c025d3ad62917f7ac7cd05aacef5bdcca4",
     "clean_detached_worktrees": 2,
     "byte_identical_sha256": {
-      "occurrences_jsonl": "f616c56f00095cc02e1a38084dcad38643c6c33426d3c38825ca1b4cb692b3b1",
-      "occurrence_report": "4d89e953ad093ecf195f90c854d7be5d2369334216fe4734749538d0f90798ce",
+      "occurrences_jsonl": "eb51a562ecc9c7cbaabbcdd1cda0f28e3063e20cfa4a55f214375974d4755ce1",
+      "occurrence_report": "888f23dda55b6b80bfcda5e55c2f81ecd5aa3567db5ae7d25f3ddb69675b5da8",
       "paragraph_edges_jsonl": "6ad00c1fb3e657f5895de8920b9cb01dc541c44ad9bc6c6930ce625ee63e5a55",
-      "projected_occurrences_jsonl": "2425b2990005738aa2f0075c6b42a98a4a3783a6cc39f0f605e198057ca552af",
+      "projected_occurrences_jsonl": "8d71a946acee1c4b537ad28bedbb2097da2e6bce0fb4982dd5f9a82598d0f341",
       "projection_diagnostics_jsonl": "8f18f95da25ef8152aead7d27a12a8dd8ab3823bff99706c348c9911583d38e6",
-      "comparison_json": "407ff00f1647167bffd6a2b2db1555e8fd695fe6031cbdbd08c0f4824e4d0316"
+      "comparison_json": "62a5ff008401b5644c59be7ffe9f48c63e12e1f0fcf26c49e53de26bc87ecfe3"
     }
   },
   "selection": {
@@ -91,13 +91,13 @@
   },
   "inclusive_occurrences": {
     "schema_version": "citation-occurrence/v3",
-    "occurrences": 7036,
-    "unique_loci": 7035,
+    "occurrences": 7019,
+    "unique_loci": 7018,
     "compound_groups": 1,
     "grouped_occurrence_rows": 2,
-    "scl_covered_occurrences": 4883,
-    "text_only_occurrences": 2153,
-    "majority_occurrences": 7036,
+    "scl_covered_occurrences": 4867,
+    "text_only_occurrences": 2152,
+    "majority_occurrences": 7019,
     "opinion_occurrences": 0,
     "appendix_occurrences": 0,
     "pinpoint_occurrences": 5284,
@@ -109,15 +109,15 @@
     "missing_source_html": 0,
     "missing_target_html": 0,
     "offline_run_status": "complete_cached_target_hydration",
-    "occurrences_jsonl_sha256": "f616c56f00095cc02e1a38084dcad38643c6c33426d3c38825ca1b4cb692b3b1",
-    "report_sha256": "4d89e953ad093ecf195f90c854d7be5d2369334216fe4734749538d0f90798ce",
+    "occurrences_jsonl_sha256": "eb51a562ecc9c7cbaabbcdd1cda0f28e3063e20cfa4a55f214375974d4755ce1",
+    "report_sha256": "888f23dda55b6b80bfcda5e55c2f81ecd5aa3567db5ae7d25f3ddb69675b5da8",
     "paragraph_edges_jsonl_sha256": "6ad00c1fb3e657f5895de8920b9cb01dc541c44ad9bc6c6930ce625ee63e5a55"
   },
   "offset_projection": {
     "coordinate_system": "mumford_xmi_sofa",
-    "projected_occurrences": 7021,
+    "projected_occurrences": 7004,
     "abstained_occurrences": 15,
-    "projected_jsonl_sha256": "2425b2990005738aa2f0075c6b42a98a4a3783a6cc39f0f605e198057ca552af",
+    "projected_jsonl_sha256": "8d71a946acee1c4b537ad28bedbb2097da2e6bce0fb4982dd5f9a82598d0f341",
     "diagnostics_jsonl_sha256": "8f18f95da25ef8152aead7d27a12a8dd8ab3823bff99706c348c9911583d38e6"
   },
   "selected_annotation_recovery": {
@@ -140,7 +140,7 @@
     "local_pinpoint_denominator": 4543
   },
   "outputs": {
-    "comparison_json_sha256": "407ff00f1647167bffd6a2b2db1555e8fd695fe6031cbdbd08c0f4824e4d0316"
+    "comparison_json_sha256": "62a5ff008401b5644c59be7ffe9f48c63e12e1f0fcf26c49e53de26bc87ecfe3"
   },
   "commands": [
     "echr-py citations resolve --in CASES --catalog CATALOG --out RESOLVED --offline",
