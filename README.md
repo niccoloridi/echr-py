@@ -490,24 +490,17 @@ and graphs without mutating external state. Study jobs require an explicit
 `--enable-jobs` launch configuration with permitted roots, provider and hook
 allowlists, pricing, and per-job budgets.
 
-## Which tool fits which job?
+## See also
 
-The ECtHR research ecosystem now offers several useful but differently scoped
-projects:
+Other projects working on ECtHR material:
 
-| If you need… | Start with… |
-| --- | --- |
-| A multilingual corpus builder with paragraph-, opinion-, footnote-, and exact-citation provenance | **`echr-py`** |
-| A hosted search and reading interface over an existing English snapshot | [HUDOC Researcher](https://doi.org/10.5281/zenodo.21319704) |
-| A PyPI extractor and SCL network workflow | [`echr-extractor`](https://pypi.org/project/echr-extractor/) |
-| A ready processed corpus and hosted API | [ECHR Open Data](https://echr-opendata.eu/) |
-| Selective human labels for judicial consideration and Convention provisions | [Mumford et al.](https://doi.org/10.3233/FAIA251584) |
-| A prior-case-retrieval dataset | [ECtHR-PCR](https://github.com/TUMLegalTech/ECHR-PCR) |
+- [HUDOC Researcher](https://doi.org/10.5281/zenodo.21319704)
+- [`echr-extractor`](https://pypi.org/project/echr-extractor/)
+- [ECHR Open Data](https://echr-opendata.eu/)
+- [Mumford et al.](https://doi.org/10.3233/FAIA251584)
+- [ECtHR-PCR](https://github.com/TUMLegalTech/ECHR-PCR)
 
-At the citation layer, `echr-py` combines exact printed occurrences,
-uniquely corroborated procedural-document identity, citation-owned pinpoints, verified
-target paragraphs, majority/opinion/footnote provenance, and portable graph
-exports in one documented contract.
+## Benchmark
 
 Mumford's annotations are useful for studying selected citation treatments;
 they are not an exhaustive citation inventory or a target-paragraph graph. The
