@@ -108,14 +108,16 @@ This package is alpha. Before tagging a release:
 8. Refresh both official English and French citation PDFs, import/merge them,
    and record edition dates, checksums, parser version, row counts, and stable
    bilingual-equivalence counts. The PDFs themselves stay untracked.
-9. Run `scripts/live_study_canary.py` for three records in realtime and native
-   batch mode against explicit Gemini and official OpenAI model IDs. Supply
-   current pricing explicitly; do not store credentials or infer a model.
+9. Optionally run `scripts/live_study_canary.py` locally for three records in
+   realtime and native batch mode against explicit Gemini and official OpenAI
+   model IDs. Supply current pricing explicitly; do not store credentials or
+   infer a model. This is a local maintainer check: the release workflow holds
+   no provider credentials and does not call any model provider.
 10. Confirm the compatibility gates for native `represented_by`, deciding
     benches, separate-opinion provenance, HUDOC-EXEC acquisition,
     unchanged SCL graph counts, and the public package-module allowlists.
 11. Publish through `.github/workflows/publish.yml`. Its protected
-    `release-canaries`, `testpypi`, and `pypi` environments use OIDC trusted
+    `testpypi` and `pypi` environments use OIDC trusted
     publishing, build provenance attestations, wheel-content validation, and
     isolated installation. Verify TestPyPI before creating/publishing the
     GitHub release and final tag.
