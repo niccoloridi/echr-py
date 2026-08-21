@@ -86,18 +86,39 @@ denominators.
 
 ## Fair `echr-py` comparison
 
-The historical [text-only baseline](benchmarks/mumford-text-only-baseline.json)
-associated 4,286 of 5,481 selected annotations (78.2%) with deterministic
-strong occurrences using normalized identity/paragraph context. It allowed
-occurrence reuse and was therefore neither strict source-span nor one-to-one
-recovery. The final identity-gated run aligns 2,576/5,481 annotations one-to-one
-(47.0%): 2,525 strict source-span matches, 51 identity/context-only matches,
-1,934 ambiguous abstentions, and 971 unmatched annotations. It deliberately
-excludes SCL-derived local gazetteers, HUDOC target lookup, and model-generated
-labels.
-Because the reference annotations are selective rather than exhaustive
-negatives, none of these measures is precision. Printed pinpoints are also not
-the same as resolved target paragraphs.
+The final comparison uses the frozen XMI `THE LAW` source text and its selected
+ECHR annotations. This source scope contains the Court's majority reasoning
+only. It does not measure detection in separate opinions, linked footnotes,
+procedure, facts, operative provisions, or appendices.
+
+On 21 August 2026, the final deterministic inclusive run recovered
+5,319
+of the 5,425 selected ECHR annotations one-to-one (98.0%). Of those alignments,
+5,316 used strict source-span overlap and three used compatible
+identity/context alignment. The comparison abstained on 86 ambiguous
+annotations and left 20 unmatched.
+
+These figures measure recovery of a selective annotation set. They are not
+detector precision: the reference omits citation classes and document
+components, so an additional `echr-py` occurrence cannot be treated as a false
+positive. Nor do these figures establish recall over all citations printed in
+the judgments, because the reference was not designed as an exhaustive
+citation inventory.
+
+Resolution and paragraph figures use separate denominators:
+
+- an exact target document was identified for 4,629 of the 5,319 aligned
+  annotations (87.0% coverage);
+- among 2,615 aligned annotations that print an application number, 2,412 were
+  identified with no application-number conflict (92.2% coverage); and
+- among 4,543 aligned occurrences with local printed pinpoints, 3,794 received
+  complete target-paragraph mappings (83.5% coverage).
+
+The no-conflict result means that no identified application number disagreed
+with the printed number in this comparison. It is not an accuracy estimate for
+the 202 abstentions. Likewise, Mumford does not supply canonical target
+documents or structured target-paragraph links, so the document and paragraph
+figures are coverage measures rather than independently scored accuracy.
 
 A publication-quality comparison should report separately:
 
@@ -108,38 +129,23 @@ A publication-quality comparison should report separately:
    labelled sample;
 5. optional treatment-label agreement, abstention, and curator disagreement.
 
-For full rich-HUDOC outputs, `echr-py` now projects each occurrence into the
+For full rich-HUDOC outputs, `echr-py` can project occurrences into the
 historical XMI Sofa using only a uniquely occurring normalized paragraph or
 citation window. It retains both coordinate systems, requires compatible
 bibliographic identity for every match, and treats opinions, footnotes,
 out-of-scope sections, ambiguous projections, and one-to-many alignments as
-explicit abstentions. This corrects the coordinate-system mismatch but does
-not turn Mumford's selected annotations into exhaustive detector negatives or
-canonical target-document and target-paragraph gold data.
+explicit abstentions. The authoritative comparison above instead freezes the
+reference's own `THE LAW` text, avoiding drift from later HUDOC formatting or
+content revisions. Neither approach turns Mumford's selected annotations into
+exhaustive detector negatives or canonical target-document and
+target-paragraph gold data.
 
-On 21 August 2026, the final v3 deterministic inclusive pipeline aligned 4,662
-of the 5,425 selected ECHR-labelled annotations (85.9%) one-to-one after unique
-XMI-Sofa projection: 4,651 strict-span and eleven identity/context matches. It
-abstained on 385 ambiguous annotations and left 378 unmatched. The run produced
-8,673 authority-specific occurrence rows over 8,672 physical loci, including
-one two-row compound procedural group. Of those rows, 5,876 projected into the
-reference coordinate system and 2,797 were explicit scope or mapping
-abstentions. Bibliographic identity is required
-in addition to span overlap: a broad reference span containing another case
-cannot substitute for the annotation's own cited-case feature. Names shared by
-distinct judgments and decisions remain ambiguous unless local evidence
-identifies the procedural document; they are not coalesced merely to increase
-recovery. This is selected-annotation recovery, not detector precision. The
-reference supplies neither canonical target documents nor structured target
-paragraphs, so local resolution and paragraph-mapping values are coverage
-measures, not accuracy measures. The pipeline automatically identified an
-exact document for 4,462 of the 4,662 aligned annotations (95.7% coverage). It
-identified a matching printed application number for 2,363 of 2,458 references
-that supplied one (96.1% coverage), with no conflict among the 2,363 automatic
-identifications. Of 3,983 aligned occurrences with local printed pinpoints,
-2,588 received complete target-paragraph mappings (65.0% coverage); the
-reference does not provide target-paragraph links against which to score their
-accuracy.
+Bibliographic identity is required in addition to span overlap: a broad
+reference span containing another case cannot substitute for the annotation's
+own cited-case feature. Names shared by distinct judgments and decisions remain
+ambiguous unless local evidence identifies the procedural document; they are
+not coalesced merely to increase recovery.
+
 The compact [full-inclusive audit](benchmarks/mumford-full-inclusive-audit.json)
 records the inputs, hashes, denominators, and qualifications.
 

@@ -184,11 +184,12 @@ It does not zip the unordered `sclappnos` pool to SCL fragments or promote an
 ambiguous application to an arbitrary judgment.
 
 In a fixed July 2026 audit using authority parser 6 and the 10 July English
-authority, the then-current resolver mapped **2,479 of 2,492 SCL mentions
-(99.5%)** automatically. This is dated automatic coverage of the SCL mentions
-that HUDOC supplied – not current-code accuracy, a detector-recall estimate, or
-the proportion of all printed citations. Thirteen references remained outside
-the graph pending review or documented exclusion. The sample, denominators,
+authority, the then-current resolver assigned a document automatically to
+2,479 of 2,492 SCL mentions (99.5%). That percentage measures automatic
+resolution coverage of the Court-supplied SCL sample only. It does not measure
+whether every assignment was correct, detector recall, or the share of all
+citations printed in the judgments. Thirteen references remained outside the
+graph pending review or documented exclusion. The sample, denominators,
 failure classes, method, and qualifications are in the
 [citation-resolution audit](https://github.com/niccoloridi/echr-py/blob/main/docs/citation-resolution.md#release-validation-audit).
 
@@ -496,11 +497,22 @@ they are not an exhaustive citation inventory or a target-paragraph graph. The
 annotation frame deliberately omits submissions, general-principles material,
 facts, procedure, operative text, appendices, individual opinions, and
 footnotes. A full `echr-py` run can therefore return citation occurrences from
-sections and components outside that annotation frame. In the purposive
-five-case audit, all 24 sampled automatic occurrences
-that were not paired by the curator alignment were citation-related in context.
-The importer and methodological comparison remain available for researchers
-who need them, but benchmark mechanics belong in the
+sections and components outside that annotation frame.
+
+In the frozen 115-document comparison, `echr-py` aligned 5,319 of 5,425
+selected ECHR annotations one-to-one (98.0%): 5,316 by strict source-span
+overlap and three by uniquely normalized context, with 86 ambiguous and 20
+unmatched annotations. These figures measure recovery of the selected
+annotations, not detector precision or completeness over the judgments.
+Exact-document resolution covered 4,629 of the 5,319 aligned references;
+printed application-number identification covered 2,412 of 2,615 references
+that supplied a number, with no conflict among the identifications;
+complete target-paragraph mapping covered 3,794 of 4,543 aligned references
+that carried local pinpoints. Because the reference does not supply canonical
+target item IDs or target-paragraph links, these are coverage measures rather
+than independently verified document- or paragraph-resolution accuracy. The
+importer and methodological comparison remain available for researchers who
+need them, but benchmark mechanics belong in the
 [methodology audit](https://github.com/niccoloridi/echr-py/blob/main/docs/mumford-methodology-audit.md), not on the project
 homepage.
 
