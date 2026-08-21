@@ -35,6 +35,11 @@ source checksum, and producing software revision.
 
 The core acquisition, parsing, citation, and graph pipeline is deterministic.
 
+Acquisition is concurrent and bounded. In a recorded July 2026 public-HUDOC
+run it hydrated nine documents and wrote 478,151 characters of source-ordered
+text in about 1.1 seconds at concurrency twelve, with the exact query,
+settings, item IDs, hashes, and elapsed time recorded alongside the figure.
+
 ![From a HUDOC record to a verified paragraph edge](https://raw.githubusercontent.com/niccoloridi/echr-py/main/docs/images/echr-py-lineage.png)
 
 The lineage above is the central idea: retain enough structure and provenance
