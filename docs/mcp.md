@@ -29,7 +29,7 @@ user scope without cloning this repository:
 
 ```bash
 claude mcp add --scope user --transport stdio echr-py -- \
-  "$(command -v uvx)" --from 'echr-py[mcp]==0.2.1' echr-py mcp
+  "$(command -v uvx)" --from 'echr-py[mcp]==0.2.2' echr-py mcp
 claude mcp get echr-py
 ```
 
@@ -38,7 +38,7 @@ PowerShell equivalent:
 ```powershell
 $uvx = (Get-Command uvx).Source
 claude mcp add --scope user --transport stdio echr-py -- $uvx `
-  --from "echr-py[mcp]==0.2.1" echr-py mcp
+  --from "echr-py[mcp]==0.2.2" echr-py mcp
 claude mcp get echr-py
 ```
 

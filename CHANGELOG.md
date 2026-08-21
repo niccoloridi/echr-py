@@ -3,6 +3,21 @@
 All notable user-facing changes are recorded here. The project follows
 semantic versioning during its alpha series.
 
+## 0.2.2 – 2026-08-21
+
+### Documentation
+
+- Replace the tool-comparison table with a plain see-also list. The table
+  characterised other projects' scope and placed this one in the fullest-scope
+  row; the list points to the same projects without ranking them.
+- Move the measured benchmark figures off the front page. The README states the
+  scope and limits of the comparison and links the methodology audit and the
+  frozen benchmark manifest, where the numbers carry their denominators,
+  hashes, and reproduction records.
+
+No library behaviour, artifact schema, citation identity, or benchmark figure
+changes in this release.
+
 ## 0.2.1 – 2026-08-21
 
 ### Documentation

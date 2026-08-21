@@ -14,7 +14,7 @@
   <a href="https://github.com/niccoloridi/echr-py/actions/workflows/ci.yml"><img src="https://github.com/niccoloridi/echr-py/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <img src="https://img.shields.io/badge/python-3.11%E2%80%933.14-3776AB.svg" alt="Python 3.11–3.14">
   <a href="https://github.com/niccoloridi/echr-py/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-green.svg" alt="MIT license"></a>
-  <img src="https://img.shields.io/badge/version-0.2.1-blue.svg" alt="Version 0.2.1">
+  <img src="https://img.shields.io/badge/version-0.2.2-blue.svg" alt="Version 0.2.2">
 </p>
 
 `echr-py` is a research engineering toolkit for the case law of the European
@@ -407,7 +407,7 @@ without cloning the repository:
 
 ```bash
 claude mcp add --scope user --transport stdio echr-py -- \
-  "$(command -v uvx)" --from 'echr-py[mcp]==0.2.1' echr-py mcp
+  "$(command -v uvx)" --from 'echr-py[mcp]==0.2.2' echr-py mcp
 claude mcp get echr-py
 ```
 
@@ -502,29 +502,21 @@ Other projects working on ECtHR material:
 
 ## Benchmark
 
-Mumford's annotations are useful for studying selected citation treatments;
-they are not an exhaustive citation inventory or a target-paragraph graph. The
-annotation frame deliberately omits submissions, general-principles material,
-facts, procedure, operative text, appendices, individual opinions, and
-footnotes. A full `echr-py` run can therefore return citation occurrences from
-sections and components outside that annotation frame.
-
-In the frozen 115-document comparison, `echr-py` aligned 5,319 of 5,425
-selected ECHR annotations one-to-one (98.0%): 5,316 by strict source-span
-overlap and three by uniquely normalized context, with 86 ambiguous and 20
-unmatched annotations. These figures measure recovery of the selected
+`echr-py` is compared against the curated Mumford annotation set. Those
+annotations are useful for studying selected citation treatments; they are not
+an exhaustive citation inventory or a target-paragraph graph. The annotation
+frame deliberately omits submissions, general-principles material, facts,
+procedure, operative text, appendices, individual opinions, and footnotes, so a
+full `echr-py` run can return citation occurrences from sections and components
+outside that frame. Any recovery figure measures recovery of those selected
 annotations, not detector precision or completeness over the judgments.
-Exact-document resolution covered 4,629 of the 5,319 aligned references;
-printed application-number identification covered 2,412 of 2,615 references
-that supplied a number, with no conflict among the identifications;
-complete target-paragraph mapping covered 3,794 of 4,543 aligned references
-that carried local pinpoints. Because the reference does not supply canonical
-target item IDs or target-paragraph links, these are coverage measures rather
-than independently verified document- or paragraph-resolution accuracy. The
-importer and methodological comparison remain available for researchers who
-need them, but benchmark mechanics belong in the
-[methodology audit](https://github.com/niccoloridi/echr-py/blob/main/docs/mumford-methodology-audit.md), not on the project
-homepage.
+
+The importer and the methodological comparison remain available for researchers
+who need them, and the measured figures, denominators, hashes and reproduction
+records are kept in the
+[methodology audit](https://github.com/niccoloridi/echr-py/blob/main/docs/mumford-methodology-audit.md)
+and the frozen [benchmark manifest](https://github.com/niccoloridi/echr-py/blob/main/docs/benchmarks/mumford-full-inclusive-audit.json),
+where they can carry their conditions, rather than on the project homepage.
 
 The evidence and dates behind external comparisons are maintained in the
 [claim audit](https://github.com/niccoloridi/echr-py/blob/main/docs/claim-audit.md).
