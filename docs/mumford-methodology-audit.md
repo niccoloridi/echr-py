@@ -117,14 +117,14 @@ explicit abstentions. This corrects the coordinate-system mismatch but does
 not turn Mumford's selected annotations into exhaustive detector negatives or
 canonical target-document and target-paragraph gold data.
 
-On 20 August 2026, the final v3 deterministic inclusive pipeline aligned 4,535
-of the 5,425 selected ECHR-labelled annotations (83.6%) one-to-one after unique
-XMI-Sofa projection: 4,526 strict-span and nine identity/context matches. It
-abstained on 447 ambiguous annotations and left 443 unmatched. The run produced
-8,507 authority-specific occurrence rows over 8,506 physical loci, including
-one two-row compound procedural group. Of those rows, 5,787 projected into the
-reference coordinate system and 2,720
-were explicit scope or mapping abstentions. Bibliographic identity is required
+On 21 August 2026, the final v3 deterministic inclusive pipeline aligned 4,662
+of the 5,425 selected ECHR-labelled annotations (85.9%) one-to-one after unique
+XMI-Sofa projection: 4,651 strict-span and eleven identity/context matches. It
+abstained on 385 ambiguous annotations and left 378 unmatched. The run produced
+8,673 authority-specific occurrence rows over 8,672 physical loci, including
+one two-row compound procedural group. Of those rows, 5,876 projected into the
+reference coordinate system and 2,797 were explicit scope or mapping
+abstentions. Bibliographic identity is required
 in addition to span overlap: a broad reference span containing another case
 cannot substitute for the annotation's own cited-case feature. Names shared by
 distinct judgments and decisions remain ambiguous unless local evidence
@@ -132,7 +132,14 @@ identifies the procedural document; they are not coalesced merely to increase
 recovery. This is selected-annotation recovery, not detector precision. The
 reference supplies neither canonical target documents nor structured target
 paragraphs, so local resolution and paragraph-mapping values are coverage
-measures, not accuracy measures.
+measures, not accuracy measures. The pipeline automatically identified an
+exact document for 4,462 of the 4,662 aligned annotations (95.7% coverage). It
+identified a matching printed application number for 2,363 of 2,458 references
+that supplied one (96.1% coverage), with no conflict among the 2,363 automatic
+identifications. Of 3,983 aligned occurrences with local printed pinpoints,
+2,588 received complete target-paragraph mappings (65.0% coverage); the
+reference does not provide target-paragraph links against which to score their
+accuracy.
 The compact [full-inclusive audit](benchmarks/mumford-full-inclusive-audit.json)
 records the inputs, hashes, denominators, and qualifications.
 

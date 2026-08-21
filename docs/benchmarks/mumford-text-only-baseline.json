@@ -1,14 +1,16 @@
 {
   "schema_version": "echr-py-published-benchmark/v3",
-  "run_date": "2026-08-20",
+  "run_date": "2026-08-21",
   "echr_py_version": "0.2.0",
-  "echr_py_commit": "ea0133522d437381f548c814fcd8d93360d38b01",
+  "echr_py_commit": "930cbbfbae57f4d742917f2ecfab17cd6896bc05",
   "reference": {
     "name": "Mumford curated human annotations",
     "repository": "https://github.com/jamumford/ECHR-citation-context-v1",
     "revision": "166b15c31276bfa8c8775e7e7def575e916aced7",
     "license": "CC0-1.0",
-    "archive_sha256": "665c7606baa0ff3c37ff193daee362b83733b832ea0d957d65f5aca74a1e444e"
+    "archive_sha256": "665c7606baa0ff3c37ff193daee362b83733b832ea0d957d65f5aca74a1e444e",
+    "documents_sha256": "def75b3b0a82196c543995139a45428c7d9f21ce773807d1b2f32fb8b2228ddb",
+    "annotations_sha256": "7a0ef6db3cd22e5d9f9c65dbf9cd7483a8b583300e796bf4e8b9ebf0ad5cb832"
   },
   "scope": {
     "documents": 115,
@@ -44,7 +46,7 @@
   },
   "outputs": {
     "occurrences_text_only_jsonl_sha256": "9f6aa1390e237914b01ce41c9248157553a67363238bcf9c932dcf6bf07a9a33",
-    "comparison_json_sha256": "58a542ca46808e93ac39cb24d2793f16c03e8702cc972f63951481de142c1f19"
+    "comparison_json_sha256": "3c9c2a38aa1a0cb313719e414f12e315cbeafbee0120f00f0433798a05324550"
   },
   "interpretation": [
     "This is a deliberately incomplete text-only baseline, not the full inclusive echr-py pipeline.",

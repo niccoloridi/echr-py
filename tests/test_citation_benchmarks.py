@@ -593,6 +593,12 @@ def test_published_mumford_audit_matches_code_and_documented_counts():
         pytest.skip("published benchmark documentation is not in this source archive")
     audit = json.loads(audit_path.read_text(encoding="utf-8"))
     software = audit["software"]
+    assert len(software["git_commit"]) == 40
+    assert set(software["git_commit"]) <= set("0123456789abcdef")
+    assert software["worktree_dirty_at_run"] is False
+    reproduction = audit["independent_reproduction"]
+    assert reproduction["git_commit"] == software["git_commit"]
+    assert reproduction["clean_detached_worktrees"] >= 2
     for field, relative in {
         "benchmarks_py_sha256": "hudoc_py/citations/benchmarks.py",
         "occurrences_py_sha256": "hudoc_py/citations/occurrences.py",
@@ -620,6 +626,41 @@ def test_published_mumford_audit_matches_code_and_documented_counts():
         f"{recovery['aligned_one_to_one']:,}\nof the "
         f"{recovery['denominator']:,}"
     ) in methodology
+    documented_rate = f"{recovery['rate']:.1%}"
+    assert documented_rate in claim
+    assert documented_rate in methodology
+
+    coverage = audit["coverage_not_accuracy"]
+    for numerator, denominator in (
+        (coverage["aligned_document_scope"], coverage["aligned_denominator"]),
+        (
+            coverage["printed_application_number_identified"],
+            coverage["printed_application_number_denominator"],
+        ),
+        (
+            coverage["fully_mapped_local_pinpoints"],
+            coverage["local_pinpoint_denominator"],
+        ),
+    ):
+        assert f"{numerator:,}/{denominator:,}" in claim
+
+    reproduced = reproduction["byte_identical_sha256"]
+    assert reproduced["occurrences_jsonl"] == audit["inclusive_occurrences"][
+        "occurrences_jsonl_sha256"
+    ]
+    assert reproduced["occurrence_report"] == audit["inclusive_occurrences"][
+        "report_sha256"
+    ]
+    assert reproduced["paragraph_edges_jsonl"] == audit["inclusive_occurrences"][
+        "paragraph_edges_jsonl_sha256"
+    ]
+    assert reproduced["projected_occurrences_jsonl"] == audit["offset_projection"][
+        "projected_jsonl_sha256"
+    ]
+    assert reproduced["projection_diagnostics_jsonl"] == audit["offset_projection"][
+        "diagnostics_jsonl_sha256"
+    ]
+    assert reproduced["comparison_json"] == audit["outputs"]["comparison_json_sha256"]
 
 
 def test_cli_projects_full_mumford_occurrences_before_comparison(tmp_path):

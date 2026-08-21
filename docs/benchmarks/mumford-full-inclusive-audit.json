@@ -1,13 +1,13 @@
 {
-  "schema_version": "echr-py-benchmark-audit/v2",
-  "created_at": "2026-08-20",
+  "schema_version": "echr-py-benchmark-audit/v3",
+  "created_at": "2026-08-21",
   "benchmark": {
     "name": "Mumford ECHR citation context v1",
     "repository_revision": "166b15c31276bfa8c8775e7e7def575e916aced7",
     "archive_sha256": "665c7606baa0ff3c37ff193daee362b83733b832ea0d957d65f5aca74a1e444e",
     "licence": "CC0-1.0",
-    "documents_sha256": "c68b87980e8f1d1e14d65d418694f9d9a1bdb6db1e4c4434ac9b32896393c69a",
-    "annotations_sha256": "0ee7c443f59eb0e69d9c03b069e2f4d53c01dc7615ce457b5fcacade777dc2fd",
+    "documents_sha256": "def75b3b0a82196c543995139a45428c7d9f21ce773807d1b2f32fb8b2228ddb",
+    "annotations_sha256": "7a0ef6db3cd22e5d9f9c65dbf9cd7483a8b583300e796bf4e8b9ebf0ad5cb832",
     "reference_documents": 115,
     "valid_reference_documents": 115,
     "all_curated_annotations": 5481,
@@ -16,13 +16,14 @@
   "software": {
     "name": "echr-py",
     "version": "0.2.0",
-    "git_commit": "ea0133522d437381f548c814fcd8d93360d38b01",
+    "git_commit": "930cbbfbae57f4d742917f2ecfab17cd6896bc05",
     "worktree_dirty_at_run": false,
-    "benchmarks_py_sha256": "6a19cb77b64c6cc9336315a0626a7e142ba2d108c271cef4316e3fcab2d131a9",
-    "occurrences_py_sha256": "3beb96d523becc65dc042ec5f283221a22b7755c00ab323e2d65319fa5b6ebc9",
-    "resolver_py_sha256": "baa894aa2461bdaab120f7427657cce4e8646a729cbd80f920ab59c462ce9d86",
+    "source_snapshot_note": "The benchmark was evaluated directly from a clean detached worktree at this commit; the per-file hashes independently identify the code used.",
+    "benchmarks_py_sha256": "043a4064f797a794104b3323171fc6cdd1c6d13138281ff02ae20baef6dab11c",
+    "occurrences_py_sha256": "53b2837f5a6090ed9f988100f09f0689256668f8b167dab2821cbf04d0026ace",
+    "resolver_py_sha256": "d5446ad4d85b34acc4ef69976353301b998456eff08923b467720c74455c6a8b",
     "reporter_py_sha256": "7432471a81c1edef8cdc362834d07ca01017e48760890f9e2f93dfa406808f45",
-    "paragraphs_py_sha256": "8795c2477a9aaa168c1adeb447c2fdc56864775d0f2c71b10c197026a596e991",
+    "paragraphs_py_sha256": "2b2eeaaef5dc4d5ebbf53594f23e2e64356d5295cdb682de39635a803bf43777",
     "segmentation_py_sha256": "f080d3ccda8290278e6406dbd179578c47bb77eaaef73d8f80d5493b37ab1e96",
     "spine_py_sha256": "c57c9eff197a209df0a3d0273f282770c3206f461be7c4c08584a219ea8305ec",
     "common_models_py_sha256": "7445160dbd30a83686a558e18bcbccd1060558860c782e35ee4cf44eabea7d03",
@@ -30,15 +31,16 @@
     "comparison_example_sha256": "748363c660e1978cdba094eb406731ad5a7297121bdbda1e1aec21f187f6a23d"
   },
   "independent_reproduction": {
-    "date": "2026-08-20",
-    "git_commit": "078612571369f04750de8e2f86388310bc71a829",
-    "worktree_dirty_at_run": false,
-    "frozen_resolution_report_sha256": "2df928299a905a5b838367ddb56cef09a5595cebd329ffa2bda180b6ecf61cef",
+    "date": "2026-08-21",
+    "git_commit": "930cbbfbae57f4d742917f2ecfab17cd6896bc05",
+    "clean_detached_worktrees": 2,
     "byte_identical_sha256": {
-      "occurrences_jsonl": "b3b9505659ce79fdd224e88c2c2361eda19fdea9a2e65e7b81d67c9bca1c248f",
-      "occurrence_report": "1d42bdae5f3299e07e385110a37304d70bbc07156259b7b04520c0945f5359c5",
-      "paragraph_edges_jsonl": "f6e024a4a92d95f3809fe6f3102d291c9bc1874758bc431ec556ec8e75e08ef0",
-      "comparison_json": "dd4b66c9a0e1eae4b31c4a7ae67d2168a47b0b4b586f9fd46a824c7e77c3b509"
+      "occurrences_jsonl": "319ea7a852985e0a4f0b2778e57f468e0b17bdabb29b80654512458cda88f2c5",
+      "occurrence_report": "4cc987772e0e8d2f7dc7b44b5a1cc1658d598c7582d8bfc74b034c411888134e",
+      "paragraph_edges_jsonl": "fa323fa231be778ad8f30c0db6180ac7ed5764e2a597dc1b3df4844b85456ddd",
+      "projected_occurrences_jsonl": "cdc26c1cab3f1dcb4273d8932bcdef89f5c13cd0982245a8a8a027f6bebba50c",
+      "projection_diagnostics_jsonl": "72d97333081aca3eb9303fcb9ab23a82fc6e92a5826183c482af3e046f7c5c38",
+      "comparison_json": "41d4a7b6aa8504001aed871d6a5dc4531e08c98248e67624f8a13a2be457dcd4"
     }
   },
   "selection": {
@@ -46,7 +48,7 @@
     "selection_count": 115,
     "sorted_itemids_newline_sha256": "298d29682f3aa75d492859e9a956bc0cb56a413c73baa308622b0c871e730b3e",
     "selection_file_sha256": "f71e5c9fc666bc495e7a3ea55ea501869551a5c64f4e88ef4cf805ceeb4181ad",
-    "cases_parquet_sha256": "e1a41b7e9a7bdf53bdd025b124d6168e42d7d4b4f928506f7898dd7cc5683435",
+    "cases_parquet_sha256": "0446a979a829bd9ce646d3af4231e36a7a635d2230996c759800a67594a70a2e",
     "input_source_documents": 112,
     "projected_source_documents": 110
   },
@@ -57,65 +59,88 @@
     "source_sha256": "de0d9a70bf36caf815bc9014cc6b0dc2f389207520e2494f5475cf0c4ddf1c7e",
     "entries": 42167,
     "supplements": 6,
+    "sources": [
+      {
+        "language": "eng",
+        "url": "https://www.echr.coe.int/documents/d/echr/case_law_references_eng",
+        "retrieved_at": "2026-08-20T13:51:51+01:00",
+        "updated_through": "2026-07-27",
+        "sha256": "1615883e31eb1a23ee4e6df3c765124dac6a60774a3c38b697849a5e78fa7b2d",
+        "entry_count": 21083
+      },
+      {
+        "language": "fra",
+        "url": "https://www.echr.coe.int/documents/d/echr/Case_law_references_FRA",
+        "retrieved_at": "2026-08-20T13:46:19+01:00",
+        "updated_through": "2026-07-27",
+        "sha256": "c7169b8c1718e17fd6e43df652758853a88f0aff710f047f616c0f990ab5a9c5",
+        "entry_count": 21078
+      }
+    ],
     "json_sha256": "dc70c23ca044b7a06a498377f3324eef3bc45fe11cabe0cb8eb31712d9781c59",
     "csv_sha256": "b12ebea33e1b2a4446219372e91432bd24dfa65556ffca8e384b63c50f6774cd"
   },
   "scl_resolution": {
     "mentions": 2193,
-    "resolved": 1747,
-    "unresolved_or_ambiguous": 446,
-    "resolved_rate": 0.7966256269949841,
-    "target_documents": 1134,
+    "resolved": 2099,
+    "unresolved_or_ambiguous": 94,
+    "resolved_rate": 0.9571363429092568,
+    "target_documents": 1471,
     "lookup_errors": 0,
-    "report_sha256": "2df928299a905a5b838367ddb56cef09a5595cebd329ffa2bda180b6ecf61cef"
+    "report_sha256": "f2e7cbf4957e3f84bd833146ce2f00c8580a5e2f18076837283c9b496bf212e8"
   },
   "inclusive_occurrences": {
     "schema_version": "citation-occurrence/v3",
-    "occurrences": 8507,
-    "unique_loci": 8506,
+    "occurrences": 8673,
+    "unique_loci": 8672,
     "compound_groups": 1,
     "grouped_occurrence_rows": 2,
-    "scl_covered_occurrences": 5888,
-    "text_only_occurrences": 2619,
-    "majority_occurrences": 7227,
-    "opinion_occurrences": 1203,
-    "appendix_occurrences": 77,
-    "pinpoint_occurrences": 5636,
+    "scl_covered_occurrences": 5956,
+    "text_only_occurrences": 2717,
+    "majority_occurrences": 7356,
+    "opinion_occurrences": 1241,
+    "appendix_occurrences": 76,
+    "pinpoint_occurrences": 5767,
+    "paragraph_resolved_occurrences": 3714,
+    "paragraph_partial_occurrences": 9,
+    "paragraph_ambiguous_occurrences": 223,
+    "paragraph_missing_occurrences": 69,
+    "paragraph_unavailable_occurrences": 1752,
     "missing_source_html": 0,
-    "missing_target_html": 28,
+    "missing_target_html": 601,
     "offline_run_status": "partial_target_paragraph_hydration",
-    "occurrences_jsonl_sha256": "b3b9505659ce79fdd224e88c2c2361eda19fdea9a2e65e7b81d67c9bca1c248f",
-    "report_sha256": "1d42bdae5f3299e07e385110a37304d70bbc07156259b7b04520c0945f5359c5",
-    "paragraph_edges_jsonl_sha256": "f6e024a4a92d95f3809fe6f3102d291c9bc1874758bc431ec556ec8e75e08ef0"
+    "occurrences_jsonl_sha256": "319ea7a852985e0a4f0b2778e57f468e0b17bdabb29b80654512458cda88f2c5",
+    "report_sha256": "4cc987772e0e8d2f7dc7b44b5a1cc1658d598c7582d8bfc74b034c411888134e",
+    "paragraph_edges_jsonl_sha256": "fa323fa231be778ad8f30c0db6180ac7ed5764e2a597dc1b3df4844b85456ddd"
   },
   "offset_projection": {
     "coordinate_system": "mumford_xmi_sofa",
-    "projected_occurrences": 5787,
-    "abstained_occurrences": 2720,
-    "projected_jsonl_sha256": "5c42695f562864761bc39122a940f195368881824020884f7b324ee8f09fd765",
-    "diagnostics_jsonl_sha256": "777a19342fd100fda6f4ffe4a8390f4c30e23220e0aa3a0811aca2c016780eb0"
+    "projected_occurrences": 5876,
+    "abstained_occurrences": 2797,
+    "projected_jsonl_sha256": "cdc26c1cab3f1dcb4273d8932bcdef89f5c13cd0982245a8a8a027f6bebba50c",
+    "diagnostics_jsonl_sha256": "72d97333081aca3eb9303fcb9ab23a82fc6e92a5826183c482af3e046f7c5c38"
   },
   "selected_annotation_recovery": {
     "denominator": 5425,
-    "aligned_one_to_one": 4535,
-    "rate": 0.8359447004608295,
-    "strict_source_span": 4526,
-    "normalized_identity_context": 9,
-    "ambiguous_abstentions": 447,
-    "unmatched": 443
+    "aligned_one_to_one": 4662,
+    "rate": 0.8593548387096774,
+    "strict_source_span": 4651,
+    "normalized_identity_context": 11,
+    "ambiguous_abstentions": 385,
+    "unmatched": 378
   },
   "coverage_not_accuracy": {
-    "aligned_document_scope": 2667,
-    "aligned_denominator": 4535,
-    "printed_application_number_identified": 1302,
-    "printed_application_number_agreement": 1302,
+    "aligned_document_scope": 4462,
+    "aligned_denominator": 4662,
+    "printed_application_number_identified": 2363,
+    "printed_application_number_agreement": 2363,
     "printed_application_number_conflicts": 0,
-    "printed_application_number_denominator": 2406,
-    "fully_mapped_local_pinpoints": 2116,
-    "local_pinpoint_denominator": 3872
+    "printed_application_number_denominator": 2458,
+    "fully_mapped_local_pinpoints": 2588,
+    "local_pinpoint_denominator": 3983
   },
   "outputs": {
-    "comparison_json_sha256": "dd4b66c9a0e1eae4b31c4a7ae67d2168a47b0b4b586f9fd46a824c7e77c3b509"
+    "comparison_json_sha256": "41d4a7b6aa8504001aed871d6a5dc4531e08c98248e67624f8a13a2be457dcd4"
   },
   "commands": [
     "echr-py citations resolve --in CASES --catalog CATALOG --out RESOLVED --offline",
@@ -125,7 +150,9 @@
   "qualifications": [
     "Mumford annotations are selective and do not supply exhaustive negatives, so this result does not estimate detector precision.",
     "The reference supplies no canonical target item IDs or structured target-paragraph links; document and paragraph figures are coverage, not accuracy.",
+    "SCL resolution and exact-document identification rates are automatic coverage; this benchmark does not independently verify every promoted procedural document.",
     "Application-number agreement is conditional on an automatic identification and does not establish exact procedural-document accuracy.",
+    "Missing target HTML is counted by affected occurrence row. Partial offline paragraph hydration cannot change a printed locus or its document-level resolution.",
     "The comparator requires the annotation's bibliographic identity in addition to span overlap; another authority inside a broad annotation span is not a match.",
     "Opinions, footnotes, and sections outside the supplied THE LAW text are explicit projection abstentions rather than false positives.",
     "No third-party source archive, raw annotation row, HUDOC source document, lookup cache, or raw benchmark output is bundled with echr-py."
