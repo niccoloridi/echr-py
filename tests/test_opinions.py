@@ -399,3 +399,58 @@ def test_opinion_split_confidence_and_diagnostics():
     assert malformed.diagnostics == ["no_headings_in_block"]
     assert "unknown_judge:PARSERGARBAGE" in unknown.diagnostics
     assert unknown.confidence < 1.0
+
+
+def test_lowercased_two_line_heading_is_accepted_when_names_are_rostered():
+    """Legacy conversions lowercase the names tail of a split heading.
+
+    Observed in HUDOC markdown renderings of pre-2000 judgments, where the
+    opinion type sits on one line and ``of Judges <names>`` on the next, both
+    lowercased. Casing alone cannot separate that from prose, so the roster
+    anchors it.
+    """
+    text = (
+        "SEPARATE OPINIONS\n\n"
+        "concurring opinion of LORD reed\n\n"
+        "I have voted with the majority.\n\n\n"
+        "partly dissenting opinion\n"
+        "of Judges rozakis and costa\n\n"
+        "We are unable to agree.\n\n\n"
+        "Joint partly dissenting opinion\n"
+        "of Judges Pastor ridruejo, ress, makarczyk, tulkens and butkevych\n\n"
+        "In our view the trial was unfair.\n"
+    )
+    opinions = split_opinions(text)
+    assert [o.opinion_type for o in opinions] == [
+        "concurring",
+        "partly_dissenting",
+        "partly_dissenting",
+    ]
+    assert opinions[1].authors == ["ROZAKIS", "COSTA"]
+    assert opinions[2].authors == [
+        "PASTOR RIDRUEJO",
+        "RESS",
+        "MAKARCZYK",
+        "TULKENS",
+        "BUTKEVYCH",
+    ]
+
+
+def test_lowercased_two_line_heading_still_rejects_unrostered_names():
+    text = (
+        "SEPARATE OPINIONS\n\n"
+        "partly dissenting opinion\n"
+        "of Judges nobody and nowhere\n\n"
+        "Body text.\n"
+    )
+    assert split_opinions(text) == []
+
+
+def test_lowercased_continuation_does_not_swallow_prose():
+    text = (
+        "SEPARATE OPINIONS\n\n"
+        "partly dissenting opinion\n"
+        "in our view the applicants trial was unfair\n\n"
+        "Body text.\n"
+    )
+    assert split_opinions(text) == []

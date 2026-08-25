@@ -66,6 +66,13 @@ _EN_CONTINUATION_RE = re.compile(
     re.VERBOSE,
 )
 
+# Legacy conversions lowercase the names tail. Matched only through
+# :func:`_continuation_names`, which requires roster anchoring for that form.
+_EN_CONTINUATION_LOWER_RE = re.compile(
+    rf"^\s*(?:OF\s+)?(?:{_EN_TITLE})?(?P<names>\w.*?)\s*$",
+    re.VERBOSE | re.IGNORECASE,
+)
+
 # --- French heading grammar --------------------------------------------------
 
 _FR_TYPE = r"""
@@ -248,7 +255,31 @@ def _looks_like_heading_tail(names: str) -> bool:
         tail,
         flags=re.IGNORECASE,
     )
-    return re.search(r"\b[a-zà-ÿ]{3,}\b", without_name_words) is None
+    if re.search(r"\b[a-zà-ÿ]{3,}\b", without_name_words) is None:
+        return True
+    # Legacy HUDOC conversions lowercase an otherwise exact names tail, which
+    # is indistinguishable from prose by casing alone. Accept that form only
+    # when every parsed name is independently anchored in the verified
+    # elected/ad-hoc roster, exactly as :func:`_heading_case_allowed` does for
+    # a lowercased single-line heading. Prose tails still fail closed.
+    return _names_all_rostered(tail)
+
+
+def _names_all_rostered(tail: str) -> bool:
+    """True when every name in *tail* resolves in the canonical judge roster."""
+    from .judges import is_ad_hoc_judge, judge_country
+
+    stripped = re.sub(
+        r"^\s*(?:of|by|des|du|de)\s+(?:the\s+)?(?:judges?|juges?|mr|mrs|ms|sir)\b\.?\s*",
+        "",
+        tail,
+        flags=re.IGNORECASE,
+    )
+    authors, joined_by = _split_authors_joiners(stripped)
+    judges = [*authors, *joined_by]
+    return bool(judges) and all(
+        judge_country(judge) is not None or is_ad_hoc_judge(judge) for judge in judges
+    )
 
 
 def _heading_case_allowed(prefix: str, names: str) -> bool:
@@ -300,6 +331,24 @@ def _extend_names(lines: list[str], names: str, end: int, connectors: str) -> tu
     return names, end
 
 
+
+def _continuation_names(strict: re.Pattern[str], lenient: re.Pattern[str], line: str) -> str | None:
+    """Names from a heading continuation line, or ``None``.
+
+    The strict pattern carries the ordinary uppercase contract. The lenient
+    pattern additionally accepts a lowercased tail, which legacy HUDOC
+    conversions produce, but only when every parsed name is anchored in the
+    verified elected/ad-hoc roster.
+    """
+    match = strict.match(line)
+    if match:
+        return match.group("names")
+    match = lenient.match(line)
+    if match and _names_all_rostered(match.group("names")):
+        return match.group("names")
+    return None
+
+
 def _match_header(lines: list[str], i: int) -> _Header | None:
     line = lines[i].strip()
     if not line or _TOC_LINE_RE.search(line):
@@ -344,11 +393,11 @@ def _match_header(lines: list[str], i: int) -> _Header | None:
     continuation = _next_continuation(lines, i) if match else None
     if match and continuation:
         j, continuation_line = continuation
-        cont = _EN_CONTINUATION_RE.match(continuation_line)
-        if cont and _heading_case_allowed(line, cont.group("names")):
-            names, end = _extend_names(
-                lines, cont.group("names"), j + 1, r"(?:,|\bAND)\s*$"
-            )
+        cont_names = _continuation_names(
+            _EN_CONTINUATION_RE, _EN_CONTINUATION_LOWER_RE, continuation_line
+        )
+        if cont_names is not None and _heading_case_allowed(line, cont_names):
+            names, end = _extend_names(lines, cont_names, j + 1, r"(?:,|\bAND)\s*$")
             return _Header(
                 i,
                 end,
