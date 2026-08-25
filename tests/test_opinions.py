@@ -454,3 +454,35 @@ def test_lowercased_continuation_does_not_swallow_prose():
         "Body text.\n"
     )
     assert split_opinions(text) == []
+
+
+def test_long_joint_heading_of_many_judges_is_not_length_rejected():
+    """A joint opinion of six or more judges exceeds the prose length ceiling.
+
+    The ceiling separates a names tail from a wrapped sentence, so it must not
+    discard a legitimately long list of rostered judges.
+    """
+    text = (
+        "SEPARATE OPINIONS\n\n"
+        "JOINT PARTLY DISSENTING OPINION\n"
+        "OF JUDGES PASTOR RIDRUEJO, BONELLO, MAKARCZYK, TULKENS, "
+        "STRÁŽNICKÁ, BUTKEVYCH, CASADEVALL AND ZUPANČIČ\n\n"
+        "The majority have concluded that there has been no violation.\n"
+    )
+    opinions = split_opinions(text)
+    assert len(opinions) == 1
+    assert opinions[0].opinion_type == "partly_dissenting"
+    assert opinions[0].joint is True
+    assert "PASTOR RIDRUEJO" in opinions[0].authors
+    assert "ZUPANČIČ" in opinions[0].authors
+
+
+def test_long_prose_tail_is_still_rejected():
+    text = (
+        "SEPARATE OPINIONS\n\n"
+        "partly dissenting opinion\n"
+        "we consider that the majority has failed to give adequate weight to "
+        "the applicants submissions in this case\n\n"
+        "Body text.\n"
+    )
+    assert split_opinions(text) == []

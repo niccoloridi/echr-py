@@ -245,8 +245,14 @@ def _classify_fr(type_full: str) -> OpinionType:
 def _looks_like_heading_tail(names: str) -> bool:
     """Accept a title-case heading but reject a sentence-shaped names tail."""
     tail = names.strip()
-    if not tail or len(tail) >= 90 or tail.endswith((".", ";", ":")):
+    if not tail or tail.endswith((".", ";", ":")):
         return False
+    # The length ceiling separates a names tail from a wrapped prose sentence.
+    # A joint opinion of six or more judges legitimately exceeds it, so an
+    # over-long tail is not rejected outright: it must clear the roster anchor
+    # below, which prose cannot.
+    if len(tail) >= 90:
+        return _names_all_rostered(tail)
     # A proper name may be title case and contain connectors/particles, but a
     # prose continuation contains other wholly lowercase words.
     without_name_words = re.sub(
