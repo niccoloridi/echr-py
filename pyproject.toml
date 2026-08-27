@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "echr-py"
-version = "0.2.2"
+version = "0.2.3"
 description = "Pythonic acquisition of HUDOC and HUDOC-EXEC metadata and source documents for ECtHR research."
 readme = "README.md"
 requires-python = ">=3.11"

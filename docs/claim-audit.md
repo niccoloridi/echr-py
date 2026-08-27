@@ -8,7 +8,7 @@ opinion or a substitute for corpus-scale comparative evaluation.
 
 | Claim family | Verification |
 | --- | --- |
-| Python 3.11–3.14, package 0.2.2 | `pyproject.toml`, runtime version, CI matrix, wheel build, and isolated installation |
+| Python 3.11–3.14, package 0.2.3 | `pyproject.toml`, runtime version, CI matrix, wheel build, and isolated installation |
 | HUDOC/HUDOC-EXEC typed acquisition | CLI/API tests and public case/execution fixtures |
 | Native `represented_by` metadata | `Case.represented_by` with `representedby` alias and export/search regression tests |
 | Public package boundary | The wheel and source distribution must match an exact packaged-file manifest, pass additional boundary checks, and install outside the checkout |

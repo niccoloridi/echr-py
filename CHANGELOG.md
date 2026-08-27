@@ -3,6 +3,33 @@
 All notable user-facing changes are recorded here. The project follows
 semantic versioning during its alpha series.
 
+## 0.2.3 – 2026-08-27
+
+### Fixed
+
+- Recover separate opinions whose heading is split across two lines with a
+  lowercased names tail, a form legacy HUDOC conversions produce. Both the
+  heading-tail predicate and the English continuation pattern required an
+  uppercase tail, so those opinions were dropped while single-line headings in
+  the same document were recovered.
+- Stop rejecting long joint-opinion headings as prose. The length ceiling
+  discarded genuine headings naming six or more judges, which are precisely the
+  headings most likely to be long.
+- Make French rescue fail closed across procedural documents. An application
+  number identifies an application, not a document, so accepting the first
+  non-placeholder French result for that number could pair an English merits
+  placeholder with a French admissibility decision. Doctype, branch, date, ECLI
+  and the application set must now agree wherever both records supply them.
+
+Both opinion fixes accept a lowercased or over-long names tail only when every
+parsed name resolves in the verified judge roster; prose and unknown names
+still fail closed.
+
+### Documentation
+
+- Move the distribution/import/legacy-command note out of the introduction to
+  the end of the installation options.
+
 ## 0.2.2 – 2026-08-21
 
 ### Documentation
