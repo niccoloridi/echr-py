@@ -24,10 +24,6 @@ Court of Human Rights. It connects public
 research artifacts through Python, a command-line interface, and the Model
 Context Protocol (MCP).
 
-The distribution and primary command are now named `echr-py`. The established
-`hudoc_py` Python import and the legacy `hudoc-py` command remain available for
-backward compatibility.
-
 It is designed for work where provenance matters. A result can retain the exact
 HUDOC document, language version, section, paragraph, individual opinion,
 footnote, citation span, cited procedural document, cited-paragraph pinpoint,
@@ -545,6 +541,21 @@ python -m pip install "echr-py[all]"
 git clone https://github.com/niccoloridi/echr-py.git
 cd echr-py
 python -m pip install -e ".[all,dev]"
+```
+
+### Names
+
+The distribution and primary command are `echr-py`. The Python import is
+`hudoc_py`, and the earlier `hudoc-py` command still works; both remain
+available so existing code and scripts keep running.
+
+```python
+import hudoc_py            # import name
+```
+
+```bash
+echr-py --version          # primary command
+hudoc-py --version         # legacy alias, same program
 ```
 
 ## Documentation
