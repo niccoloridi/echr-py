@@ -33,6 +33,7 @@ from .rescue import (
     find_french_sibling,
     rescue_candidates,
     rescue_french,
+    sibling_conflicts,
 )
 
 
@@ -70,6 +71,7 @@ __all__ = [
     "ReconcileStats",
     "ReconcileInvariantError",
     "rescue_french",
+    "sibling_conflicts",
     "rescue_candidates",
     "find_french_sibling",
     "apply_rescue_mapping",

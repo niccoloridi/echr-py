@@ -24,7 +24,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from pathlib import Path
 from typing import Literal
 
@@ -86,6 +86,52 @@ def rescue_candidates(collection: list[Case]) -> list[Case]:
     return out
 
 
+def _case_date(case: Case) -> date | None:
+    """The document's own decision date, whichever HUDOC field carries it."""
+    return case.kp_date or case.judgement_date or case.decision_date
+
+
+def sibling_conflicts(case: Case, sibling: Case) -> list[str]:
+    """Reasons *sibling* cannot be the French counterpart of *case*.
+
+    An application number identifies an *application*, not a document. The same
+    number spans merits, just satisfaction, admissibility and revision
+    documents, so a sibling accepted on the number alone can silently pair an
+    English merits placeholder with a French admissibility decision.
+
+    Acceptance is therefore conjunctive and fail-closed: every identity the two
+    records both supply must agree. Evidence the sibling does not carry cannot
+    create a conflict, but it cannot excuse one either.
+    """
+    conflicts: list[str] = []
+
+    if case.doctype and sibling.doctype and case.doctype != sibling.doctype:
+        conflicts.append(f"doctype {case.doctype} != {sibling.doctype}")
+
+    if (
+        case.doctype_branch
+        and sibling.doctype_branch
+        and case.doctype_branch != sibling.doctype_branch
+    ):
+        conflicts.append(
+            f"doctype_branch {case.doctype_branch} != {sibling.doctype_branch}"
+        )
+
+    case_date, sibling_date = _case_date(case), _case_date(sibling)
+    if case_date and sibling_date and case_date != sibling_date:
+        conflicts.append(f"date {case_date.isoformat()} != {sibling_date.isoformat()}")
+
+    # A shared ECLI payload is the strongest available identity: the language
+    # segment differs between siblings, the rest must not.
+    if case.ecli and sibling.ecli and case.ecli != sibling.ecli:
+        conflicts.append(f"ecli {case.ecli} != {sibling.ecli}")
+
+    if case.appno and sibling.appno and not set(case.appno) & set(sibling.appno):
+        conflicts.append("no shared application number")
+
+    return conflicts
+
+
 async def find_french_sibling(
     client: AsyncHudocClient,
     case: Case,
@@ -98,7 +144,12 @@ async def find_french_sibling(
 
     Tries each application number in order; returns
     ``(french_itemid, appno_used, appnos_tried)`` for the first appno that
-    yields a non-placeholder French document distinct from ``case.itemid``.
+    yields a non-placeholder French document distinct from ``case.itemid``
+    **and compatible with it** under :func:`sibling_conflicts`.
+
+    A candidate whose doctype, branch, date, ECLI or application set conflicts
+    is skipped rather than returned, so a run abstains instead of pairing an
+    English placeholder with the wrong procedural document.
     """
     tried: list[str] = []
     for appno in case.appno:
@@ -117,6 +168,15 @@ async def find_french_sibling(
             if not sibling.itemid or sibling.itemid == case.itemid:
                 continue
             if sibling.is_placeholder is True:
+                continue
+            conflicts = sibling_conflicts(case, sibling)
+            if conflicts:
+                logger.debug(
+                    "rescue: rejected %s for %s (%s)",
+                    sibling.itemid,
+                    case.itemid,
+                    "; ".join(conflicts),
+                )
                 continue
             return sibling.itemid, appno, tried
     return None, None, tried

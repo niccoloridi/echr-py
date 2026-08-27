@@ -11,6 +11,7 @@ from hudoc_py.bilingual import (
     export_rescue_csv,
     rescue_candidates,
     rescue_french,
+    sibling_conflicts,
 )
 from hudoc_py.main.client import AsyncHudocClient
 from hudoc_py.models import Case, CaseCollection
@@ -195,3 +196,100 @@ def test_export_csv(tmp_path):
     assert "eng_itemid,french_itemid,appno" in text
     assert "e1,f1,1/00" in text
     assert "e2" not in text  # non-ok rows excluded
+
+
+# ---------------------------------------------------------------------------
+# Procedural-document crossing
+#
+# An application number identifies an application, not a document. The same
+# number spans merits, just satisfaction, admissibility and revision records,
+# so acceptance must be conjunctive and fail closed.
+# ---------------------------------------------------------------------------
+
+
+def _eng_full(itemid, appno, **extra) -> Case:
+    payload = {
+        "itemid": itemid,
+        "languageisocode": "ENG",
+        "appno": appno,
+        "isplaceholder": "TRUE",
+    }
+    payload.update(extra)
+    return Case.model_validate(payload)
+
+
+def test_sibling_with_conflicting_doctype_is_rejected(tmp_path):
+    """An English judgment must not be rescued by a French decision."""
+    coll = CaseCollection([_eng_full("e1", "1/00", doctype="HFJUD")])
+    client = FakeRescueClient({"1/00": [_fre_row("f1", "1/00", doctype="HFDEC")]})
+    stats = asyncio.run(
+        rescue_french(coll, checkpoint_path=tmp_path / "r.jsonl", client=client)
+    )
+    assert stats.matched == 0
+    assert stats.no_sibling == 1
+    assert coll[0].french_itemid is None
+
+
+def test_sibling_with_conflicting_date_is_rejected(tmp_path):
+    """Same application, different decision date: a different document."""
+    coll = CaseCollection([_eng_full("e1", "1/00", kpdate="2004-05-11")])
+    client = FakeRescueClient(
+        {"1/00": [dict(_fre_row("f1", "1/00"), kpdate="2009-10-06")]}
+    )
+    stats = asyncio.run(
+        rescue_french(coll, checkpoint_path=tmp_path / "r.jsonl", client=client)
+    )
+    assert stats.matched == 0
+    assert coll[0].french_itemid is None
+
+
+def test_matching_date_and_doctype_still_rescues(tmp_path):
+    coll = CaseCollection([_eng_full("e1", "1/00", doctype="HFJUD", kpdate="2004-05-11")])
+    client = FakeRescueClient(
+        {"1/00": [dict(_fre_row("f1", "1/00", doctype="HFJUD"), kpdate="2004-05-11")]}
+    )
+    stats = asyncio.run(
+        rescue_french(coll, checkpoint_path=tmp_path / "r.jsonl", client=client)
+    )
+    assert stats.matched == 1
+    assert coll[0].french_itemid == "f1"
+
+
+def test_conflicting_candidate_skipped_but_compatible_one_accepted(tmp_path):
+    """A wrong-phase sibling must not shadow the correct one."""
+    coll = CaseCollection([_eng_full("e1", "1/00", doctype="HFJUD", kpdate="2004-05-11")])
+    client = FakeRescueClient(
+        {
+            "1/00": [
+                dict(_fre_row("wrong", "1/00", doctype="HFDEC"), kpdate="2001-01-09"),
+                dict(_fre_row("right", "1/00", doctype="HFJUD"), kpdate="2004-05-11"),
+            ]
+        }
+    )
+    stats = asyncio.run(
+        rescue_french(coll, checkpoint_path=tmp_path / "r.jsonl", client=client)
+    )
+    assert stats.matched == 1
+    assert coll[0].french_itemid == "right"
+
+
+def test_absent_evidence_does_not_create_a_conflict(tmp_path):
+    """Evidence the sibling does not carry cannot block an otherwise valid match."""
+    coll = CaseCollection([_eng_full("e1", "1/00", doctype="HFJUD", kpdate="2004-05-11")])
+    client = FakeRescueClient({"1/00": [_fre_row("f1", "1/00", doctype="HFJUD")]})
+    stats = asyncio.run(
+        rescue_french(coll, checkpoint_path=tmp_path / "r.jsonl", client=client)
+    )
+    assert stats.matched == 1
+    assert coll[0].french_itemid == "f1"
+
+
+def test_sibling_conflicts_reports_reasons():
+    case = _eng_full("e1", "1/00", doctype="HFJUD", kpdate="2004-05-11")
+    sibling = Case.model_validate(
+        {"itemid": "f1", "appno": "9/99", "doctype": "HFDEC", "kpdate": "2009-10-06"}
+    )
+    reasons = sibling_conflicts(case, sibling)
+    assert any("doctype" in r for r in reasons)
+    assert any("date" in r for r in reasons)
+    assert any("application number" in r for r in reasons)
