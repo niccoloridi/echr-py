@@ -18,6 +18,15 @@ semantic versioning during its alpha series.
   previous strings were frozen at "0.1" and the downloaders did not name the
   package first.
 
+- Treat `<br>` as whitespace when HUDOC HTML is converted to text. HUDOC
+  breaks some separate-opinion headings across lines inside one paragraph
+  (`JOINT PARTLY DISSENTING OPINION<br>OF JUDGES ...`); the empty-separator
+  text read glued the runs into `OPINIONOF` and the opinion splitter dropped
+  the opinion. Öcalan v. Turkey [GC] now yields its three separate opinions
+  again. The document spine still reads block text without this
+  normalisation, because its source hash is pinned by the frozen Mumford
+  audit; that change is staged separately and needs a benchmark refresh.
+
 ### Added
 
 - `echr-py mcp --call-log PATH` appends one JSON line per tool call (tool name,

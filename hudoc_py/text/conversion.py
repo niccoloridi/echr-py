@@ -3,9 +3,12 @@
 from __future__ import annotations
 
 import re
+from typing import TypeVar
 
 import html2text
 from bs4 import BeautifulSoup, Tag
+
+_SoupT = TypeVar("_SoupT", bound=Tag)
 
 _FOOTNOTE_RE = re.compile(r"^_?ftn(?P<label>\d+)$", re.IGNORECASE)
 
@@ -15,13 +18,28 @@ def _footnote_label(value: object) -> str | None:
     return match.group("label") if match else None
 
 
+def normalise_line_breaks(soup: _SoupT) -> _SoupT:
+    """Turn every ``<br>`` into a single space before any text is read.
+
+    A ``<br>`` is a line break between two runs of text, so it is whitespace.
+    Reading text with an empty separator (which keeps ``(<em>re Crimea</em>)``
+    intact) would otherwise glue the runs: HUDOC headings such as ``JOINT
+    PARTLY DISSENTING OPINION<br>OF JUDGES ...`` became ``OPINIONOF`` and the
+    opinion was lost. Replacing the tag in the tree keeps offsets consistent
+    for every reader of the same soup.
+    """
+    for br in soup.find_all("br"):
+        br.replace_with(" ")
+    return soup
+
+
 def _element_text(element: Tag) -> str:
     """Flatten inline nodes while preserving source whitespace semantics."""
     return " ".join(element.get_text(separator="", strip=False).split())
 
 
 def _markdown_footnote_html(html: str) -> str:
-    soup = BeautifulSoup(html, "lxml")
+    soup = normalise_line_breaks(BeautifulSoup(html, "lxml"))
     for anchor in soup.find_all("a", href=True):
         label = _footnote_label(anchor.get("href"))
         if label:
@@ -61,7 +79,7 @@ def html_to_text(html: str) -> str:
     ``<div>`` / ``<span>`` blocks with zero paragraph tags; for those we
     fall back to a whole-body extraction.
     """
-    soup = BeautifulSoup(html, "lxml")
+    soup = normalise_line_breaks(BeautifulSoup(html, "lxml"))
     for el in soup(["style", "script"]):
         el.decompose()
 
