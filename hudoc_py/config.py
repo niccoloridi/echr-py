@@ -34,6 +34,11 @@ HUDOC_EXEC_RANKING_MODEL_ID = "44444444-b0a6-44c9-bb6b-5886b928f985"
 
 HUDOC_RATE_LIMIT_SECONDS = 0.5
 HUDOC_MAX_RETRIES = 3
+#: HTTP statuses retried within the bounded policy. 403 is included because the
+#: Cloudflare challenge in front of HUDOC answers an ordinary request with 403
+#: ("Just a moment...") and a retry a moment later succeeds.
+HUDOC_TRANSIENT_STATUSES = frozenset({403, 429, 500, 502, 503, 504})
+HUDOC_USER_AGENT_URL = "https://github.com/niccoloridi/echr-py"
 HUDOC_CONCURRENCY = 20
 HUDOC_MAX_HTML_BYTES = 32 * 1024 * 1024
 HUDOC_MAX_BINARY_BYTES = 256 * 1024 * 1024

@@ -76,6 +76,7 @@ hudoc_py/main/queries.py
 hudoc_py/main/url.py
 hudoc_py/mcp/__init__.py
 hudoc_py/mcp/__main__.py
+hudoc_py/mcp/calllog.py
 hudoc_py/mcp/install.py
 hudoc_py/mcp/server.py
 hudoc_py/models/__init__.py

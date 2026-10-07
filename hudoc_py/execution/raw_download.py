@@ -12,7 +12,7 @@ import aiohttp
 from .. import config
 from ..utils.downloads import ResponseTooLargeError, read_limited
 from ..utils.jsonl import append_jsonl, load_processed_ids
-from .downloader import DOWNLOAD_HEADERS
+from .downloader import download_headers
 
 logger = logging.getLogger(__name__)
 
@@ -43,7 +43,7 @@ async def fetch_exec_document_pdf(
                     return data
                 if response.status == 204:
                     return None
-                if response.status in {429, 500, 502, 503, 504} and attempt < max_retries:
+                if response.status in config.HUDOC_TRANSIENT_STATUSES and attempt < max_retries:
                     await asyncio.sleep(float(attempt))
                     continue
                 logger.error("Failed PDF %s: status %d", content_store_id, response.status)
@@ -103,7 +103,7 @@ class AsyncExecRawDownloader:
         stats = {"total": len(documents), "downloaded": 0, "skipped": 0, "failed": 0}
         sem = asyncio.Semaphore(max(1, concurrency))
 
-        async with aiohttp.ClientSession(headers=DOWNLOAD_HEADERS) as session:
+        async with aiohttp.ClientSession(headers=download_headers()) as session:
 
             async def one(item: Any) -> None:
                 identifier = str(_field(item, "execidentifier", "itemid", "id") or "")

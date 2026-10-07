@@ -20,8 +20,14 @@ DOWNLOAD_HEADERS = {
     "Accept": "text/html, */*; q=0.01",
     "Accept-Language": "en-GB,en;q=0.9",
     "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
-    "User-Agent": "Mozilla/5.0 echr-py/0.1",
 }
+
+
+def download_headers() -> dict[str, str]:
+    """Download headers with the package-identifying User-Agent."""
+    from ..main.client import user_agent
+
+    return {**DOWNLOAD_HEADERS, "User-Agent": user_agent()}
 
 
 def _doc_url(content_store_id: str) -> str:
@@ -65,7 +71,7 @@ async def fetch_exec_document_html(
                 if resp.status == 204:
                     logger.info("No content (204) for %s", doc_id)
                     return None
-                if resp.status in (429, 500, 502, 503, 504) and attempt < max_retries:
+                if resp.status in config.HUDOC_TRANSIENT_STATUSES and attempt < max_retries:
                     await asyncio.sleep(1.0 * attempt)
                     continue
                 logger.error("Failed %s: status %d", doc_id, resp.status)
@@ -101,7 +107,7 @@ async def fetch_exec_document_docx(
                 if resp.status == 204:
                     logger.info("No content (204) for %s", content_store_id)
                     return None
-                if resp.status in (429, 500, 502, 503, 504) and attempt < max_retries:
+                if resp.status in config.HUDOC_TRANSIENT_STATUSES and attempt < max_retries:
                     await asyncio.sleep(1.0 * attempt)
                     continue
                 logger.error("Failed DOCX %s: status %d", content_store_id, resp.status)
@@ -206,7 +212,7 @@ class AsyncExecDocumentDownloader:
         results: dict[str, bool] = {}
         filenames = filenames or {}
 
-        async with aiohttp.ClientSession(headers=DOWNLOAD_HEADERS) as session:
+        async with aiohttp.ClientSession(headers=download_headers()) as session:
 
             async def bounded(csid: str) -> None:
                 async with sem:

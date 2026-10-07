@@ -26,8 +26,14 @@ DOWNLOAD_HEADERS = {
     "Accept-Language": "en-GB,en;q=0.9",
     "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
     "Cookie": "AS=SC%2Cfalse%3B; HUDOC=AV%2C72%3B",
-    "User-Agent": "Mozilla/5.0 echr-py/0.1",
 }
+
+
+def download_headers() -> dict[str, str]:
+    """Download headers with the package-identifying User-Agent."""
+    from .client import user_agent
+
+    return {**DOWNLOAD_HEADERS, "User-Agent": user_agent()}
 
 
 def _doc_url(itemid: str) -> str:
@@ -104,7 +110,7 @@ async def _fetch_response(
                         retrieved_at=retrieved_at,
                         error="no_content",
                     )
-                if resp.status in (429, 500, 502, 503, 504) and attempt < max_retries:
+                if resp.status in config.HUDOC_TRANSIENT_STATUSES and attempt < max_retries:
                     await asyncio.sleep(1.0 * attempt)
                     continue
                 logger.error("Failed %s %s: status %d", label, itemid, resp.status)
@@ -322,7 +328,7 @@ class AsyncDocumentDownloader:
         sem = asyncio.Semaphore(concurrency)
         results: dict[str, bool] = {}
 
-        async with aiohttp.ClientSession(headers=DOWNLOAD_HEADERS) as session:
+        async with aiohttp.ClientSession(headers=download_headers()) as session:
 
             async def bounded(iid: str) -> None:
                 async with sem:

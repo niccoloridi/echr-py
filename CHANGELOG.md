@@ -3,6 +3,29 @@
 All notable user-facing changes are recorded here. The project follows
 semantic versioning during its alpha series.
 
+## Unreleased
+
+### Fixed
+
+- Retry HTTP 403 within the bounded retry policy, alongside 429 and 5xx, in the
+  HUDOC and HUDOC-EXEC search clients and document downloaders. The Cloudflare
+  challenge in front of HUDOC answers an ordinary request with 403 and a page
+  titled "Just a moment..."; the next request usually succeeds, so a single 403
+  no longer aborts a search or records a document as failed. A 403 that
+  persists through every attempt still fails closed as before.
+- Send a User-Agent that names the package and its installed version with the
+  project URL as the contact address on every HUDOC and HUDOC-EXEC request. The
+  previous strings were frozen at "0.1" and the downloaders did not name the
+  package first.
+
+### Added
+
+- `echr-py mcp --call-log PATH` appends one JSON line per tool call (tool name,
+  arguments, item IDs and ECLIs in the response, package version, duration and
+  time) so an assistant-driven analysis can be replayed through the Python API
+  without the model. `build_server(call_log=...)` exposes the same option;
+  `hudoc_py.mcp.calllog.read_call_log` reads it back.
+
 ## 0.2.3 – 2026-08-27
 
 ### Fixed

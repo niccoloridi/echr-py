@@ -31,9 +31,15 @@ HUDOC_MAX_RESULTS_PER_QUERY = 10_000
 class HudocResultWindowError(RuntimeError):
     """A complete HUDOC query cannot be partitioned without losing rows."""
 
+def user_agent() -> str:
+    """Identify the package and its version to the server, with the project URL as contact."""
+    from .. import __version__
+
+    return f"echr-py/{__version__} (+{config.HUDOC_USER_AGENT_URL})"
+
+
 SEARCH_HEADERS = {
     "Accept": "application/json",
-    "User-Agent": "echr-py/0.1 (+https://github.com/niccoloridi/echr-py)",
 }
 
 
@@ -61,7 +67,9 @@ class AsyncHudocClient:
         self.last_result_count: int | None = None
 
     async def __aenter__(self) -> AsyncHudocClient:
-        self.session = aiohttp.ClientSession(headers=SEARCH_HEADERS, timeout=self.timeout)
+        self.session = aiohttp.ClientSession(
+            headers={**SEARCH_HEADERS, "User-Agent": user_agent()}, timeout=self.timeout
+        )
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:
@@ -89,7 +97,7 @@ class AsyncHudocClient:
                         if "resultcount" in data:
                             self.last_result_count = int(data["resultcount"])
                         return data
-                    if resp.status in (429, 500, 502, 503, 504):
+                    if resp.status in config.HUDOC_TRANSIENT_STATUSES and attempt < self.max_retries:
                         wait = self.rate_limit_seconds * (2 ** (attempt - 1))
                         logger.warning(
                             "HUDOC %s on attempt %d/%d (offset %s); backing off %.1fs",

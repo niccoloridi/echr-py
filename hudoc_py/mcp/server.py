@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import logging
 from collections import Counter
+from pathlib import Path
 from typing import Any
 
 from .. import aio as main_aio
@@ -255,10 +256,19 @@ def _tool_annotations(
     )
 
 
-def build_server(*, job_manager: Any | None = None) -> Any:
-    """Construct and return a configured FastMCP server."""
+def build_server(*, job_manager: Any | None = None, call_log: str | Path | None = None) -> Any:
+    """Construct and return a configured FastMCP server.
+
+    ``call_log`` appends one JSON line per tool call (tool, arguments, returned
+    item IDs and ECLIs, package version, time) so an assistant-driven run can be
+    replayed through the Python API; see ``hudoc_py.mcp.calllog``.
+    """
     fast_mcp = _import_fastmcp()
     server = fast_mcp("echr-py")
+    if call_log is not None:
+        from .calllog import CallLogger, install
+
+        install(server, CallLogger(call_log))
 
     def _search_filters(
         article: str | None,
@@ -1117,10 +1127,13 @@ def build_server(*, job_manager: Any | None = None) -> Any:
     return server
 
 
-def run(*, job_manager: Any | None = None) -> None:
+def run(*, job_manager: Any | None = None, call_log: str | Path | None = None) -> None:
     """Run the MCP server on stdio."""
     logging.basicConfig(level=logging.INFO)
-    (server if job_manager is None else build_server(job_manager=job_manager)).run()
+    if job_manager is None and call_log is None:
+        server.run()
+        return
+    build_server(job_manager=job_manager, call_log=call_log).run()
 
 
 # Module-level instance so the official ``mcp install`` CLI can find the

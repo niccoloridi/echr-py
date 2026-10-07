@@ -246,3 +246,20 @@ If an allowlisted study reaches a native Gemini/OpenAI batch stage, the job is
 persisted as `waiting`; `resume_study_job` polls/retrieves it and
 `cancel_study_job` calls the provider cancellation endpoint. The same explicit
 model, pricing, path, and budget restrictions continue to apply.
+
+## Call log
+
+Launch the server with `--call-log PATH` to append one JSON line per tool call:
+
+```bash
+echr-py mcp --call-log runs/2026-10-07-ocalan.jsonl
+```
+
+Each line records `recorded_at` (UTC), `tool`, `arguments`, `duration_ms`,
+`package_version`, `status` (`ok` or `error`), and `identifiers`: every HUDOC
+item ID and ECLI that appears in the response, in order. The log is the
+replication record for an assistant-driven analysis: replay the same calls
+through the Python API without the model and compare. `build_server(call_log=...)`
+exposes the same option, and `hudoc_py.mcp.calllog.read_call_log(path)` reads
+the entries back. Arguments are recorded as passed; do not include secrets in
+tool arguments if the log will be deposited.

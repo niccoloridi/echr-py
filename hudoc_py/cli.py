@@ -728,6 +728,11 @@ def build_parser() -> argparse.ArgumentParser:
 
     # mcp ------------------------------------------------------------------
     p_mcp = sub.add_parser("mcp", help="Start the read-only MCP stdio server")
+    p_mcp.add_argument(
+        "--call-log",
+        help="Append one JSON line per tool call (tool, arguments, returned item IDs/ECLIs, "
+        "package version, time) to this file, for replication",
+    )
     p_mcp.add_argument("--enable-jobs", action="store_true")
     p_mcp.add_argument("--job-root")
     p_mcp.add_argument("--allow-input-root", action="append", default=[])
@@ -2147,7 +2152,7 @@ def main(argv: list[str] | None = None) -> int:
         from .mcp import run
 
         if not args.enable_jobs:
-            run()
+            run(call_log=args.call_log)
             return 0
         required = {
             "--job-root": args.job_root,
@@ -2173,7 +2178,7 @@ def main(argv: list[str] | None = None) -> int:
             max_job_budget_usd=args.max_job_budget_usd,
             max_workers=args.job_workers,
         )
-        run(job_manager=manager)
+        run(job_manager=manager, call_log=args.call_log)
         return 0
 
     if args.command == "gui":

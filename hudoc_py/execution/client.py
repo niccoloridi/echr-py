@@ -21,7 +21,6 @@ logger = logging.getLogger(__name__)
 
 SEARCH_HEADERS = {
     "Accept": "application/json",
-    "User-Agent": "echr-py/0.1 (+https://github.com/niccoloridi/echr-py)",
 }
 
 
@@ -50,7 +49,11 @@ class AsyncHudocExecClient:
         self.session: aiohttp.ClientSession | None = None
 
     async def __aenter__(self) -> AsyncHudocExecClient:
-        self.session = aiohttp.ClientSession(headers=SEARCH_HEADERS, timeout=self.timeout)
+        from ..main.client import user_agent
+
+        self.session = aiohttp.ClientSession(
+            headers={**SEARCH_HEADERS, "User-Agent": user_agent()}, timeout=self.timeout
+        )
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:
@@ -87,7 +90,7 @@ class AsyncHudocExecClient:
                         data = await resp.json()
                         results = data.get("results", []) or []
                         return [r["columns"] for r in results if "columns" in r]
-                    if resp.status in (429, 500, 502, 503, 504):
+                    if resp.status in config.HUDOC_TRANSIENT_STATUSES and attempt < self.max_retries:
                         wait = self.rate_limit_seconds * (2 ** (attempt - 1))
                         logger.warning(
                             "HUDOC-EXEC %s on attempt %d/%d (offset %d); waiting %.1fs",
