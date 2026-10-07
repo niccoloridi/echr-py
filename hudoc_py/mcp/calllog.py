@@ -8,6 +8,7 @@ Python API without the model.
 
 from __future__ import annotations
 
+import contextvars
 import functools
 import inspect
 import json
@@ -29,6 +30,10 @@ IDENTIFIER_KEYS: dict[str, str] = {
     "target_ecli": "eclis",
 }
 MAX_IDENTIFIERS = 1000
+#: Depth of wrapped calls in flight; only the outermost (client-initiated) call is logged.
+_CALL_DEPTH: contextvars.ContextVar[int] = contextvars.ContextVar(
+    "echr_py_mcp_call_depth", default=0
+)
 
 
 def collect_identifiers(payload: Any, *, limit: int = MAX_IDENTIFIERS) -> dict[str, list[str]]:
@@ -99,19 +104,28 @@ class CallLogger:
         return entry
 
     def wrap(self, fn: Callable[..., Any]) -> Callable[..., Any]:
-        """Return ``fn`` wrapped so that every call is recorded; signature and name are preserved."""
+        """Return ``fn`` wrapped so that every client call is recorded; signature and name are preserved.
+
+        A tool that calls another wrapped tool internally produces one entry, for
+        the outer call, so the log mirrors what the client asked for.
+        """
         name = fn.__name__
 
         if inspect.iscoroutinefunction(fn):
 
             @functools.wraps(fn)
             async def async_wrapper(*args: Any, **kwargs: Any) -> Any:
+                if _CALL_DEPTH.get():
+                    return await fn(*args, **kwargs)
+                token = _CALL_DEPTH.set(1)
                 started = time.perf_counter()
                 try:
                     result = await fn(*args, **kwargs)
                 except BaseException as exc:
                     self.record(self._entry(name, kwargs, started, error=exc))
                     raise
+                finally:
+                    _CALL_DEPTH.reset(token)
                 self.record(self._entry(name, kwargs, started, result=result))
                 return result
 
@@ -119,12 +133,17 @@ class CallLogger:
 
         @functools.wraps(fn)
         def sync_wrapper(*args: Any, **kwargs: Any) -> Any:
+            if _CALL_DEPTH.get():
+                return fn(*args, **kwargs)
+            token = _CALL_DEPTH.set(1)
             started = time.perf_counter()
             try:
                 result = fn(*args, **kwargs)
             except BaseException as exc:
                 self.record(self._entry(name, kwargs, started, error=exc))
                 raise
+            finally:
+                _CALL_DEPTH.reset(token)
             self.record(self._entry(name, kwargs, started, result=result))
             return result
 

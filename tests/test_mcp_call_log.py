@@ -66,7 +66,9 @@ async def test_server_call_log_records_each_tool_call(monkeypatch, tmp_path):
     assert entry["arguments"]["include_occurrences"] is True
     assert entry["status"] == "ok"
     assert entry["package_version"] == __version__
-    assert case.itemid in entry["identifiers"]["itemids"] or case.itemid in entry["arguments"].values()
+    assert (
+        case.itemid in entry["identifiers"]["itemids"] or case.itemid in entry["arguments"].values()
+    )
     assert isinstance(entry["identifiers"]["itemids"], list)
     assert entry["duration_ms"] >= 0
     assert entry["recorded_at"].endswith("+00:00")
@@ -87,3 +89,23 @@ async def test_call_log_records_errors_and_reraises(tmp_path):
     assert entry["status"] == "error"
     assert entry["error"].startswith("ValueError: no such case")
     assert entry["arguments"] == {"itemid": "001-x"}
+
+
+@pytest.mark.asyncio
+async def test_nested_tool_calls_log_once(tmp_path):
+    log_path = tmp_path / "calls.jsonl"
+    logger = CallLogger(log_path)
+
+    async def inner(itemid: str) -> dict:
+        return {"itemid": itemid}
+
+    wrapped_inner = logger.wrap(inner)
+
+    async def outer(itemid: str) -> dict:
+        return {"nested": await wrapped_inner(itemid=itemid)}
+
+    wrapped_outer = logger.wrap(outer)
+    await wrapped_outer(itemid="001-9")
+    entries = list(read_call_log(log_path))
+    assert [e["tool"] for e in entries] == ["outer"]
+    assert entries[0]["identifiers"]["itemids"] == ["001-9"]

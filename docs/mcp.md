@@ -29,7 +29,7 @@ user scope without cloning this repository:
 
 ```bash
 claude mcp add --scope user --transport stdio echr-py -- \
-  "$(command -v uvx)" --from 'echr-py[mcp]==0.2.3' echr-py mcp
+  "$(command -v uvx)" --from 'echr-py[mcp]==0.2.4' echr-py mcp
 claude mcp get echr-py
 ```
 
@@ -38,7 +38,7 @@ PowerShell equivalent:
 ```powershell
 $uvx = (Get-Command uvx).Source
 claude mcp add --scope user --transport stdio echr-py -- $uvx `
-  --from "echr-py[mcp]==0.2.3" echr-py mcp
+  --from "echr-py[mcp]==0.2.4" echr-py mcp
 claude mcp get echr-py
 ```
 
@@ -261,5 +261,6 @@ item ID and ECLI that appears in the response, in order. The log is the
 replication record for an assistant-driven analysis: replay the same calls
 through the Python API without the model and compare. `build_server(call_log=...)`
 exposes the same option, and `hudoc_py.mcp.calllog.read_call_log(path)` reads
-the entries back. Arguments are recorded as passed; do not include secrets in
+the entries back. A tool that calls another tool internally produces one line, for the call
+the client made. Arguments are recorded as passed; do not include secrets in
 tool arguments if the log will be deposited.

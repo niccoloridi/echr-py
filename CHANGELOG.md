@@ -3,7 +3,7 @@
 All notable user-facing changes are recorded here. The project follows
 semantic versioning during its alpha series.
 
-## Unreleased
+## 0.2.4 – 2026-10-07
 
 ### Fixed
 
