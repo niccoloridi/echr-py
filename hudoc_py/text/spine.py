@@ -23,6 +23,7 @@ from ..models.common import (
     InlineTextRun,
     SegmentationDiagnostic,
 )
+from .conversion import normalise_line_breaks
 
 _PARA_NUM_RE = re.compile(r"^\s*(\d{1,4})\.\s+\S")
 _CSS_RULE_RE = re.compile(r"\.([A-Za-z0-9_-]+)\s*\{([^}]*)\}")
@@ -471,7 +472,7 @@ def _make_blocks(
 
 def build_spine_from_html(html: str, *, document_id: str | None = None) -> DocumentSpine:
     """Build a spine from HUDOC HTML without discarding source structure."""
-    soup = BeautifulSoup(html, "lxml")
+    soup = normalise_line_breaks(BeautifulSoup(html, "lxml"))
     styles = _parse_styles(html)
     for element in soup(["style", "script"]):
         element.decompose()
