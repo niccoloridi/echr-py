@@ -116,7 +116,13 @@ This package is alpha. Before tagging a release:
 10. Confirm the compatibility gates for native `represented_by`, deciding
     benches, separate-opinion provenance, HUDOC-EXEC acquisition,
     unchanged SCL graph counts, and the public package-module allowlists.
-11. Publish through `.github/workflows/publish.yml`. Its protected
+11. Refresh the independent release gate when the public allowlist or the
+    validators change: commit the five `scripts/` gate files to the orphan
+    branch `trusted-release-gate-v2`, push it, and set
+    `TRUSTED_GATE_REVISION` in `publish.yml` to that branch's new HEAD. The
+    workflow checks the gate out from that branch and refuses to build if the
+    pinned SHA does not match it, so a pin to an ordinary `main` commit fails.
+12. Publish through `.github/workflows/publish.yml`. Its protected
     `testpypi` and `pypi` environments use OIDC trusted
     publishing, build provenance attestations, wheel-content validation, and
     isolated installation. Verify TestPyPI before creating/publishing the

@@ -18,7 +18,7 @@ permissions:
 env:
   # This commit contains the independently audited gate and package manifests.
   # The release commit changes only this workflow to pin that immutable baseline.
-  TRUSTED_GATE_REVISION: 119273c955892bbb36f89bb566ca83df93b5a83f
+  TRUSTED_GATE_REVISION: 35c266bed15fd6b08ec43ce4a49d04bc74e7f029
 
 jobs:
   source-verification:
