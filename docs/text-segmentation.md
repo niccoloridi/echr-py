@@ -171,3 +171,49 @@ Known limits remain:
 - confidence is diagnostic, not probabilistic;
 - no parser can infer missing source structure with certainty, so partial and
   unsegmented records must remain visible in corpus QA.
+
+## DOCX structure (opt-in, advisory)
+
+HUDOC's HTML is generated from the Registry's Word files and keeps only
+hashed formatting classes (`.sBB9EE52A {font-size:12pt}`), so the segmenter
+above reconstructs structure from heading grammars and the judge roster. The
+DOCX rendition keeps the Registry template's named paragraph styles, present
+from the first judgment (Lawless v. Ireland, 1961) onward:
+
+| Style | Meaning |
+| --- | --- |
+| `Ju_H_Head` | top-level section heading (PROCEDURE, THE FACTS, THE LAW, FOR THESE REASONS) |
+| `Ju_H_I_Roman`, `Ju_H_A`, `Ju_H_1.`, `Ju_H_i`, `Ju_H_Article` | sub-headings |
+| `Ju_Para`, `Ju_Para_Last` | numbered paragraphs |
+| `Ju_Quot`, `Ju_Quot_List` | quoted material (domestic law, earlier judgments) |
+| `Ju_List` | operative points and lists |
+| `Ju_Judges`, `Ju_Court`, `Ju_Names`, `Ju_Signed` | composition and signature blocks |
+| `Opi_H_Head`, `Opi_Para`, `Opi_Quot`, `Opi_Translation` | separate opinions |
+| `Dec_H_Title`, `Dec_H_Case` | decisions and Committee judgments |
+| `ECHRPara`, `ECHRParaQuote`, `ECHRHeading1-6` | the 2013–2020 template variant |
+
+`fetch_case(itemid=..., with_text=True, rich_sections=True, docx_structure=True)`
+downloads the DOCX as well and sets `case.docx_structure`
+(`hudoc-docx-structure.v1`): every body paragraph as a block with its style
+id, role, text, printed paragraph number, table flag and footnote references;
+canonical sections found through the same heading vocabulary as the HTML
+segmenter; one opinion per `Opi_H_Head` block, typed and attributed through the
+shared opinion grammar and judge roster; footnotes from `word/footnotes.xml`
+with their invoking blocks; the composition lines; style counts; and
+diagnostics. Style ids that drift (`JuParaCharCharCharChar`, `JuHIroman0`) are
+normalised; unknown ids stay on the block and are counted in
+`unmapped_styles`.
+
+`compare_docx_structure(case)` returns a `DocxAgreement` listing the sections,
+opinion counts and opinion authors on each side and every difference, so a
+corpus can be screened for documents where the two renditions disagree.
+`echr-py corpus build --docx-structure` writes `docx_structure.jsonl` (one
+record per case with the structure and its agreement) and reports how many
+cases agreed; `echr-py segment --in FILE.docx` reads a local file.
+
+HTML remains canonical: spine offsets, citation loci, local indexes and the
+frozen benchmarks are HTML-based, and the DOCX layer never alters them. A
+heading broken across a line inside one paragraph, which the HTML path can
+only recover by text repair, is unambiguous in the DOCX because the style
+marks the paragraph. DOCX downloads are about half the size of the HTML and
+take about the same time at the same concurrency.

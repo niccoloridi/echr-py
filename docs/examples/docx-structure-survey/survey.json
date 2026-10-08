@@ -1,0 +1,1212 @@
+{
+ "schema_version": "echr-py-docx-structure-survey/v1",
+ "created_at": "2026-10-08T12:30:35+00:00",
+ "package_commit": "a3469c492e8056bdcb7d28e28fc91a34b2e945c9 (working tree with the 0.2.5 DOCX layer, committed next)",
+ "method": "DOCX and HTML fetched from HUDOC's public document endpoints on 2026-10-08 (no metadata search). DOCX parsed with hudoc_py.text.docx_structure.build_docx_structure; HTML segmented with hudoc_py.text.segment_html(doctype='HEJUD'); agreement from compare_docx_structure. sections_agree compares the main sections (sub-sections such as the Court's assessment are listed as differences without deciding the flag).",
+ "selection": "Eleven historical judgments chosen by name from 1961 to 1993; the first Grand Chamber judgment of 1996, 1998, 2001, 2004, 2007, 2011, 2014, 2017, 2019, 2022 and 2024 in the English Grand Chamber corpus; two Committee and two Chamber judgments of 2025 (one Committee judgment had no DOCX and no text and is omitted); the Öcalan decision of 2000 and Chamber judgment of 2003; Chahal 1996; the latest 2026 Grand Chamber judgment.",
+ "summary": {
+  "documents": 33,
+  "registry_styles_present_in_every_docx": true,
+  "min_registry_styled_share": 0.07,
+  "compared_with_html": 33,
+  "sections_agree": 32,
+  "opinion_counts_agree": 29,
+  "opinion_authors_agree": 28,
+  "mean_docx_fetch_seconds": 0.58,
+  "mean_html_fetch_seconds": 0.29,
+  "docx_to_html_byte_ratio": 0.52,
+  "section_disagreements": [
+   "001-57518 (Lawless 1961): section:procedure:docx_only; section:separate_opinion:docx_only; opinion_count:html=0:docx=1"
+  ],
+  "opinion_disagreements": [
+   "001-57891 (001-57891): opinion_count:html=2:docx=3",
+   "001-69022 (001-69022): opinion_count:html=1:docx=3",
+   "001-57518 (Lawless 1961): opinion_count:html=0:docx=1",
+   "001-57544 (Neumeister 1968): opinion_count:html=1:docx=2",
+   "001-78981 (GC 2007): opinion_authors:2:html=['CAFLISCHAND CABRAL BARRETO']:docx=['CABRAL BARRETO', 'CAFLISCH']"
+  ],
+  "opinion_disagreements_inspected": "In each case the DOCX reading is the correct one: Jersild 1994 (a supplementary joint dissenting opinion the HTML grammar misses), Neumeister 1968 (an 'individual dissenting opinion' heading the HTML grammar misses), Öcalan 2005 (two headings broken by <br> in the HTML, fixed for text in 0.2.4), the 2007 Grand Chamber judgment (two authors glued by <br> in the HTML)."
+ },
+ "documents": [
+  {
+   "itemid": "001-251322",
+   "label": "001-251322",
+   "docx_sha256": "0066f089420d5d436b2dc291cd0929600162fa5d395ca99965035bc90f3c132d",
+   "docx_bytes": 283299,
+   "html_bytes": 805167,
+   "docx_fetch_seconds": null,
+   "html_fetch_seconds": null,
+   "paragraphs": 1185,
+   "registry_styled_paragraphs": 1050,
+   "docx_sections": [
+    "procedure",
+    "facts",
+    "the_law",
+    "court_assessment",
+    "operative",
+    "separate_opinion"
+   ],
+   "docx_opinions": 2,
+   "html_sections": [
+    "facts",
+    "operative",
+    "procedure",
+    "separate_opinion",
+    "the_law"
+   ],
+   "sections_agree": true,
+   "html_opinions": 2,
+   "opinion_counts_agree": true,
+   "opinion_authors_agree": true,
+   "differences": [
+    "subsection:court_assessment:docx_only"
+   ],
+   "docx_diagnostics": [],
+   "unmapped_styles": {}
+  },
+  {
+   "itemid": "001-5562",
+   "label": "decision 2000 (Öcalan)",
+   "docx_sha256": "359c91ebacc2b9d902680d56b51ff9a77fd6fe1b3bcbcf441e56398c3f7f8a02",
+   "docx_bytes": 60839,
+   "html_bytes": 127384,
+   "docx_fetch_seconds": 0.35,
+   "html_fetch_seconds": 0.26,
+   "paragraphs": 245,
+   "registry_styled_paragraphs": 245,
+   "docx_sections": [
+    "facts",
+    "complaints",
+    "the_law",
+    "court_assessment",
+    "operative"
+   ],
+   "docx_opinions": 0,
+   "html_sections": [
+    "complaints",
+    "court_assessment",
+    "facts",
+    "operative",
+    "the_law"
+   ],
+   "sections_agree": true,
+   "html_opinions": 0,
+   "opinion_counts_agree": true,
+   "opinion_authors_agree": true,
+   "differences": [],
+   "docx_diagnostics": [
+    "section_heading_out_of_order:procedure:101",
+    "section_heading_out_of_order:complaints:233"
+   ],
+   "unmapped_styles": {}
+  },
+  {
+   "itemid": "001-57891",
+   "label": "001-57891",
+   "docx_sha256": "147abf013354cd6ebffefd1e3f380d68bdf22592f4830c796d86063483932787",
+   "docx_bytes": 68870,
+   "html_bytes": 107041,
+   "docx_fetch_seconds": null,
+   "html_fetch_seconds": null,
+   "paragraphs": 317,
+   "registry_styled_paragraphs": 296,
+   "docx_sections": [
+    "procedure",
+    "facts",
+    "the_law",
+    "operative",
+    "separate_opinion"
+   ],
+   "docx_opinions": 3,
+   "html_sections": [
+    "facts",
+    "operative",
+    "procedure",
+    "separate_opinion",
+    "the_law"
+   ],
+   "sections_agree": true,
+   "html_opinions": 2,
+   "opinion_counts_agree": false,
+   "opinion_authors_agree": false,
+   "differences": [
+    "opinion_count:html=2:docx=3"
+   ],
+   "docx_diagnostics": [
+    "section_heading_out_of_order:procedure:216",
+    "opinion_heading_not_parsed:313:SUPPLEMENTARY JOINT DISSENTING OPINION OF JUDGES GÖLCÜKLÜ AN"
+   ],
+   "unmapped_styles": {}
+  },
+  {
+   "itemid": "001-58004",
+   "label": "001-58004",
+   "docx_sha256": "3b599ae7695e86f5a885e7ea7cca8bffd241fd633110f613914e7bc1b679813f",
+   "docx_bytes": 104707,
+   "html_bytes": 271370,
+   "docx_fetch_seconds": null,
+   "html_fetch_seconds": null,
+   "paragraphs": 532,
+   "registry_styled_paragraphs": 500,
+   "docx_sections": [
+    "procedure",
+    "facts",
+    "the_law",
+    "operative",
+    "separate_opinion"
+   ],
+   "docx_opinions": 7,
+   "html_sections": [
+    "facts",
+    "operative",
+    "procedure",
+    "separate_opinion",
+    "the_law"
+   ],
+   "sections_agree": true,
+   "html_opinions": 7,
+   "opinion_counts_agree": true,
+   "opinion_authors_agree": true,
+   "differences": [],
+   "docx_diagnostics": [
+    "section_heading_out_of_order:procedure:213",
+    "section_heading_out_of_order:complaints:279"
+   ],
+   "unmapped_styles": {}
+  },
+  {
+   "itemid": "001-58906",
+   "label": "001-58906",
+   "docx_sha256": "7c87e39ce4f6c2743be28ba96cddde7ae2fd7579514e06597b70b1ae569f7ffc",
+   "docx_bytes": 52285,
+   "html_bytes": 106146,
+   "docx_fetch_seconds": null,
+   "html_fetch_seconds": null,
+   "paragraphs": 235,
+   "registry_styled_paragraphs": 207,
+   "docx_sections": [
+    "procedure",
+    "facts",
+    "the_law",
+    "operative"
+   ],
+   "docx_opinions": 0,
+   "html_sections": [
+    "facts",
+    "operative",
+    "procedure",
+    "the_law"
+   ],
+   "sections_agree": true,
+   "html_opinions": 0,
+   "opinion_counts_agree": true,
+   "opinion_authors_agree": true,
+   "differences": [],
+   "docx_diagnostics": [
+    "section_heading_out_of_order:procedure:139"
+   ],
+   "unmapped_styles": {}
+  },
+  {
+   "itemid": "001-60979",
+   "label": "chamber 2003 (Öcalan)",
+   "docx_sha256": "d7f84dfc99888f5cd65864443e132348ceb0f705173e8acf97d489695a565e15",
+   "docx_bytes": 110261,
+   "html_bytes": 308292,
+   "docx_fetch_seconds": 0.37,
+   "html_fetch_seconds": 0.42,
+   "paragraphs": 577,
+   "registry_styled_paragraphs": 559,
+   "docx_sections": [
+    "procedure",
+    "facts",
+    "the_law",
+    "court_assessment",
+    "operative",
+    "separate_opinion"
+   ],
+   "docx_opinions": 1,
+   "html_sections": [
+    "facts",
+    "operative",
+    "procedure",
+    "separate_opinion",
+    "the_law"
+   ],
+   "sections_agree": true,
+   "html_opinions": 1,
+   "opinion_counts_agree": true,
+   "opinion_authors_agree": true,
+   "differences": [
+    "subsection:court_assessment:docx_only"
+   ],
+   "docx_diagnostics": [
+    "section_heading_out_of_order:complaints:446"
+   ],
+   "unmapped_styles": {}
+  },
+  {
+   "itemid": "001-69022",
+   "label": "001-69022",
+   "docx_sha256": "de9f3bcfc20959fced2225dfe7d11cbdfa4571e0b6a0bbba91caba50904028cf",
+   "docx_bytes": 136670,
+   "html_bytes": 305969,
+   "docx_fetch_seconds": null,
+   "html_fetch_seconds": null,
+   "paragraphs": 603,
+   "registry_styled_paragraphs": 569,
+   "docx_sections": [
+    "procedure",
+    "facts",
+    "the_law",
+    "court_assessment",
+    "operative",
+    "separate_opinion"
+   ],
+   "docx_opinions": 3,
+   "html_sections": [
+    "facts",
+    "operative",
+    "procedure",
+    "separate_opinion",
+    "the_law"
+   ],
+   "sections_agree": true,
+   "html_opinions": 1,
+   "opinion_counts_agree": false,
+   "opinion_authors_agree": false,
+   "differences": [
+    "subsection:court_assessment:docx_only",
+    "opinion_count:html=1:docx=3"
+   ],
+   "docx_diagnostics": [
+    "section_heading_out_of_order:complaints:477"
+   ],
+   "unmapped_styles": {}
+  },
+  {
+   "itemid": "001-97704",
+   "label": "001-97704",
+   "docx_sha256": "6674729a10d0584b98a01dcade4280b019e1a9ade3e03429dc3cd101a35d1fe2",
+   "docx_bytes": 250444,
+   "html_bytes": 126338,
+   "docx_fetch_seconds": null,
+   "html_fetch_seconds": null,
+   "paragraphs": 224,
+   "registry_styled_paragraphs": 192,
+   "docx_sections": [
+    "procedure",
+    "facts",
+    "the_law",
+    "court_assessment",
+    "operative",
+    "separate_opinion"
+   ],
+   "docx_opinions": 1,
+   "html_sections": [
+    "facts",
+    "operative",
+    "procedure",
+    "separate_opinion",
+    "the_law"
+   ],
+   "sections_agree": true,
+   "html_opinions": 1,
+   "opinion_counts_agree": true,
+   "opinion_authors_agree": true,
+   "differences": [
+    "subsection:court_assessment:docx_only"
+   ],
+   "docx_diagnostics": [],
+   "unmapped_styles": {}
+  },
+  {
+   "itemid": "001-102617",
+   "label": "GC 2011",
+   "docx_sha256": "4e733b3e57492ef07678a5ec7ed6a26f585e02d79091db864403fe2010e121f8",
+   "docx_bytes": 293421,
+   "html_bytes": 181906,
+   "docx_fetch_seconds": 0.54,
+   "html_fetch_seconds": 0.31,
+   "paragraphs": 346,
+   "registry_styled_paragraphs": 315,
+   "docx_sections": [
+    "procedure",
+    "facts",
+    "the_law",
+    "court_assessment",
+    "operative",
+    "separate_opinion"
+   ],
+   "docx_opinions": 1,
+   "html_sections": [
+    "facts",
+    "operative",
+    "procedure",
+    "separate_opinion",
+    "the_law"
+   ],
+   "sections_agree": true,
+   "html_opinions": 1,
+   "opinion_counts_agree": true,
+   "opinion_authors_agree": true,
+   "differences": [
+    "subsection:court_assessment:docx_only"
+   ],
+   "docx_diagnostics": [],
+   "unmapped_styles": {}
+  },
+  {
+   "itemid": "001-140235",
+   "label": "GC 2014",
+   "docx_sha256": "b25fb7f8f836a0c93e5b6d9c4d7951dc71d1d52891e9a74c1b4c9e2fea449d55",
+   "docx_bytes": 285891,
+   "html_bytes": 320920,
+   "docx_fetch_seconds": 0.5,
+   "html_fetch_seconds": 0.3,
+   "paragraphs": 493,
+   "registry_styled_paragraphs": 424,
+   "docx_sections": [
+    "procedure",
+    "facts",
+    "the_law",
+    "court_assessment",
+    "operative",
+    "separate_opinion"
+   ],
+   "docx_opinions": 3,
+   "html_sections": [
+    "facts",
+    "operative",
+    "procedure",
+    "separate_opinion",
+    "the_law"
+   ],
+   "sections_agree": true,
+   "html_opinions": 3,
+   "opinion_counts_agree": true,
+   "opinion_authors_agree": true,
+   "differences": [
+    "subsection:court_assessment:docx_only"
+   ],
+   "docx_diagnostics": [],
+   "unmapped_styles": {}
+  },
+  {
+   "itemid": "001-170347",
+   "label": "GC 2017",
+   "docx_sha256": "1289611fcb27fae10553859a1ba47fe709bc2e3705edebf48463f47ddfa64a5e",
+   "docx_bytes": 139889,
+   "html_bytes": 294658,
+   "docx_fetch_seconds": 0.4,
+   "html_fetch_seconds": 0.28,
+   "paragraphs": 383,
+   "registry_styled_paragraphs": 331,
+   "docx_sections": [
+    "procedure",
+    "facts",
+    "the_law",
+    "court_assessment",
+    "operative",
+    "separate_opinion"
+   ],
+   "docx_opinions": 3,
+   "html_sections": [
+    "facts",
+    "operative",
+    "procedure",
+    "separate_opinion",
+    "the_law"
+   ],
+   "sections_agree": true,
+   "html_opinions": 3,
+   "opinion_counts_agree": true,
+   "opinion_authors_agree": true,
+   "differences": [
+    "subsection:court_assessment:docx_only"
+   ],
+   "docx_diagnostics": [],
+   "unmapped_styles": {}
+  },
+  {
+   "itemid": "001-189781",
+   "label": "GC 2019",
+   "docx_sha256": "334ff09f93ce85e610d3fbabdfcfc7f4c9cf6cd7f97f3d4f1a1eb43d834e5436",
+   "docx_bytes": 175141,
+   "html_bytes": 416012,
+   "docx_fetch_seconds": 2.44,
+   "html_fetch_seconds": 0.31,
+   "paragraphs": 696,
+   "registry_styled_paragraphs": 639,
+   "docx_sections": [
+    "procedure",
+    "facts",
+    "the_law",
+    "court_assessment",
+    "operative",
+    "separate_opinion"
+   ],
+   "docx_opinions": 2,
+   "html_sections": [
+    "facts",
+    "operative",
+    "procedure",
+    "separate_opinion",
+    "the_law"
+   ],
+   "sections_agree": true,
+   "html_opinions": 2,
+   "opinion_counts_agree": true,
+   "opinion_authors_agree": true,
+   "differences": [
+    "subsection:court_assessment:docx_only"
+   ],
+   "docx_diagnostics": [],
+   "unmapped_styles": {}
+  },
+  {
+   "itemid": "001-216400",
+   "label": "GC 2022",
+   "docx_sha256": "8cae8a9bedca8aada924322f99c33ebbea6b9508bff1bcd71baa5f8197274dfc",
+   "docx_bytes": 264955,
+   "html_bytes": 737474,
+   "docx_fetch_seconds": 0.64,
+   "html_fetch_seconds": 0.34,
+   "paragraphs": 1173,
+   "registry_styled_paragraphs": 1120,
+   "docx_sections": [
+    "procedure",
+    "facts",
+    "the_law",
+    "court_assessment",
+    "operative",
+    "separate_opinion"
+   ],
+   "docx_opinions": 3,
+   "html_sections": [
+    "facts",
+    "operative",
+    "procedure",
+    "separate_opinion",
+    "the_law"
+   ],
+   "sections_agree": true,
+   "html_opinions": 3,
+   "opinion_counts_agree": true,
+   "opinion_authors_agree": true,
+   "differences": [
+    "subsection:court_assessment:docx_only"
+   ],
+   "docx_diagnostics": [],
+   "unmapped_styles": {}
+  },
+  {
+   "itemid": "001-233206",
+   "label": "GC 2024",
+   "docx_sha256": "afc778c0ba5fb873e848788e831257d9936f04a0b32dd8985726c6f93bfe22d1",
+   "docx_bytes": 457839,
+   "html_bytes": 1362762,
+   "docx_fetch_seconds": 0.99,
+   "html_fetch_seconds": 0.45,
+   "paragraphs": 2038,
+   "registry_styled_paragraphs": 1679,
+   "docx_sections": [
+    "procedure",
+    "facts",
+    "the_law",
+    "court_assessment",
+    "operative"
+   ],
+   "docx_opinions": 0,
+   "html_sections": [
+    "facts",
+    "operative",
+    "procedure",
+    "the_law"
+   ],
+   "sections_agree": true,
+   "html_opinions": 0,
+   "opinion_counts_agree": true,
+   "opinion_authors_agree": true,
+   "differences": [
+    "subsection:court_assessment:docx_only"
+   ],
+   "docx_diagnostics": [
+    "section_heading_out_of_order:complaints:1349"
+   ],
+   "unmapped_styles": {
+    "ECHRPlaceholder": 1
+   }
+  },
+  {
+   "itemid": "001-247549",
+   "label": "chamber judgment 2025",
+   "docx_sha256": "1497209cc0ea37c8987594401c49b892f09a64077543178decffe3398d2daa83",
+   "docx_bytes": 216357,
+   "html_bytes": 625026,
+   "docx_fetch_seconds": 0.62,
+   "html_fetch_seconds": 0.3,
+   "paragraphs": 4484,
+   "registry_styled_paragraphs": 396,
+   "docx_sections": [
+    "facts",
+    "the_law",
+    "court_assessment",
+    "operative",
+    "appendix"
+   ],
+   "docx_opinions": 0,
+   "html_sections": [
+    "appendix",
+    "court_assessment",
+    "facts",
+    "operative",
+    "the_law"
+   ],
+   "sections_agree": true,
+   "html_opinions": 0,
+   "opinion_counts_agree": true,
+   "opinion_authors_agree": true,
+   "differences": [],
+   "docx_diagnostics": [
+    "section_heading_out_of_order:complaints:336"
+   ],
+   "unmapped_styles": {
+    "ECHRPlaceholder": 1
+   }
+  },
+  {
+   "itemid": "001-247552",
+   "label": "chamber judgment 2025",
+   "docx_sha256": "3071d741661e59b516d17966a30b337c989ef172e7f0b77cd72800c5aa7cedb5",
+   "docx_bytes": 96511,
+   "html_bytes": 50222,
+   "docx_fetch_seconds": 0.31,
+   "html_fetch_seconds": 0.27,
+   "paragraphs": 114,
+   "registry_styled_paragraphs": 105,
+   "docx_sections": [
+    "facts",
+    "the_law",
+    "court_assessment",
+    "operative"
+   ],
+   "docx_opinions": 0,
+   "html_sections": [
+    "court_assessment",
+    "facts",
+    "operative",
+    "the_law"
+   ],
+   "sections_agree": true,
+   "html_opinions": 0,
+   "opinion_counts_agree": true,
+   "opinion_authors_agree": true,
+   "differences": [],
+   "docx_diagnostics": [],
+   "unmapped_styles": {
+    "ECHRPlaceholder": 2
+   }
+  },
+  {
+   "itemid": "001-247849",
+   "label": "committee judgment 2025",
+   "docx_sha256": "3f0387fd8f5fdc116f3d52a11d0bd1b0eee3d4760ee7790d4391e4a8019e95dc",
+   "docx_bytes": 117902,
+   "html_bytes": 128328,
+   "docx_fetch_seconds": 0.44,
+   "html_fetch_seconds": 0.26,
+   "paragraphs": 869,
+   "registry_styled_paragraphs": 63,
+   "docx_sections": [
+    "subject_matter",
+    "court_assessment",
+    "operative",
+    "appendix"
+   ],
+   "docx_opinions": 0,
+   "html_sections": [
+    "appendix",
+    "court_assessment",
+    "operative",
+    "subject_matter"
+   ],
+   "sections_agree": true,
+   "html_opinions": 0,
+   "opinion_counts_agree": true,
+   "opinion_authors_agree": true,
+   "differences": [],
+   "docx_diagnostics": [
+    "section_heading_out_of_order:complaints:49"
+   ],
+   "unmapped_styles": {
+    "ECHRPlaceholder": 1
+   }
+  },
+  {
+   "itemid": "001-57473",
+   "label": "Dudgeon 1981",
+   "docx_sha256": "205ea39c832dd662db2d948a7d82f59b108fbe9ad6e9bb03603214f6ac45444a",
+   "docx_bytes": 98788,
+   "html_bytes": 139748,
+   "docx_fetch_seconds": 0.5,
+   "html_fetch_seconds": 0.27,
+   "paragraphs": 368,
+   "registry_styled_paragraphs": 336,
+   "docx_sections": [
+    "procedure",
+    "facts",
+    "the_law",
+    "operative",
+    "separate_opinion"
+   ],
+   "docx_opinions": 5,
+   "html_sections": [
+    "facts",
+    "operative",
+    "procedure",
+    "separate_opinion",
+    "the_law"
+   ],
+   "sections_agree": true,
+   "html_opinions": 5,
+   "opinion_counts_agree": true,
+   "opinion_authors_agree": true,
+   "differences": [],
+   "docx_diagnostics": [
+    "section_heading_out_of_order:procedure:140"
+   ],
+   "unmapped_styles": {}
+  },
+  {
+   "itemid": "001-57496",
+   "label": "Golder 1975",
+   "docx_sha256": "a7617fc9cb594ec2e76475e75b2770dcf77da5047299f0122178b204ff9d3093",
+   "docx_bytes": 124189,
+   "html_bytes": 209417,
+   "docx_fetch_seconds": 0.52,
+   "html_fetch_seconds": 0.29,
+   "paragraphs": 386,
+   "registry_styled_paragraphs": 343,
+   "docx_sections": [
+    "procedure",
+    "facts",
+    "the_law",
+    "operative",
+    "separate_opinion"
+   ],
+   "docx_opinions": 3,
+   "html_sections": [
+    "facts",
+    "operative",
+    "procedure",
+    "separate_opinion",
+    "the_law"
+   ],
+   "sections_agree": true,
+   "html_opinions": 3,
+   "opinion_counts_agree": true,
+   "opinion_authors_agree": true,
+   "differences": [],
+   "docx_diagnostics": [],
+   "unmapped_styles": {}
+  },
+  {
+   "itemid": "001-57499",
+   "label": "Handyside 1976",
+   "docx_sha256": "71dd56ac5457cd4019b5ee09823bdc02cd02eef94e095d01606dff9592002ad7",
+   "docx_bytes": 79664,
+   "html_bytes": 110179,
+   "docx_fetch_seconds": 0.35,
+   "html_fetch_seconds": 0.24,
+   "paragraphs": 297,
+   "registry_styled_paragraphs": 257,
+   "docx_sections": [
+    "procedure",
+    "facts",
+    "the_law",
+    "operative",
+    "separate_opinion"
+   ],
+   "docx_opinions": 2,
+   "html_sections": [
+    "facts",
+    "operative",
+    "procedure",
+    "separate_opinion",
+    "the_law"
+   ],
+   "sections_agree": true,
+   "html_opinions": 2,
+   "opinion_counts_agree": true,
+   "opinion_authors_agree": true,
+   "differences": [],
+   "docx_diagnostics": [
+    "section_heading_out_of_order:procedure:165"
+   ],
+   "unmapped_styles": {}
+  },
+  {
+   "itemid": "001-57518",
+   "label": "Lawless 1961",
+   "docx_sha256": "9bd318dee0860e6c4576b4ab6f3e76acdce7ffde61a8afefca03205b99af7364",
+   "docx_bytes": 67766,
+   "html_bytes": 135717,
+   "docx_fetch_seconds": 2.31,
+   "html_fetch_seconds": 0.3,
+   "paragraphs": 370,
+   "registry_styled_paragraphs": 325,
+   "docx_sections": [
+    "procedure",
+    "facts",
+    "the_law",
+    "separate_opinion"
+   ],
+   "docx_opinions": 1,
+   "html_sections": [
+    "facts",
+    "the_law"
+   ],
+   "sections_agree": false,
+   "html_opinions": 0,
+   "opinion_counts_agree": false,
+   "opinion_authors_agree": false,
+   "differences": [
+    "section:procedure:docx_only",
+    "section:separate_opinion:docx_only",
+    "opinion_count:html=0:docx=1"
+   ],
+   "docx_diagnostics": [
+    "opinion_heading_not_parsed:345:INDIVIDUAL OPINION OF MR. G. MARIDAKIS"
+   ],
+   "unmapped_styles": {}
+  },
+  {
+   "itemid": "001-57533",
+   "label": "Malone 1984",
+   "docx_sha256": "ba0f524a77bb0258abd1556c9a90221453c04f7db6d159eda416e53f40494089",
+   "docx_bytes": 84254,
+   "html_bytes": 159669,
+   "docx_fetch_seconds": 0.35,
+   "html_fetch_seconds": 0.28,
+   "paragraphs": 383,
+   "registry_styled_paragraphs": 359,
+   "docx_sections": [
+    "procedure",
+    "facts",
+    "the_law",
+    "operative",
+    "separate_opinion"
+   ],
+   "docx_opinions": 2,
+   "html_sections": [
+    "facts",
+    "operative",
+    "procedure",
+    "separate_opinion",
+    "the_law"
+   ],
+   "sections_agree": true,
+   "html_opinions": 2,
+   "opinion_counts_agree": true,
+   "opinion_authors_agree": true,
+   "differences": [],
+   "docx_diagnostics": [
+    "section_heading_out_of_order:procedure:223"
+   ],
+   "unmapped_styles": {}
+  },
+  {
+   "itemid": "001-57534",
+   "label": "Marckx 1979",
+   "docx_sha256": "739361a15bf1b125ba0a92a98bdb6db4f6e3cd8f38aaae364ca2bd51ed05dbba",
+   "docx_bytes": 122078,
+   "html_bytes": 193400,
+   "docx_fetch_seconds": 0.5,
+   "html_fetch_seconds": 0.28,
+   "paragraphs": 460,
+   "registry_styled_paragraphs": 427,
+   "docx_sections": [
+    "procedure",
+    "facts",
+    "the_law",
+    "operative",
+    "separate_opinion"
+   ],
+   "docx_opinions": 7,
+   "html_sections": [
+    "facts",
+    "operative",
+    "procedure",
+    "separate_opinion",
+    "the_law"
+   ],
+   "sections_agree": true,
+   "html_opinions": 7,
+   "opinion_counts_agree": true,
+   "opinion_authors_agree": true,
+   "differences": [],
+   "docx_diagnostics": [
+    "section_heading_out_of_order:procedure:104"
+   ],
+   "unmapped_styles": {}
+  },
+  {
+   "itemid": "001-57544",
+   "label": "Neumeister 1968",
+   "docx_sha256": "4e65bef8eb99c827d52354a1c169413e072e0f41f4bc791e77a2009220903440",
+   "docx_bytes": 93723,
+   "html_bytes": 172814,
+   "docx_fetch_seconds": 0.4,
+   "html_fetch_seconds": 0.34,
+   "paragraphs": 374,
+   "registry_styled_paragraphs": 329,
+   "docx_sections": [
+    "procedure",
+    "facts",
+    "the_law",
+    "operative",
+    "separate_opinion"
+   ],
+   "docx_opinions": 2,
+   "html_sections": [
+    "facts",
+    "operative",
+    "procedure",
+    "separate_opinion",
+    "the_law"
+   ],
+   "sections_agree": true,
+   "html_opinions": 1,
+   "opinion_counts_agree": false,
+   "opinion_authors_agree": false,
+   "differences": [
+    "opinion_count:html=1:docx=2"
+   ],
+   "docx_diagnostics": [
+    "opinion_heading_not_parsed:362:INDIVIDUAL DISSENTING OPINION OF JUDGE ZEKIA"
+   ],
+   "unmapped_styles": {}
+  },
+  {
+   "itemid": "001-57580",
+   "label": "Sporrong 1982",
+   "docx_sha256": "df320f47a8f78e354ec34e9bf486a785b09f38dd9886a9b30e887dc517e532db",
+   "docx_bytes": 84678,
+   "html_bytes": 138311,
+   "docx_fetch_seconds": 0.35,
+   "html_fetch_seconds": 0.33,
+   "paragraphs": 409,
+   "registry_styled_paragraphs": 377,
+   "docx_sections": [
+    "procedure",
+    "facts",
+    "the_law",
+    "operative",
+    "separate_opinion"
+   ],
+   "docx_opinions": 6,
+   "html_sections": [
+    "facts",
+    "operative",
+    "procedure",
+    "separate_opinion",
+    "the_law"
+   ],
+   "sections_agree": true,
+   "html_opinions": 6,
+   "opinion_counts_agree": true,
+   "opinion_authors_agree": true,
+   "differences": [],
+   "docx_diagnostics": [
+    "section_heading_out_of_order:procedure:193"
+   ],
+   "unmapped_styles": {}
+  },
+  {
+   "itemid": "001-57584",
+   "label": "Sunday Times 1979",
+   "docx_sha256": "9a3c5be9ed1385ba8ea2be8d4727a04557ccebc28a99425e2f66d52505c11d1e",
+   "docx_bytes": 110387,
+   "html_bytes": 203205,
+   "docx_fetch_seconds": 0.48,
+   "html_fetch_seconds": 0.3,
+   "paragraphs": 495,
+   "registry_styled_paragraphs": 465,
+   "docx_sections": [
+    "procedure",
+    "facts",
+    "the_law",
+    "operative",
+    "separate_opinion"
+   ],
+   "docx_opinions": 4,
+   "html_sections": [
+    "facts",
+    "operative",
+    "procedure",
+    "separate_opinion",
+    "the_law"
+   ],
+   "sections_agree": true,
+   "html_opinions": 4,
+   "opinion_counts_agree": true,
+   "opinion_authors_agree": true,
+   "differences": [],
+   "docx_diagnostics": [
+    "section_heading_out_of_order:procedure:203"
+   ],
+   "unmapped_styles": {}
+  },
+  {
+   "itemid": "001-57619",
+   "label": "Soering 1989",
+   "docx_sha256": "5336d81ecf9a0449a5c0c87ea0cbbb2ab626085e5b5bd5c4e8bf62a0a75b0339",
+   "docx_bytes": 89328,
+   "html_bytes": 178721,
+   "docx_fetch_seconds": 0.33,
+   "html_fetch_seconds": 0.28,
+   "paragraphs": 420,
+   "registry_styled_paragraphs": 399,
+   "docx_sections": [
+    "procedure",
+    "facts",
+    "the_law",
+    "operative",
+    "separate_opinion"
+   ],
+   "docx_opinions": 1,
+   "html_sections": [
+    "facts",
+    "operative",
+    "procedure",
+    "separate_opinion",
+    "the_law"
+   ],
+   "sections_agree": true,
+   "html_opinions": 1,
+   "opinion_counts_agree": true,
+   "opinion_authors_agree": true,
+   "differences": [],
+   "docx_diagnostics": [
+    "section_heading_out_of_order:procedure:233"
+   ],
+   "unmapped_styles": {}
+  },
+  {
+   "itemid": "001-57827",
+   "label": "Kokkinakis 1993",
+   "docx_sha256": "1022357471f79a420df3f95cb04e32902a12a1bd75fc1d7bf539f11011541961",
+   "docx_bytes": 83835,
+   "html_bytes": 127835,
+   "docx_fetch_seconds": 0.34,
+   "html_fetch_seconds": 0.27,
+   "paragraphs": 345,
+   "registry_styled_paragraphs": 322,
+   "docx_sections": [
+    "procedure",
+    "facts",
+    "the_law",
+    "operative",
+    "separate_opinion"
+   ],
+   "docx_opinions": 5,
+   "html_sections": [
+    "facts",
+    "operative",
+    "procedure",
+    "separate_opinion",
+    "the_law"
+   ],
+   "sections_agree": true,
+   "html_opinions": 5,
+   "opinion_counts_agree": true,
+   "opinion_authors_agree": true,
+   "differences": [],
+   "docx_diagnostics": [
+    "section_heading_out_of_order:procedure:127"
+   ],
+   "unmapped_styles": {}
+  },
+  {
+   "itemid": "001-57980",
+   "label": "GC 1996",
+   "docx_sha256": "5fd4b988eeba061f32ffea04fc0cf77bea27104b624183f33924aa14b5def1b5",
+   "docx_bytes": 78138,
+   "html_bytes": 156074,
+   "docx_fetch_seconds": 0.35,
+   "html_fetch_seconds": 0.26,
+   "paragraphs": 382,
+   "registry_styled_paragraphs": 368,
+   "docx_sections": [
+    "procedure",
+    "facts",
+    "the_law",
+    "operative",
+    "separate_opinion"
+   ],
+   "docx_opinions": 3,
+   "html_sections": [
+    "facts",
+    "operative",
+    "procedure",
+    "separate_opinion",
+    "the_law"
+   ],
+   "sections_agree": true,
+   "html_opinions": 3,
+   "opinion_counts_agree": true,
+   "opinion_authors_agree": true,
+   "differences": [],
+   "docx_diagnostics": [
+    "section_heading_out_of_order:procedure:217"
+   ],
+   "unmapped_styles": {}
+  },
+  {
+   "itemid": "001-58128",
+   "label": "GC 1998",
+   "docx_sha256": "d34c2fa7241ee4e9a1aa3309aafcec8970aba3a84a394b794333bc5a9ca96658",
+   "docx_bytes": 74954,
+   "html_bytes": 151206,
+   "docx_fetch_seconds": 0.3,
+   "html_fetch_seconds": 0.26,
+   "paragraphs": 350,
+   "registry_styled_paragraphs": 310,
+   "docx_sections": [
+    "procedure",
+    "facts",
+    "the_law",
+    "court_assessment",
+    "operative"
+   ],
+   "docx_opinions": 0,
+   "html_sections": [
+    "facts",
+    "operative",
+    "procedure",
+    "the_law"
+   ],
+   "sections_agree": true,
+   "html_opinions": 0,
+   "opinion_counts_agree": true,
+   "opinion_authors_agree": true,
+   "differences": [
+    "subsection:court_assessment:docx_only"
+   ],
+   "docx_diagnostics": [
+    "section_heading_out_of_order:procedure:192"
+   ],
+   "unmapped_styles": {}
+  },
+  {
+   "itemid": "001-59155",
+   "label": "GC 2001",
+   "docx_sha256": "eeb1b144b2821c934c5509ad43180ddb32c7a584a115436010fbb26f7792a665",
+   "docx_bytes": 68133,
+   "html_bytes": 153824,
+   "docx_fetch_seconds": 0.3,
+   "html_fetch_seconds": 0.26,
+   "paragraphs": 312,
+   "registry_styled_paragraphs": 256,
+   "docx_sections": [
+    "procedure",
+    "facts",
+    "the_law",
+    "court_assessment",
+    "operative",
+    "separate_opinion"
+   ],
+   "docx_opinions": 2,
+   "html_sections": [
+    "facts",
+    "operative",
+    "procedure",
+    "separate_opinion",
+    "the_law"
+   ],
+   "sections_agree": true,
+   "html_opinions": 2,
+   "opinion_counts_agree": true,
+   "opinion_authors_agree": true,
+   "differences": [
+    "subsection:court_assessment:docx_only"
+   ],
+   "docx_diagnostics": [],
+   "unmapped_styles": {}
+  },
+  {
+   "itemid": "001-61629",
+   "label": "GC 2004",
+   "docx_sha256": "160ddd25e45f40280d0806d7fc51254691bd7191ddcaf9bc8a089f525c6fd1a4",
+   "docx_bytes": 64614,
+   "html_bytes": 99321,
+   "docx_fetch_seconds": 0.31,
+   "html_fetch_seconds": 0.23,
+   "paragraphs": 239,
+   "registry_styled_paragraphs": 207,
+   "docx_sections": [
+    "procedure",
+    "facts",
+    "the_law",
+    "court_assessment",
+    "operative"
+   ],
+   "docx_opinions": 0,
+   "html_sections": [
+    "facts",
+    "operative",
+    "procedure",
+    "the_law"
+   ],
+   "sections_agree": true,
+   "html_opinions": 0,
+   "opinion_counts_agree": true,
+   "opinion_authors_agree": true,
+   "differences": [
+    "subsection:court_assessment:docx_only"
+   ],
+   "docx_diagnostics": [],
+   "unmapped_styles": {}
+  },
+  {
+   "itemid": "001-78981",
+   "label": "GC 2007",
+   "docx_sha256": "46f470d1d9f4f46f1bb94692b08e824860d65160ec01d84710611f9151350410",
+   "docx_bytes": 95589,
+   "html_bytes": 129187,
+   "docx_fetch_seconds": 0.36,
+   "html_fetch_seconds": 0.24,
+   "paragraphs": 253,
+   "registry_styled_paragraphs": 222,
+   "docx_sections": [
+    "procedure",
+    "facts",
+    "the_law",
+    "court_assessment",
+    "operative",
+    "separate_opinion"
+   ],
+   "docx_opinions": 2,
+   "html_sections": [
+    "facts",
+    "operative",
+    "procedure",
+    "separate_opinion",
+    "the_law"
+   ],
+   "sections_agree": true,
+   "html_opinions": 2,
+   "opinion_counts_agree": true,
+   "opinion_authors_agree": false,
+   "differences": [
+    "subsection:court_assessment:docx_only",
+    "opinion_authors:2:html=['CAFLISCHAND CABRAL BARRETO']:docx=['CABRAL BARRETO', 'CAFLISCH']"
+   ],
+   "docx_diagnostics": [],
+   "unmapped_styles": {
+    "Jup": 1
+   }
+  }
+ ]
+}

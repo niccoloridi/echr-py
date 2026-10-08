@@ -65,6 +65,7 @@ def smart_fetch(
     rich_sections: bool = False,
     french_fallback: bool = True,
     concurrency: int = config.HUDOC_CONCURRENCY,
+    docx_structure: bool = False,
     **filters: Any,
 ) -> CaseCollection:
     """Search, keep the ``top`` matches, and fetch their texts concurrently."""
@@ -80,6 +81,7 @@ def smart_fetch(
             rich_sections=rich_sections,
             french_fallback=french_fallback,
             concurrency=concurrency,
+            docx_structure=docx_structure,
             **filters,
         )
     )
@@ -97,6 +99,7 @@ def fetch_case(
     french_fallback: bool = True,
     rescue: bool = False,
     docx_out: str | Path | None = None,
+    docx_structure: bool = False,
 ) -> Case | None:
     return _run(
         _aio.fetch_case(
@@ -110,6 +113,7 @@ def fetch_case(
             french_fallback=french_fallback,
             rescue=rescue,
             docx_out=docx_out,
+            docx_structure=docx_structure,
         )
     )
 

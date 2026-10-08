@@ -252,6 +252,17 @@ echr-py versions download \
 The acquisition manifest records each language-specific item ID, rendition
 type, requested-format outcome, HTTP status, path, byte length, and SHA-256.
 
+### DOCX structure, opt-in
+
+HUDOC's HTML is generated from the Registry's Word files and keeps only hashed
+formatting classes. The DOCX keeps the template's named styles (`Ju_H_Head`,
+`Ju_Para`, `Ju_Quot`, `Ju_Judges`, `Opi_H_Head`, `Opi_Para`), present from the
+first judgment of 1961 onward. `--docx-structure` (or `docx_structure=True`)
+reads them into an advisory `DocxStructure` with sections, numbered paragraphs,
+quotations, the bench, separate opinions and footnotes, and reports where it
+agrees with the HTML segmentation. HTML stays canonical for offsets, citation
+loci and benchmarks. See [docs/text-segmentation.md](https://github.com/niccoloridi/echr-py/blob/main/docs/text-segmentation.md#docx-structure-opt-in-advisory).
+
 ## Local lexical, dense, and hybrid retrieval
 
 Build a portable paragraph index from any acquired corpus:

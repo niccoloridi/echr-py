@@ -192,6 +192,11 @@ def build_parser() -> argparse.ArgumentParser:
         help="Build the source-aware block spine and rich canonical sections",
     )
     p_sf.add_argument("--docx-dir", help="Also download each case's DOCX into this directory.")
+    p_sf.add_argument(
+        "--docx-structure",
+        action="store_true",
+        help="Also read each case's DOCX and attach the Registry-style structure (advisory; HTML stays canonical)",
+    )
     p_sf.add_argument("--out", help="Output path (.parquet or .jsonl). Default: stdout JSON.")
 
     # fetch-case -----------------------------------------------------------
@@ -222,6 +227,11 @@ def build_parser() -> argparse.ArgumentParser:
         help="Section to print (requires --with-text)",
     )
     p_fc.add_argument("--docx", help="Also download the raw DOCX to this path.")
+    p_fc.add_argument(
+        "--docx-structure",
+        action="store_true",
+        help="Also read the DOCX and attach the Registry-style structure plus an agreement report against the HTML segmentation",
+    )
     p_fc.add_argument(
         "--rescue-french",
         action="store_true",
@@ -649,6 +659,11 @@ def build_parser() -> argparse.ArgumentParser:
         help="Write spine, paragraph, section, opinion, bench, footnote, and dispositive tables",
     )
     p_cb.add_argument("--docx", action="store_true", help="Also download raw DOCX files")
+    p_cb.add_argument(
+        "--docx-structure",
+        action="store_true",
+        help="Download DOCX files and write docx_structure.jsonl (Registry-style structure and HTML agreement per case)",
+    )
     p_cb.add_argument("--keep-extra-fre", action="store_true")
     p_cb.add_argument(
         "--citations",
@@ -815,19 +830,22 @@ def cmd_smart_fetch(args: argparse.Namespace) -> int:
         text_format=args.format,
         rich_sections=args.rich_sections,
         concurrency=args.concurrency,
+        docx_structure=args.docx_structure,
         **_filters_from_args(args),
     )
     records = []
+    tabular = bool(args.out) and Path(args.out).suffix in {".parquet", ".csv"}
     for case in cases:
         payload = case.model_dump(mode="json")
         if args.section != "full" and case.sections:
             payload["text"] = getattr(case.sections, args.section, None)
+        if tabular and payload.get("docx_structure") is not None:
+            # Nested structure travels as a JSON string in flat tables.
+            payload["docx_structure"] = json.dumps(payload["docx_structure"], ensure_ascii=False)
         records.append(payload)
     _write_records(records, args.out)
 
     if args.docx_dir:
-        from pathlib import Path
-
         from . import fetch_docx
 
         docx_dir = Path(args.docx_dir)
@@ -858,12 +876,29 @@ def cmd_fetch_case(args: argparse.Namespace) -> int:
         rich_sections=args.rich_sections,
         rescue=args.rescue_french,
         docx_out=args.docx,
+        docx_structure=args.docx_structure,
     )
     if case is None:
         print("echr-py: not found", file=sys.stderr)
         return 1
     if args.docx:
         print(f"echr-py: DOCX saved to {args.docx}", file=sys.stderr)
+    if args.docx_structure and case.docx_structure is not None:
+        structure = case.docx_structure
+        line = (
+            f"echr-py: DOCX structure {len(structure.blocks)} blocks, "
+            f"{len(structure.sections)} sections, {len(structure.opinions)} opinions, "
+            f"{len(structure.footnotes)} footnotes"
+        )
+        if case.sections is not None and structure.byte_count:
+            from .text.docx_structure import compare_docx_structure
+
+            agreement = compare_docx_structure(case)
+            line += (
+                f"; agreement with HTML: sections={'yes' if agreement.sections_agree else 'no'}, "
+                f"opinions={'yes' if agreement.opinion_counts_agree else 'no'}"
+            )
+        print(line, file=sys.stderr)
 
     payload = case.model_dump(mode="json")
     if args.with_text and args.section != "full" and case.sections:
@@ -950,6 +985,12 @@ def cmd_segment(args: argparse.Namespace) -> int:
     from .text import segment_full, segment_html
 
     path = Path(args.input)
+    if path.suffix.lower() == ".docx":
+        from .text.docx_structure import build_docx_structure
+
+        structure = build_docx_structure(path.read_bytes(), itemid=args.document_id or path.stem)
+        _write_object(structure.model_dump(mode="json"), args.out)
+        return 0
     if path.suffix.lower() in {".html", ".htm", ".txt"}:
         content = path.read_text(encoding="utf-8")
         is_html = args.format == "html" or (
@@ -1984,7 +2025,8 @@ def cmd_corpus_build(args: argparse.Namespace) -> int:
             with_texts=not args.no_texts,
             text_format=args.format,
             rescue=not args.no_rescue,
-            save_docx=args.docx,
+            save_docx=args.docx or args.docx_structure,
+            docx_structure=args.docx_structure,
             resolve_case_citations=args.citations,
             citation_authority=args.citation_authority,
             citation_overrides=args.citation_overrides,

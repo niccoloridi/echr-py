@@ -34,6 +34,7 @@ from .._aio import _fetch_case_text, search
 from ..main.downloader import DOWNLOAD_HEADERS
 from ..main.dsl import Q
 from ..models.case import Case, CaseCollection
+from ..models.common import Sections
 from ..utils.jsonl import append_jsonl, append_jsonl_many, iter_jsonl, load_processed_ids
 from .reconcile import ExtraSiblingPolicy, ReconcileStats, reconcile
 from .rescue import RescueStats, rescue_french
@@ -51,6 +52,7 @@ class CorpusReport(BaseModel):
     language_texts: dict[str, int] | None = None
     citations: dict[str, Any] | None = None
     rich_tables: dict[str, int] | None = None
+    docx_structures: dict[str, int] | None = None
     selection: dict[str, int] | None = None
     out_dir: str = ""
 
@@ -184,12 +186,15 @@ def _save_language_versions(cases: list[Case], entries: list[SelectionEntry], pa
 
     ownership = _language_version_ownership(entries)
     rows = [
-        {**case.model_dump(mode="json", exclude={"text", "sections"}), **ownership[case.itemid]}
+        {
+            **case.model_dump(mode="json", exclude={"text", "sections", "docx_structure"}),
+            **ownership[case.itemid],
+        }
         for case in cases
         if case.itemid in ownership
     ]
     columns = [
-        *[name for name in Case.model_fields if name not in {"text", "sections"}],
+        *[name for name in Case.model_fields if name not in {"text", "sections", "docx_structure"}],
         "primary_itemid",
         "selection_ecli",
         "selected_language",
@@ -369,6 +374,7 @@ async def build_corpus(
     text_format: str = "text",
     rescue: bool = True,
     save_docx: bool = False,
+    docx_structure: bool = False,
     resolve_case_citations: bool = False,
     citation_authority: str | Path | None = None,
     citation_overrides: str | Path | None = None,
@@ -464,8 +470,8 @@ async def build_corpus(
             failures_path=failures_path,
         )
 
-    # 5. Optional raw DOCX download.
-    if save_docx:
+    # 5. Optional raw DOCX download (forced on when the DOCX structure layer is requested).
+    if save_docx or docx_structure:
         from ..main.downloader import AsyncDocumentDownloader
 
         downloader = AsyncDocumentDownloader(
@@ -515,6 +521,16 @@ async def build_corpus(
             )
         write_resolution_artifacts(citation_result, citation_dir)
         report.citations = citation_result.report.model_dump(mode="json")
+
+    # 8. Optional advisory DOCX structure layer: one record per case with the
+    # Registry-style structure and its agreement with the HTML segmentation.
+    if docx_structure:
+        persisted_sections = (
+            out / "language-sections.jsonl" if language_version_cases else out / "sections.jsonl"
+        )
+        report.docx_structures = _write_docx_structures(
+            result.cases, out, sections_path=persisted_sections
+        )
 
     (out / "report.json").write_text(report.model_dump_json(indent=2) + "\n", encoding="utf-8")
     from .bundle import generate_corpus_manifest
@@ -609,7 +625,7 @@ def _save_parquet(cases: list[Case], path: Path, *, drop_text: bool) -> None:
     rows = [c.model_dump(mode="json") for c in cases]
     df = pd.DataFrame(rows) if rows else pd.DataFrame(columns=list(Case.model_fields))
     if drop_text:
-        df = df.drop(columns=[c for c in ("text", "sections") if c in df.columns])
+        df = df.drop(columns=[c for c in ("text", "sections", "docx_structure") if c in df.columns])
     path.parent.mkdir(parents=True, exist_ok=True)
     df.to_parquet(path, index=False)
 
@@ -627,3 +643,65 @@ def load_cases(path: str | Path) -> CaseCollection:
 
 
 __all__ = ["build_corpus", "CorpusReport", "load_cases", "load_selection", "SelectionEntry"]
+
+
+def _load_persisted_sections(path: Path) -> dict[str, Sections]:
+    """Read ``sections.jsonl`` (or ``language-sections.jsonl``) back into ``Sections`` by item ID."""
+    from ..utils.jsonl import iter_jsonl
+
+    if not path.exists():
+        return {}
+    restored: dict[str, Sections] = {}
+    for record in iter_jsonl(path):
+        itemid = str(record.get("itemid") or "")
+        if itemid and isinstance(record.get("sections"), dict) and itemid not in restored:
+            restored[itemid] = Sections.model_validate(record["sections"])
+    return restored
+
+
+def _write_docx_structures(
+    cases: list[Case], out: Path, *, sections_path: Path | None = None
+) -> dict[str, int]:
+    """Parse the DOCX files saved under ``docs/docx`` and write ``docx_structure.jsonl``.
+
+    Sections for the agreement report come from the in-memory case when it was
+    hydrated in this run, and otherwise from the persisted ``sections.jsonl`` so
+    resumed builds report agreement for every case.
+    """
+    import json
+
+    from ..text.docx_structure import build_docx_structure, compare_docx_structure
+
+    persisted = _load_persisted_sections(sections_path) if sections_path is not None else {}
+    docx_dir = out / "docs" / "docx"
+    counts = {"cases": 0, "with_docx": 0, "sections_agree": 0, "opinions_agree": 0}
+    with (out / "docx_structure.jsonl").open("w", encoding="utf-8") as handle:
+        for case in cases:
+            if not case.itemid:
+                continue
+            counts["cases"] += 1
+            path = docx_dir / f"{case.itemid}.docx"
+            record: dict[str, Any] = {
+                "itemid": case.itemid,
+                "docx_path": str(path.relative_to(out)) if path.exists() else None,
+            }
+            if path.exists():
+                structure = build_docx_structure(path.read_bytes(), itemid=case.itemid)
+                case.docx_structure = structure
+                counts["with_docx"] += 1
+                record["structure"] = structure.model_dump(mode="json")
+                sections = case.sections or persisted.get(case.itemid)
+                if sections is not None:
+                    agreement = compare_docx_structure(
+                        case
+                        if case.sections is not None
+                        else case.model_copy(update={"sections": sections}),
+                        structure,
+                    )
+                    record["agreement"] = agreement.model_dump(mode="json")
+                    counts["sections_agree"] += int(agreement.sections_agree)
+                    counts["opinions_agree"] += int(agreement.opinion_counts_agree)
+            else:
+                record["structure"] = None
+            handle.write(json.dumps(record, ensure_ascii=False) + "\n")
+    return counts

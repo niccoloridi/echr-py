@@ -3,6 +3,29 @@
 All notable user-facing changes are recorded here. The project follows
 semantic versioning during its alpha series.
 
+## 0.2.5 – 2026-10-08
+
+### Added
+
+- Opt-in DOCX structure layer. HUDOC's HTML is generated from the Registry's
+  Word files and keeps only hashed formatting classes; the DOCX keeps the
+  template's named paragraph styles (`Ju_H_Head`, `Ju_Para`, `Ju_Quot`,
+  `Ju_Judges`, `Opi_H_Head`, `Opi_Para`, and the 2013–2020 `ECHRPara` /
+  `ECHRHeading` family), which label sections, numbered paragraphs,
+  quotations, the bench and separate opinions directly. A survey of 27
+  documents from Lawless v. Ireland (1961) to 2025 found the styles in every
+  one. `fetch_case(..., docx_structure=True)`, `smart_fetch(...,
+  docx_structure=True)`, `build_corpus(..., docx_structure=True)` and the
+  matching `--docx-structure` flags read the DOCX and attach a
+  `DocxStructure` (blocks with style, role, printed paragraph number, table
+  flag and footnote references; sections; opinions with type, authors and
+  joiners; footnotes; bench lines; style counts; diagnostics).
+  `compare_docx_structure(case)` reports where it agrees with the HTML
+  segmentation; `corpus build --docx-structure` writes `docx_structure.jsonl`
+  with one record per case. `echr-py segment --in FILE.docx` reads a local file.
+  HTML remains the canonical rendition for offsets, citation loci and
+  benchmarks; the DOCX layer is advisory and changes no existing output.
+
 ## 0.2.4 – 2026-10-07
 
 ### Fixed

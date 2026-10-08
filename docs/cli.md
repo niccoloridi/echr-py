@@ -552,3 +552,13 @@ echr-py mcp
 
 This starts the MCP server on stdio. It is normally launched by an MCP client,
 not by a human-operated terminal.
+
+## DOCX structure flags
+
+`fetch-case --docx-structure`, `smart-fetch --docx-structure` and
+`corpus build --docx-structure` download each document's DOCX rendition and
+attach the Registry-style structure described in
+[text-segmentation.md](text-segmentation.md#docx-structure-opt-in-advisory);
+`corpus build` also writes `docx_structure.jsonl`. `segment --in FILE.docx` reads a
+local DOCX. The layer is advisory and leaves every HTML-derived output
+unchanged.

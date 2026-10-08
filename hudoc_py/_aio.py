@@ -7,6 +7,7 @@ These coroutines are the canonical implementation; the sync facade in
 from __future__ import annotations
 
 import asyncio
+from collections.abc import Iterable
 from pathlib import Path
 from typing import Any
 
@@ -216,6 +217,7 @@ async def smart_fetch(
     rich_sections: bool = False,
     french_fallback: bool = True,
     concurrency: int = config.HUDOC_CONCURRENCY,
+    docx_structure: bool = False,
     **filters: Any,
 ) -> CaseCollection:
     """Search, keep the ``top`` matches, and fetch their texts concurrently.
@@ -245,6 +247,8 @@ async def smart_fetch(
             french_fallback=french_fallback,
             concurrency=concurrency,
         )
+    if docx_structure and collection:
+        await hydrate_docx_structures(collection, concurrency=concurrency)
 
     return collection
 
@@ -261,6 +265,7 @@ async def fetch_case(
     french_fallback: bool = True,
     rescue: bool = False,
     docx_out: str | Path | None = None,
+    docx_structure: bool = False,
 ) -> Case | None:
     """Fetch metadata (and optionally full text) for a single case.
 
@@ -320,10 +325,41 @@ async def fetch_case(
                             french_fallback=True,
                         )
 
-    if docx_out is not None and case.itemid:
-        await fetch_docx(case.itemid, out=docx_out)
+    if (docx_out is not None or docx_structure) and case.itemid:
+        data = await fetch_docx(case.itemid, out=docx_out)
+        if docx_structure:
+            attach_docx_structure(case, data)
 
     return case
+
+
+def attach_docx_structure(case: Case, data: bytes | None) -> None:
+    """Set ``case.docx_structure`` from DOCX bytes (an empty, diagnosed structure when absent)."""
+    from .models.docx_structure import DocxStructure
+    from .text.docx_structure import build_docx_structure
+
+    if data is None:
+        case.docx_structure = DocxStructure(
+            itemid=case.itemid, sha256="", byte_count=0, diagnostics=["docx_unavailable"]
+        )
+        return
+    case.docx_structure = build_docx_structure(data, itemid=case.itemid)
+
+
+async def hydrate_docx_structures(
+    cases: Iterable[Case], *, concurrency: int = config.HUDOC_CONCURRENCY
+) -> int:
+    """Fetch each case's DOCX and attach its structure; returns the number attached."""
+    semaphore = asyncio.Semaphore(max(1, concurrency))
+    targets = [c for c in cases if c.itemid]
+
+    async def one(case: Case) -> None:
+        async with semaphore:
+            data = await fetch_docx(case.itemid)  # type: ignore[arg-type]
+            attach_docx_structure(case, data)
+
+    await asyncio.gather(*(one(c) for c in targets))
+    return sum(1 for c in targets if c.docx_structure is not None and c.docx_structure.byte_count)
 
 
 async def fetch_docx(itemid: str, *, out: str | Path | None = None) -> bytes | None:

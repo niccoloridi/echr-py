@@ -16,6 +16,7 @@ from .common import (
     parse_hudoc_date,
     split_semicolon_list,
 )
+from .docx_structure import DocxStructure
 
 if TYPE_CHECKING:
     import pandas as pd
@@ -65,8 +66,12 @@ class Case(BaseModel):
     doctype_branch: str | None = Field(default=None, validation_alias="doctypebranch")
     typedescription: str | None = None
     originatingbody: str | None = None
-    document_collection_id: str | None = Field(default=None, validation_alias="documentcollectionid")
-    document_collection_id2: str | None = Field(default=None, validation_alias="documentcollectionid2")
+    document_collection_id: str | None = Field(
+        default=None, validation_alias="documentcollectionid"
+    )
+    document_collection_id2: str | None = Field(
+        default=None, validation_alias="documentcollectionid2"
+    )
     is_placeholder: bool | None = Field(default=None, validation_alias="isplaceholder")
 
     # Substance
@@ -113,6 +118,29 @@ class Case(BaseModel):
     # Optional content – populated when caller asks for text
     text: str | None = None
     sections: Sections | None = None
+    #: Opt-in advisory structure read from the DOCX rendition (``docx_structure=True``).
+    docx_structure: DocxStructure | None = None
+
+    @field_validator("docx_structure", mode="before")
+    @classmethod
+    def _docx_structure_from_json(cls, value: Any) -> Any:
+        """Flat tables (Parquet/CSV) carry the structure as a JSON string; decode it on load."""
+        if isinstance(value, str):
+            stripped = value.strip()
+            if not stripped or stripped.lower() in {"nan", "none", "null"}:
+                return None
+            import json
+
+            return json.loads(stripped)
+        if value is not None and not isinstance(value, (dict, DocxStructure)):
+            try:
+                import math
+
+                if isinstance(value, float) and math.isnan(value):
+                    return None
+            except TypeError:
+                pass
+        return value
 
     # --- Derived / echr-py-managed fields (NOT HUDOC columns) ---------------
     # Set by the bilingual reconcile/rescue pipeline and text-loading fallback.
@@ -133,9 +161,7 @@ class Case(BaseModel):
         return TextProvenance(
             source_itemid=self.text_source_itemid,
             source_language=self.text_source_language or "",
-            is_fallback=(
-                self.itemid is not None and self.text_source_itemid != self.itemid
-            ),
+            is_fallback=(self.itemid is not None and self.text_source_itemid != self.itemid),
         )
 
     @field_validator(
