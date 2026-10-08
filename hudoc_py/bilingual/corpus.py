@@ -31,7 +31,7 @@ from pydantic import BaseModel, Field, field_validator
 
 from .. import config
 from .._aio import _fetch_case_text, search
-from ..main.downloader import DOWNLOAD_HEADERS
+from ..main.downloader import download_headers
 from ..main.dsl import Q
 from ..models.case import Case, CaseCollection
 from ..models.common import Sections
@@ -384,6 +384,9 @@ async def build_corpus(
     concurrency: int = config.HUDOC_CONCURRENCY,
     **filters: Any,
 ) -> CorpusReport:
+    # The DOCX agreement report needs the HTML segmentation, which only the rich
+    # split persists; requesting the DOCX layer therefore implies rich sections.
+    rich_sections = rich_sections or docx_structure
     """Build a reconciled, text-hydrated corpus under ``out_dir``.
 
     The default search covers both languages and all six doctypes, so ENG/FRE
@@ -576,7 +579,7 @@ async def _hydrate_to_jsonl(
             return case, False
         return case, True
 
-    async with aiohttp.ClientSession(headers=DOWNLOAD_HEADERS) as session:
+    async with aiohttp.ClientSession(headers=download_headers()) as session:
         results = await asyncio.gather(*(_one(session, c) for c in todo))
     for case, ok in results:
         if not ok:

@@ -41,6 +41,17 @@ if TYPE_CHECKING:
 W = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
 _W = f"{{{W}}}"
 
+#: DOCX parts are untrusted input: never resolve external entities, load DTDs
+#: or touch the network while parsing them (lxml 4.x resolves entities by default).
+_XML_PARSER = etree.XMLParser(
+    resolve_entities=False, no_network=True, load_dtd=False, huge_tree=False
+)
+
+
+def _parse_xml(data: bytes) -> etree._Element:
+    return etree.fromstring(data, parser=_XML_PARSER)
+
+
 #: Registry style ids, normalised (lower-case alphanumerics, trailing digits and
 #: ``Char`` repeats stripped), mapped to structural roles. Unknown ids are kept
 #: verbatim on the block and counted in ``unmapped_styles``.
@@ -160,7 +171,7 @@ def _in_table(paragraph: etree._Element) -> bool:
 def _read_footnotes(archive: zipfile.ZipFile) -> dict[str, str]:
     if "word/footnotes.xml" not in archive.namelist():
         return {}
-    root = etree.fromstring(archive.read("word/footnotes.xml"))
+    root = _parse_xml(archive.read("word/footnotes.xml"))
     out: dict[str, str] = {}
     for note in root.iter(f"{_W}footnote"):
         if note.get(f"{_W}type") in ("separator", "continuationSeparator", "continuationNotice"):
@@ -217,7 +228,7 @@ def build_docx_structure(data: bytes, *, itemid: str | None = None) -> DocxStruc
     diagnostics: list[str] = []
     try:
         archive = zipfile.ZipFile(io.BytesIO(data))
-        document = etree.fromstring(archive.read("word/document.xml"))
+        document = _parse_xml(archive.read("word/document.xml"))
     except (zipfile.BadZipFile, KeyError, etree.XMLSyntaxError) as exc:
         return DocxStructure(
             itemid=itemid,
@@ -375,12 +386,11 @@ def build_docx_structure(data: bytes, *, itemid: str | None = None) -> DocxStruc
     # the first opinion title.
     if heads and not any(s.name == "separate_opinion" for s in sections):
         first = heads[0][0]
-        if sections and sections[-1].start_index < first:
-            sections[-1] = sections[-1].model_copy(update={"end_index": first})
-        appendix = [s for s in sections if s.name == "appendix"]
-        end = (
-            appendix[0].start_index if appendix and appendix[0].start_index > first else len(blocks)
-        )
+        for i, section in enumerate(sections):
+            if section.start_index < first < section.end_index:
+                sections[i] = section.model_copy(update={"end_index": first})
+        appendix = [s for s in sections if s.name == "appendix" and s.start_index > first]
+        end = appendix[0].start_index if appendix else len(blocks)
         sections.append(
             DocxSection(
                 name=cast(CanonicalSection, "separate_opinion"),

@@ -26,6 +26,19 @@ semantic versioning during its alpha series.
   HTML remains the canonical rendition for offsets, citation loci and
   benchmarks; the DOCX layer is advisory and changes no existing output.
 
+### Fixed
+
+- Send the versioned User-Agent on every HUDOC and HUDOC-EXEC download
+  session. 0.2.4 covered the search clients and the bulk downloaders; the
+  single-document, text-hydration and HUDOC-EXEC document sessions still used
+  the static header set, which had lost its User-Agent in that release.
+
+### Security
+
+- DOCX parts are parsed with external entity resolution, DTD loading and
+  network access disabled, so a crafted file given to `segment --in` cannot
+  read local files through an XML entity on lxml 4.x.
+
 ## 0.2.4 – 2026-10-07
 
 ### Fixed

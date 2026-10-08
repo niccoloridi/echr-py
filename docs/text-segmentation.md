@@ -207,7 +207,8 @@ normalised; unknown ids stay on the block and are counted in
 `compare_docx_structure(case)` returns a `DocxAgreement` listing the sections,
 opinion counts and opinion authors on each side and every difference, so a
 corpus can be screened for documents where the two renditions disagree.
-`echr-py corpus build --docx-structure` writes `docx_structure.jsonl` (one
+`echr-py corpus build --docx-structure` implies `--rich-sections` (the
+agreement needs the HTML segmentation), writes `docx_structure.jsonl` (one
 record per case with the structure and its agreement) and reports how many
 cases agreed; `echr-py segment --in FILE.docx` reads a local file.
 

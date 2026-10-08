@@ -15,7 +15,11 @@ import aiohttp
 
 from . import config
 from .main.client import AsyncHudocClient
-from .main.downloader import DOWNLOAD_HEADERS, fetch_document_docx, fetch_document_html
+from .main.downloader import (
+    download_headers,
+    fetch_document_docx,
+    fetch_document_html,
+)
 from .main.dsl import Q
 from .main.queries import resolve_sort
 from .models import Case, CaseCollection
@@ -135,7 +139,7 @@ async def hydrate_texts(
         if case.text_source_itemid != case.itemid:
             counts["fallback_used"] += 1
 
-    async with aiohttp.ClientSession(headers=DOWNLOAD_HEADERS) as session:
+    async with aiohttp.ClientSession(headers=download_headers()) as session:
         await asyncio.gather(*(_one(session, c) for c in collection))
     return counts
 
@@ -300,7 +304,7 @@ async def fetch_case(
         case = Case.model_validate(rows[0])
 
         if with_text and case.itemid:
-            async with aiohttp.ClientSession(headers=DOWNLOAD_HEADERS) as session:
+            async with aiohttp.ClientSession(headers=download_headers()) as session:
                 loaded = await _fetch_case_text(
                     session,
                     case,
@@ -369,7 +373,7 @@ async def fetch_docx(itemid: str, *, out: str | Path | None = None) -> bytes | N
     DOCX is a separate binary payload from the HTML body and is deliberately
     not stored on ``Case.text``.
     """
-    async with aiohttp.ClientSession(headers=DOWNLOAD_HEADERS) as session:
+    async with aiohttp.ClientSession(headers=download_headers()) as session:
         data = await fetch_document_docx(session, itemid)
     if data is not None and out is not None:
         Path(out).write_bytes(data)
@@ -378,7 +382,7 @@ async def fetch_docx(itemid: str, *, out: str | Path | None = None) -> bytes | N
 
 async def fetch_text(itemid: str, *, format: str = "text") -> str | None:
     """Fetch and convert a single document's body."""
-    async with aiohttp.ClientSession(headers=DOWNLOAD_HEADERS) as session:
+    async with aiohttp.ClientSession(headers=download_headers()) as session:
         html = await fetch_document_html(session, itemid)
     if html is None:
         return None

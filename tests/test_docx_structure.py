@@ -376,3 +376,60 @@ def test_corpus_helper_restores_persisted_sections_on_resumed_builds(tmp_path):
     assert counts == {"cases": 1, "with_docx": 1, "sections_agree": 1, "opinions_agree": 1}
     record = json.loads((tmp_path / "docx_structure.jsonl").read_text().splitlines()[0])
     assert record["agreement"]["opinion_counts_agree"] is True
+
+
+def test_external_entities_are_not_resolved(tmp_path):
+    secret = tmp_path / "secret.txt"
+    secret.write_text("TOP SECRET")
+    document = (
+        '<?xml version="1.0"?><!DOCTYPE w:document [<!ENTITY xxe SYSTEM "file://'
+        + str(secret)
+        + '">]>'
+        f'<w:document xmlns:w="{W}"><w:body><w:p><w:pPr><w:pStyle w:val="JuPara"/></w:pPr><w:r><w:t>1.  &xxe;</w:t></w:r></w:p></w:body></w:document>'
+    )
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, "w") as archive:
+        archive.writestr("word/document.xml", document)
+    structure = build_docx_structure(buffer.getvalue())
+    assert "TOP SECRET" not in " ".join(b.text for b in structure.blocks)
+
+
+def test_opinion_section_fallback_truncates_the_operative_section_before_an_appendix():
+    paragraphs = [
+        _p("ECHRTitle1", "THE LAW"),
+        _p("ECHRPara", "1.  The Court finds."),
+        _p("ECHRTitle1", "FOR THESE REASONS, THE COURT"),
+        _p("ECHRPara", "Holds that there has been a violation."),
+        _p("ECHRTitleCentre1", "CONCURRING OPINION OF JUDGE ZIEMELE"),
+        _p("OpiPara", "I agree."),
+        _p("ECHRTitle1", "APPENDIX"),
+        _p("ECHRPara", "List of applicants."),
+    ]
+    structure = build_docx_structure(make_docx(paragraphs))
+    by_name = {s.name: s for s in structure.sections}
+    assert by_name["operative"].end_index == 4
+    assert (
+        by_name["separate_opinion"].start_index == 4 and by_name["separate_opinion"].end_index == 6
+    )
+    assert by_name["appendix"].start_index == 6
+
+
+def test_download_sessions_identify_the_package():
+    import re
+    from pathlib import Path
+
+    import hudoc_py
+    from hudoc_py.main.downloader import DOWNLOAD_HEADERS, download_headers
+
+    root = Path(hudoc_py.__file__).parent
+    offenders = [
+        str(path.relative_to(root))
+        for path in root.rglob("*.py")
+        if re.search(r"ClientSession\(headers=DOWNLOAD_HEADERS\)", path.read_text(encoding="utf-8"))
+    ]
+    assert offenders == []
+    assert DOWNLOAD_HEADERS["User-Agent"].startswith("echr-py")
+    assert (
+        download_headers()["User-Agent"]
+        == f"echr-py/{hudoc_py.__version__} (+https://github.com/niccoloridi/echr-py)"
+    )

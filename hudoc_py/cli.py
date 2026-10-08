@@ -662,7 +662,7 @@ def build_parser() -> argparse.ArgumentParser:
     p_cb.add_argument(
         "--docx-structure",
         action="store_true",
-        help="Download DOCX files and write docx_structure.jsonl (Registry-style structure and HTML agreement per case)",
+        help="Download DOCX files and write docx_structure.jsonl (Registry-style structure and HTML agreement per case; implies --rich-sections)",
     )
     p_cb.add_argument("--keep-extra-fre", action="store_true")
     p_cb.add_argument(
@@ -1534,7 +1534,7 @@ def cmd_citations_locate(args: argparse.Namespace) -> int:
         CitationOccurrenceResult,
     )
     from .main.client import AsyncHudocClient
-    from .main.downloader import DOWNLOAD_HEADERS, fetch_document_html
+    from .main.downloader import download_headers, fetch_document_html
     from .models import Case
     from .text import segment_html
 
@@ -1554,7 +1554,7 @@ def cmd_citations_locate(args: argparse.Namespace) -> int:
         missing: list[str] = []
         semaphore = asyncio.Semaphore(config.HUDOC_CONCURRENCY)
 
-        async with aiohttp.ClientSession(headers=DOWNLOAD_HEADERS) as session:
+        async with aiohttp.ClientSession(headers=download_headers()) as session:
 
             async def one(case: Case) -> None:
                 itemid = case.itemid
@@ -1762,7 +1762,7 @@ def cmd_citations_locate(args: argparse.Namespace) -> int:
             target_manifest: list[dict[str, Any]] = []
             unavailable: list[str] = []
             semaphore = asyncio.Semaphore(config.HUDOC_CONCURRENCY)
-            async with aiohttp.ClientSession(headers=DOWNLOAD_HEADERS) as session:
+            async with aiohttp.ClientSession(headers=download_headers()) as session:
 
                 async def one(itemid: str) -> None:
                     path = target_dir / f"{itemid}.html"

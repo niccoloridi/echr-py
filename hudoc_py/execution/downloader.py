@@ -17,6 +17,8 @@ from ..utils.downloads import ResponseTooLargeError, read_limited, read_text_lim
 logger = logging.getLogger(__name__)
 
 DOWNLOAD_HEADERS = {
+    # Static fallback; download_headers() adds the installed version.
+    "User-Agent": "echr-py (+https://github.com/niccoloridi/echr-py)",
     "Accept": "text/html, */*; q=0.01",
     "Accept-Language": "en-GB,en;q=0.9",
     "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
@@ -38,10 +40,7 @@ def _docx_url(content_store_id: str) -> str:
     # A `filename` param is required by the conversion endpoint (verified on
     # the ECHR library); the value only names the download.
     safe = content_store_id.replace("/", "_")
-    return (
-        f"{config.HUDOC_EXEC_DOCX_URL}?library=EXEC&id={content_store_id}"
-        f"&filename={safe}.docx"
-    )
+    return f"{config.HUDOC_EXEC_DOCX_URL}?library=EXEC&id={content_store_id}&filename={safe}.docx"
 
 
 async def fetch_exec_document_html(
@@ -217,7 +216,9 @@ class AsyncExecDocumentDownloader:
             async def bounded(csid: str) -> None:
                 async with sem:
                     results[csid] = await self.fetch_and_save(
-                        session, csid, filename=filenames.get(csid),
+                        session,
+                        csid,
+                        filename=filenames.get(csid),
                     )
 
             await asyncio.gather(*(bounded(d) for d in content_store_ids))
@@ -225,6 +226,7 @@ class AsyncExecDocumentDownloader:
         success = sum(1 for v in results.values() if v)
         logger.info(
             "EXEC batch finished: %d/%d downloaded successfully.",
-            success, len(content_store_ids),
+            success,
+            len(content_store_ids),
         )
         return results

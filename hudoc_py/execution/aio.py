@@ -13,7 +13,7 @@ from ..models import (
 from ..text import html_to_md, html_to_text
 from .client import AsyncHudocExecClient
 from .collections import collection_code
-from .downloader import DOWNLOAD_HEADERS, fetch_exec_document_html
+from .downloader import download_headers, fetch_exec_document_html
 from .queries import build_exec_query
 
 # Map document_type_collection → ExecutionCase bucket attribute.
@@ -172,7 +172,7 @@ async def fetch_document(
     ``None`` if the body could not be retrieved. The API returns official
     source content for downstream, researcher-defined coding.
     """
-    async with aiohttp.ClientSession(headers=DOWNLOAD_HEADERS) as session:
+    async with aiohttp.ClientSession(headers=download_headers()) as session:
         html = await fetch_exec_document_html(session, content_store_id)
 
     if html is None:
@@ -195,7 +195,7 @@ async def fetch_text(content_store_id: str, *, format: str = "text") -> str | No
 
     Returns the body converted to plain text (default), Markdown, or raw HTML.
     """
-    async with aiohttp.ClientSession(headers=DOWNLOAD_HEADERS) as session:
+    async with aiohttp.ClientSession(headers=download_headers()) as session:
         html = await fetch_exec_document_html(session, content_store_id)
     if html is None:
         return None

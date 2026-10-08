@@ -22,6 +22,8 @@ from ..utils.downloads import ResponseTooLargeError, read_limited, read_text_lim
 logger = logging.getLogger(__name__)
 
 DOWNLOAD_HEADERS = {
+    # Static fallback; download_headers() adds the installed version.
+    "User-Agent": "echr-py (+https://github.com/niccoloridi/echr-py)",
     "Accept": "text/html, */*; q=0.01",
     "Accept-Language": "en-GB,en;q=0.9",
     "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
@@ -273,9 +275,7 @@ class AsyncDocumentDownloader:
             self.last_outcomes[itemid] = outcomes
             return saved_any
 
-        response = await fetch_document_html_response(
-            session, itemid, max_retries=self.max_retries
-        )
+        response = await fetch_document_html_response(session, itemid, max_retries=self.max_retries)
         html = response.payload if isinstance(response.payload, str) else None
         if html is None:
             for fmt in ("html", "md", "txt"):
