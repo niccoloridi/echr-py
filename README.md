@@ -474,7 +474,7 @@ study jobs are an explicit opt-in.
 
 | Command group | Purpose |
 | --- | --- |
-| `search`, `count`, `fetch-case`, `smart-fetch` | HUDOC metadata and document acquisition |
+| `search`, `count`, `fetch-case`, `smart-fetch` | HUDOC metadata and document acquisition; `--docx-structure` adds the advisory Registry-style structure |
 | `versions …`, `corpus …` | Language versions and reproducible corpora |
 | `local …`, `embeddings …` | Offline browsing and paragraph retrieval |
 | `gui` | Optional local Streamlit corpus browser |
@@ -482,7 +482,7 @@ study jobs are an explicit opt-in.
 | `graph metrics|export|html|gexf` | Network metrics and portable graph output |
 | `study validate|plan|run|status|resume|export` | Bounded optional dataset studies |
 | `exec …` | HUDOC-EXEC record discovery, download, and source conversion |
-| `mcp` | Read-only MCP server by default; bounded jobs are opt-in |
+| `mcp` | Read-only MCP server by default; bounded jobs are opt-in; `--call-log PATH` records every tool call (tool, arguments, returned item IDs and ECLIs, version, time) as a replayable JSONL log |
 
 ```bash
 echr-py --help
