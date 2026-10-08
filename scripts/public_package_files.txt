@@ -76,6 +76,7 @@ hudoc_py/main/queries.py
 hudoc_py/main/url.py
 hudoc_py/mcp/__init__.py
 hudoc_py/mcp/__main__.py
+hudoc_py/mcp/calllog.py
 hudoc_py/mcp/install.py
 hudoc_py/mcp/server.py
 hudoc_py/models/__init__.py
@@ -83,6 +84,7 @@ hudoc_py/models/case.py
 hudoc_py/models/citation.py
 hudoc_py/models/common.py
 hudoc_py/models/document.py
+hudoc_py/models/docx_structure.py
 hudoc_py/models/exec_case.py
 hudoc_py/models/exec_document.py
 hudoc_py/models/version.py
@@ -108,6 +110,7 @@ hudoc_py/text/__init__.py
 hudoc_py/text/composition.py
 hudoc_py/text/conversion.py
 hudoc_py/text/dispositive.py
+hudoc_py/text/docx_structure.py
 hudoc_py/text/judges.py
 hudoc_py/text/opinions.py
 hudoc_py/text/segmentation.py
