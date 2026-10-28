@@ -2009,44 +2009,56 @@ def _merge_classified_commission_report_overlaps(
 
 
 def _merge_nested_compound_names(
-    occurrences: list[CitationOccurrence], diagnostics: list[dict[str, object]]
+    occurrences: list[CitationOccurrence],
+    blocks: dict[str, DocumentBlock],
+    diagnostics: list[dict[str, object]],
 ) -> None:
     """Drop a bare name printed inside another authority's compound envelope.
 
     In ``the Glasenapp and the Kosiek judgments ..., Series A no. 104, ...,
     and Series A no. 105`` the Kosiek citation is the Series A no. 105
     reference; the name ``Kosiek`` inside the Glasenapp envelope is the same
-    mention printed once more, not a second occurrence.
+    mention printed once more, not a second occurrence.  Only a reporter
+    reference that continues the same compound (no sentence or semicolon
+    boundary after the outer envelope) can absorb the name; a later,
+    independent citation of the same case never does.
     """
 
     by_block: dict[str, list[CitationOccurrence]] = defaultdict(list)
     for value in occurrences:
         by_block[value.source_block_id].append(value)
     removable: set[str] = set()
-    for values in by_block.values():
+    for block_id, values in by_block.items():
+        block = blocks.get(block_id)
+        if block is None:
+            continue
         for nested in values:
             if nested.finder not in {"full_name", "short_form"}:
                 continue
-            if not any(
-                outer is not nested
+            outers = [
+                outer
+                for outer in values
+                if outer is not nested
                 and outer.mention_id != nested.mention_id
                 and outer.block_start <= nested.block_start
                 and nested.block_end <= outer.block_end
                 and outer.block_end - outer.block_start > nested.block_end - nested.block_start
-                for outer in values
-            ):
-                continue
+            ]
             keeper = next(
                 (
                     value
+                    for outer in outers
                     for value in values
                     if value is not nested
                     and value.mention_id == nested.mention_id
                     and value.occurrence_id not in removable
-                    and (
-                        value.block_end <= nested.block_start
-                        or nested.block_end <= value.block_start
+                    and value.finder in {"unique_series_a", "unique_official_series_a"}
+                    and outer.block_end <= value.block_start <= outer.block_end + 120
+                    and re.search(
+                        r"[;\n]|(?<=[.!?)])\s+(?=[A-Z])",
+                        block.text[outer.block_end : value.block_start],
                     )
+                    is None
                 ),
                 None,
             )
@@ -4432,7 +4444,7 @@ def extract_citation_occurrences(
     _carry_forward_occurrences(case, spine, occurrences, owners, diagnostics)
     _merge_classified_commission_report_overlaps(occurrences)
     _merge_compatible_duplicate_loci(occurrences, diagnostics)
-    _merge_nested_compound_names(occurrences, diagnostics)
+    _merge_nested_compound_names(occurrences, blocks, diagnostics)
     _attach_source_invocations(occurrences, blocks)
     _assign_owned_pinpoints(occurrences, blocks, diagnostics)
     occurrences.sort(

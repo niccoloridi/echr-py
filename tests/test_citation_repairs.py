@@ -245,3 +245,51 @@ def test_paired_series_a_judgments_keep_their_own_pinpoints():
         ("Series A no. 105", ["35-36"])
     ]
     assert any(d["code"] == "nested_compound_name_merged" for d in result.diagnostics)
+
+
+def test_a_later_independent_citation_does_not_absorb_the_nested_name():
+    html = (
+        "<p>71. See the Glasenapp and the Kosiek judgments of 28 August 1986, "
+        "Series A no. 104, p. 26, §§ 49-50; see also Kosiek, cited above, §§ 35-36.</p>"
+    )
+    source = _source(html).model_copy(
+        update={
+            "scl": "Glasenapp judgment of 28 August 1986, Series A no. 104, p. 26, paras. 49-50;"
+            "Kosiek judgment of 28 August 1986, Series A no. 105, p. 20, paras. 35-36"
+        }
+    )
+    catalog = [GLASENAPP, KOSIEK]
+    mentions = discover_citation_mentions(source, html=html).mentions
+    resolutions = [
+        *asyncio.run(resolve_citations([source], catalog=catalog)).resolutions,
+        *asyncio.run(resolve_citations([source], mentions=mentions, catalog=catalog)).resolutions,
+    ]
+    result = extract_citation_occurrences(source, resolutions, html=html, scope="inclusive")
+    kosiek = [o for o in result.occurrences if o.raw_text.startswith("Kosiek")]
+    assert len(kosiek) == 2
+    assert not any(d["code"] == "nested_compound_name_merged" for d in result.diagnostics)
+
+
+def test_applicant_prefix_must_agree_with_the_candidate_title():
+    wrong_title = GOLDER.model_copy(
+        update={"docname": "CASE OF SOMEONE ELSE v. THE UNITED KINGDOM"}
+    )
+    html = "<p>12. See the Golder judgment of 21 February 1975, Series A no. 18, § 28.</p>"
+    assert all(r.target is None for r in _resolve(html, [wrong_title]))
+
+
+def test_persisted_accented_authority_titles_still_match_folded_names():
+    source = Case(
+        itemid="001-source",
+        ecli="ECLI:CE:ECHR:2005:0101JUD000000105",
+        docname="CASE OF SOURCE v. STATE",
+        scl="Göç v. Turkey [GC], no. 36590/97, § 14, ECHR 2002-V",
+        kp_date="2005-01-01",
+        doctype="HEJUD",
+    )
+    goc = _catalog_case(
+        "001-60577", "ECLI:CE:ECHR:2002:0711JUD003659097",
+        "CASE OF GÖÇ v. TURKEY", ["36590/97"], "2002-07-11", "TUR",
+    ).model_copy(update={"doctype_branch": "GRANDCHAMBER"})
+    result = asyncio.run(resolve_citations([source], catalog=[goc]))
+    assert [r.target.itemid for r in result.resolutions if r.target] == ["001-60577"]

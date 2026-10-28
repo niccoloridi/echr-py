@@ -568,7 +568,9 @@ def _title_similarity(mention: CitationMention, candidate: CitationCandidate) ->
 
 def _authority_title_matches(mention: CitationMention, entry: CitationAuthorityEntry) -> bool:
     source = normalize_docname(mention.cited_name)
-    target = entry.normalized_title or normalize_docname(entry.title)
+    # Persisted authority titles (packaged or custom) may predate letter
+    # folding; normalise them again so both sides use the same rule.
+    target = normalize_docname(entry.normalized_title or entry.title)
     if not source or not target:
         return not source
     if not _title_qualifiers_compatible(
@@ -584,7 +586,7 @@ def _authority_title_matches(mention: CitationMention, entry: CitationAuthorityE
 def _entry_candidate_title_matches(
     entry: CitationAuthorityEntry, candidate: CitationCandidate
 ) -> bool:
-    source = entry.normalized_title or normalize_docname(entry.title)
+    source = normalize_docname(entry.normalized_title or entry.title)
     aliases = list(candidate.title_aliases)
     if not aliases and candidate.docname:
         aliases = [candidate.docname]
@@ -1172,6 +1174,11 @@ def _historical_checked_candidate(
         ]
         checked.positive_evidence.append("exact reporter locator")
     source_title = normalize_docname(mention.cited_name)
+    # The candidate's own metadata decides a candidate-specific title conflict;
+    # the historical entry's title is used only when the candidate has none.
+    candidate_titles: list[str] = [
+        title for title in (*candidate.title_aliases, candidate.docname) if title
+    ] or [entry.title or ""]
     if (
         source_title
         and not mention.respondent
@@ -1179,7 +1186,7 @@ def _historical_checked_candidate(
         and entry.reporter_key == mention.reporter.key
         and any(
             normalize_docname(title).startswith(f"{source_title} ")
-            for title in (entry.title, candidate.docname)
+            for title in candidate_titles
             if title
         )
     ):
