@@ -111,6 +111,7 @@ hudoc_py/text/composition.py
 hudoc_py/text/conversion.py
 hudoc_py/text/dispositive.py
 hudoc_py/text/docx_structure.py
+hudoc_py/text/fold.py
 hudoc_py/text/judges.py
 hudoc_py/text/opinions.py
 hudoc_py/text/segmentation.py
