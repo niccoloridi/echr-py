@@ -4,15 +4,16 @@ from __future__ import annotations
 
 import hashlib
 import re
-import unicodedata
 from collections import Counter, defaultdict
 from collections.abc import Iterable
 from dataclasses import dataclass
+from datetime import date
 from functools import lru_cache
 from typing import Literal
 
 from ..models.case import Case
 from ..models.common import DocumentBlock, DocumentSpine
+from ..text.fold import fold_letters
 from ..text.spine import build_spine_from_html, build_spine_from_text
 from .models import (
     CitationAuthorityEntry,
@@ -496,7 +497,7 @@ _BAD_FALLBACK_NAME_START_RE = re.compile(
 _ACCENT_EQUIVALENTS = {
     "a": "aàáâãäåāăą",
     "c": "cçćĉċč",
-    "d": "dďđ",
+    "d": "dďđð",
     "e": "eèéêëēĕėęě",
     "g": "gĝğġģ",
     "i": "iìíîïĩīĭįı",
@@ -514,11 +515,22 @@ _ACCENT_EQUIVALENTS = {
 
 def _fold(value: str) -> str:
     value = value.replace("‑", "-").replace("–", "-").replace("\u2014", "-")
-    return "".join(
-        char
-        for char in unicodedata.normalize("NFKD", value.casefold())
-        if not unicodedata.combining(char)
-    )
+    return fold_letters(value)
+
+
+#: "its judgment of 8 June 1976 in the Engel and Others case" /
+#: "l'arrêt du 8 juin 1976 dans l'affaire Engel et autres": a date printed just
+#: before an authority short form selects one procedural document.
+_PRECEDING_JUDGMENT_DATE_RE = re.compile(
+    r"\b(?:judgment\s+of\s+(?P<en>\d{1,2}\s+[A-Z][a-z]+\s+\d{4})\s+in\s+(?:the\s+)?"
+    r"|arr[êe]t\s+du\s+(?P<fr>\d{1,2}(?:er)?\s+[a-zéû]+\s+\d{4})\s+(?:dans|en)\s+l['’]affaire\s+)$"
+)
+_SCL_ENCODING_DAMAGE_RE = re.compile(r"[ÃÂ][\u0080-\u00bf]|\ufffd|(?<=[^\W\d_])ÿ(?=[^\W\d_])")
+
+
+def scl_name_encoding_damaged(name: str | None) -> bool:
+    """True when an SCL case name shows mis-decoded bytes ("Kudÿa", "Ã©", U+FFFD)."""
+    return bool(name and _SCL_ENCODING_DAMAGE_RE.search(name))
 
 
 def _unicode_case_name_valid(value: str) -> bool:
@@ -732,13 +744,14 @@ def _key(value: str) -> str:
 
 
 def _match_key(value: str) -> str:
-    """Normalize the extra Unicode letters matched by ``re.IGNORECASE``.
+    """Prefilter key before the authoritative regex match.
 
-    Python treats ASCII ``I`` and Turkish dotless ``ı`` as case-insensitive
-    equivalents.  Citation identity keeps using :func:`_key`; this broader key
-    is only a necessary-token prefilter before the authoritative regex match.
+    It used to add the Turkish dotless ``ı`` -> ``i`` mapping on top of
+    :func:`_key`; :func:`hudoc_py.text.fold.fold_letters` now applies that and
+    the other non-decomposable letters to every identity key, so the two keys
+    coincide. The name is kept for callers.
     """
-    return _key(value.replace("ı", "i"))
+    return _key(value)
 
 
 def _pattern(value: str) -> re.Pattern[str]:
@@ -999,8 +1012,13 @@ def _authority_short_mention(
     ordinal: int,
     method: str,
     printed_name: str,
+    printed_date: date | None = None,
 ) -> CitationMention | None:
     """Build an application-scoped mention from compatible authority rows."""
+    if printed_date is not None:
+        dated = tuple(entry for entry in entries if entry.date == printed_date)
+        if dated:
+            entries = dated
     printed_phase = infer_procedural_phase(raw)
     if re.search(r"\(\s*(?:merits|fond)\s*\)", raw, re.I):
         printed_phase = "merits"
@@ -1030,6 +1048,11 @@ def _authority_short_mention(
             {appno for entry in entries for appno in entry.appnos}
         ),
     }
+    if printed_date is not None:
+        # Printed in the source ("judgment of 8 June 1976 in the X case"), unlike
+        # the authority rows' own dates; the resolver may use it to select one
+        # procedural document.
+        evidence["printed_target_date"] = printed_date.isoformat()
     if len(authority_identities) != 1:
         return CitationMention(
             mention_id=mention_id,
@@ -1092,8 +1115,22 @@ def _authority_short_mention(
             "cited_name": title,
             "respondent": extract_respondent(title),
             "explicit_appnos": appnos,
-            "target_date": next(iter(dates)) if len(dates) == 1 else None,
-            "document_kind": next(iter(kinds)) if len(kinds) == 1 else "unknown",
+            "target_date": (
+                printed_date
+                if printed_date is not None
+                else next(iter(dates))
+                if len(dates) == 1
+                else None
+            ),
+            "document_kind": (
+                "judgment"
+                if printed_date is not None and "judgment" in raw[:40].casefold()
+                else "judgment"
+                if printed_date is not None and raw[:6].casefold().startswith("arr")
+                else next(iter(kinds))
+                if len(kinds) == 1
+                else "unknown"
+            ),
             "procedural_phase": (
                 printed_phase
                 if printed_phase != "unknown"
@@ -3275,7 +3312,20 @@ def discover_citation_mentions(
                     closing = re.match(r"\s*[])]", block.text[end:])
                     if closing is not None:
                         end += closing.end()
-                raw = block.text[match.start() : end]
+                span_start = match.start()
+                printed_date = None
+                if document_cue is not None or case_cue is not None:
+                    window_start = max(0, match.start() - 80)
+                    date_clause = _PRECEDING_JUDGMENT_DATE_RE.search(
+                        block.text[window_start : match.start()]
+                    )
+                    if date_clause is not None:
+                        printed_date = parse_reference_date(
+                            date_clause.group("en") or date_clause.group("fr")
+                        )
+                        if printed_date is not None:
+                            span_start = window_start + date_clause.start()
+                raw = block.text[span_start:end]
                 method = (
                     "authority_unique_short_back_reference"
                     if back_reference is not None
@@ -3290,16 +3340,17 @@ def discover_citation_mentions(
                     authority_entries,
                     raw=raw,
                     block=block,
-                    start=match.start(),
+                    start=span_start,
                     end=end,
                     ordinal=ordinal,
                     method=method,
                     printed_name=match.group(),
+                    printed_date=printed_date,
                 )
                 if authority_mention is None:
                     continue
-                found.append((block.char_start + match.start(), authority_mention))
-                occupied.append((match.start(), end))
+                found.append((block.char_start + span_start, authority_mention))
+                occupied.append((span_start, end))
                 ordinal += 1
         for group_cue in re.finditer(
             r"\b(?:(?:all|both)\s+cited\s+above|"
@@ -3829,12 +3880,26 @@ def extract_citation_occurrences(
     # enrich the document-local gazetteer while SCL retains mention identity
     # and target authority.
     discovered_names_by_scl: dict[str, CitationMention] = {}
+    damaged_scl_names: list[dict[str, object]] = []
     for mention in discovery.mentions:
         if not mention.cited_name:
             continue
         for covered in coverage[mention.mention_id]:
-            if covered.cited_name:
+            if covered.cited_name and not scl_name_encoding_damaged(covered.cited_name):
                 continue
+            if covered.cited_name and covered.mention_id not in discovered_names_by_scl:
+                # The SCL field carries the name with mis-decoded bytes
+                # ("Kudÿa v. Poland"); the judgment prints it correctly and the
+                # two are already linked by application number.
+                damaged_scl_names.append(
+                    {
+                        "code": "scl_name_encoding_damaged",
+                        "source_itemid": case.itemid,
+                        "mention_id": covered.mention_id,
+                        "scl_name": covered.cited_name,
+                        "printed_name": mention.cited_name,
+                    }
+                )
             discovered_names_by_scl.setdefault(covered.mention_id, mention)
     if discovered_names_by_scl:
         owners = [
@@ -3873,7 +3938,7 @@ def extract_citation_occurrences(
         end = _evidence_offset(mention.discovery_evidence.get("block_end"))
         discovery_anchor_positions[_Owner(selected, None).identity].append(block.char_start + end)
     occurrences: list[CitationOccurrence] = []
-    diagnostics: list[dict[str, object]] = list(discovery.diagnostics)
+    diagnostics: list[dict[str, object]] = [*discovery.diagnostics, *damaged_scl_names]
     established: set[str] = set()
     established_positions: dict[str, int] = {}
     ambiguous_hits = 0

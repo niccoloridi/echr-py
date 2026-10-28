@@ -13,21 +13,13 @@ Used by :mod:`hudoc_py.text.opinions` to canonicalize authoring-judge names.
 from __future__ import annotations
 
 import re
-import unicodedata
 
-_STROKE_TABLE = str.maketrans(
-    {"Ø": "O", "Đ": "D", "Ł": "L", "Æ": "AE", "Ð": "D", "Þ": "TH", "ß": "SS", "Œ": "OE"}
-)
+from .fold import fold_letters
 
 
 def _fold(name: str) -> str:
     """Accent/stroke-insensitive key used only for verified roster lookup."""
-    translated = name.upper().translate(_STROKE_TABLE)
-    return "".join(
-        char
-        for char in unicodedata.normalize("NFKD", translated)
-        if not unicodedata.combining(char)
-    )
+    return fold_letters(name).upper()
 
 # Explicit variant -> canonical mappings (applied after upper-casing).
 _ALIAS = {

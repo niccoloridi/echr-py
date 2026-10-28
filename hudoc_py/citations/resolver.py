@@ -1171,6 +1171,25 @@ def _historical_checked_candidate(
             value for value in checked.conflicting_evidence if value != "different reporter locator"
         ]
         checked.positive_evidence.append("exact reporter locator")
+    source_title = normalize_docname(mention.cited_name)
+    if (
+        source_title
+        and not mention.respondent
+        and mention.reporter
+        and entry.reporter_key == mention.reporter.key
+        and any(
+            normalize_docname(title).startswith(f"{source_title} ")
+            for title in (entry.title, candidate.docname)
+            if title
+        )
+    ):
+        # "the Golder judgment of 21 February 1975, Series A no. 18": the house
+        # style prints only the applicant. With the reporter locator exact, an
+        # applicant name that opens the judgment's title agrees with it.
+        checked.conflicting_evidence = [
+            value for value in checked.conflicting_evidence if value != "different title"
+        ]
+        checked.positive_evidence.extend(["similar title", "applicant name opens the title"])
     historical_phase = _explicit_title_phase(entry.title)
     if historical_phase and historical_phase == mention.procedural_phase:
         checked.conflicting_evidence = [
@@ -1779,6 +1798,35 @@ def _resolve_one(
             if discovery_method.startswith("authority_unique_")
             else []
         )
+        printed_date = mention.discovery_evidence.get("printed_target_date")
+        if (
+            discovery_method.startswith("authority_unique_")
+            and printed_date
+            and mention.target_date
+            and printed_date == mention.target_date.isoformat()
+        ):
+            # "its judgment of 8 June 1976 in the Engel and Others case": the
+            # source prints the date, so it may select one document under the
+            # application, but only if exactly one catalogue document agrees.
+            dated_evaluated = [
+                checked_candidate
+                for candidate in candidates
+                if (checked_candidate := _evaluate_candidate(mention, candidate)) is not None
+            ]
+            dated_accepted = [
+                checked_candidate
+                for checked_candidate in dated_evaluated
+                if checked_candidate.date == mention.target_date
+                and _metadata_accepts(mention, checked_candidate)
+            ]
+            if len(dated_accepted) == 1:
+                return CitationResolution(
+                    mention=mention,
+                    status="resolved_metadata",
+                    method="official unique short form with a printed judgment date",
+                    target=dated_accepted[0],
+                    candidates=dated_evaluated,
+                )
         return CitationResolution(
             mention=mention,
             status="unresolved_reference",
@@ -1904,6 +1952,11 @@ def _resolve_one(
                     or not (target_title := normalize_docname(entry.title))
                     or source_title == target_title
                     or SequenceMatcher(None, source_title, target_title).ratio() >= 0.82
+                    # Pre-1998 house style names only the applicant ("the Golder
+                    # judgment of 21 February 1975, Series A no. 18"). The reporter,
+                    # date and document kind have already reduced the catalogue to
+                    # one judgment; an applicant name that opens its title agrees.
+                    or (not mention.respondent and target_title.startswith(f"{source_title} "))
                 )
             ]
             if compatible:

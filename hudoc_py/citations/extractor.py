@@ -3,11 +3,11 @@
 from __future__ import annotations
 
 import re
-import unicodedata
 from collections.abc import Sequence
 
 from ..models import Case
 from ..models.citation import Citation
+from ..text.fold import fold_letters
 
 # Application numbers look like 12345/67. Pre-1998 cases (Series A) often
 # don't appear in this form in citations and will simply not match – those
@@ -123,9 +123,7 @@ _STRASBOURG_MARKERS = (
 
 def _external_fold(value: str) -> str:
     """Casefold, strip accents, and collapse whitespace for robust comparison."""
-    decomposed = unicodedata.normalize("NFD", value)
-    stripped = "".join(ch for ch in decomposed if not unicodedata.combining(ch))
-    return re.sub(r"\s+", " ", stripped.casefold()).strip()
+    return re.sub(r"\s+", " ", fold_letters(value)).strip()
 
 
 def parse_external_sources(external_sources: str | None) -> list[str]:

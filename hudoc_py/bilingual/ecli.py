@@ -11,6 +11,8 @@ from collections.abc import Iterable, Sequence
 from difflib import SequenceMatcher
 from typing import TYPE_CHECKING, Literal
 
+from ..text.fold import fold_letters
+
 if TYPE_CHECKING:
     from ..models.case import Case
 
@@ -42,9 +44,7 @@ _PARTY_TOKENS = (
     r"LA",
     r"L['’]",
 )
-_PARTY_TOKEN_RE = re.compile(
-    r"\b(?:" + "|".join(_PARTY_TOKENS) + r")\b", flags=re.IGNORECASE
-)
+_PARTY_TOKEN_RE = re.compile(r"\b(?:" + "|".join(_PARTY_TOKENS) + r")\b", flags=re.IGNORECASE)
 _NON_ALNUM_RE = re.compile(r"[^0-9A-Za-zÀ-ɏ]+")
 _WHITESPACE_RE = re.compile(r"\s+")
 
@@ -65,7 +65,9 @@ def normalize_docname(name: str | None) -> str:
     """
     if not name:
         return ""
-    text = name.upper()
+    # Fold letters and accents first so "Kudła v. Poland" and HUDOC's
+    # "CASE OF KUDLA v. POLAND" meet on the same key.
+    text = fold_letters(name).upper()
     text = _PARTY_TOKEN_RE.sub(" ", text)
     text = _NON_ALNUM_RE.sub(" ", text)
     return _WHITESPACE_RE.sub(" ", text).strip()
