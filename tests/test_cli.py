@@ -533,3 +533,63 @@ def test_parquet_reader_restores_nulls_in_mixed_string_columns(tmp_path):
     rows = _read_items(str(path))
     assert rows[0]["casecitation"] is None
     assert rows[1]["casecitation"] == "Example"
+
+
+def _locate_with_catalog(tmp_path, monkeypatch, *, with_catalog: bool):
+    from hudoc_py.models import Case
+
+    source = Case(itemid="001-source", languageisocode="ENG", scl="")
+    (tmp_path / "cases.jsonl").write_text(source.model_dump_json() + "\n", encoding="utf-8")
+    html_dir = tmp_path / "html"
+    html_dir.mkdir(exist_ok=True)
+    (html_dir / "001-source.html").write_text(
+        "<p>1. See Kudła v. Poland [GC], no. 30210/96, § 152, ECHR 2000-XI.</p>", encoding="utf-8"
+    )
+    target = Case(
+        itemid="001-58920",
+        ecli="ECLI:CE:ECHR:2000:1026JUD003021096",
+        docname="CASE OF KUDLA v. POLAND",
+        appno=["30210/96"],
+        kp_date="2000-10-26",
+        doctype="HEJUD",
+        doctype_branch="GRANDCHAMBER",
+        respondent=["POL"],
+        languageisocode="ENG",
+    )
+    catalog = tmp_path / "catalog.jsonl"
+    catalog.write_text(target.model_dump_json() + "\n", encoding="utf-8")
+    monkeypatch.setattr("hudoc_py.citations.load_resolutions", lambda _: [])
+    out = tmp_path / ("out-catalog" if with_catalog else "out-plain")
+    argv = [
+        "citations",
+        "locate",
+        "--in",
+        str(tmp_path / "cases.jsonl"),
+        "--resolution-dir",
+        str(tmp_path / "resolved"),
+        "--out",
+        str(out),
+        "--html-dir",
+        str(html_dir),
+        "--offline",
+        "--no-resolve-paragraphs",
+    ]
+    if with_catalog:
+        argv += ["--catalog", str(catalog)]
+    assert main(argv) == 0
+    return [json.loads(line) for line in (out / "occurrences.jsonl").read_text().splitlines()]
+
+
+def test_citations_locate_offline_resolves_discovered_citations_against_the_catalog(
+    tmp_path, monkeypatch
+):
+    rows = _locate_with_catalog(tmp_path, monkeypatch, with_catalog=True)
+    assert rows, "the citation must be located"
+    assert rows[0]["resolution_scope"] == "document"
+    assert rows[0]["target_itemid"] == "001-58920"
+
+
+def test_citations_locate_offline_without_catalog_cannot_reach_the_document(tmp_path, monkeypatch):
+    rows = _locate_with_catalog(tmp_path, monkeypatch, with_catalog=False)
+    assert rows and rows[0]["target_itemid"] is None
+    assert rows[0]["resolution_scope"] != "document"

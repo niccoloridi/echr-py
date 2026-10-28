@@ -324,9 +324,7 @@ def build_parser() -> argparse.ArgumentParser:
     p_esd.add_argument("--language", type=_language_code, default="ENG")
     p_esd.add_argument("--limit", type=int, default=100)
     p_esd.add_argument("--page-size", type=_page_size)
-    p_esd.add_argument(
-        "--out", help="Output path (.parquet or .jsonl). Default: stdout JSON."
-    )
+    p_esd.add_argument("--out", help="Output path (.parquet or .jsonl). Default: stdout JSON.")
 
     p_efc = exec_sub.add_parser("fetch-case", help="Fetch a single execution case")
     p_efc.add_argument("appno", help='Application number, e.g. "46221/99"')
@@ -544,6 +542,14 @@ def build_parser() -> argparse.ArgumentParser:
     p_clocate.add_argument(
         "--target-html-dir",
         help="Cited-document HTML cache; default: <out>/target-html",
+    )
+    p_clocate.add_argument(
+        "--catalog",
+        help=(
+            "Optional local HUDOC metadata Parquet/JSONL used to resolve text-discovered "
+            "citations (same semantics as `citations resolve --catalog`); without it an "
+            "offline run can resolve them only to the source set or the lookup cache"
+        ),
     )
 
     p_creview = citations_sub.add_parser("review", help="Generate ambiguity review HTML and CSV")
@@ -1539,6 +1545,9 @@ def cmd_citations_locate(args: argparse.Namespace) -> int:
     from .text import segment_html
 
     cases = [Case.model_validate(row) for row in _read_items(args.input)]
+    catalog = (
+        [Case.model_validate(row) for row in _read_items(args.catalog)] if args.catalog else []
+    )
     resolution_groups: dict[str, list[Any]] = defaultdict(list)
     for resolution in load_resolutions(args.resolution_dir):
         if resolution.mention.source_itemid:
@@ -1653,6 +1662,7 @@ def cmd_citations_locate(args: argparse.Namespace) -> int:
                     await resolve_citations(
                         cases,
                         mentions=mentions,
+                        catalog=catalog,
                         cache_path=discovery_cache,
                     )
                 ).resolutions
@@ -1661,6 +1671,7 @@ def cmd_citations_locate(args: argparse.Namespace) -> int:
                     await resolve_citations(
                         cases,
                         mentions=mentions,
+                        catalog=catalog,
                         client=client,
                         cache_path=discovery_cache,
                     )

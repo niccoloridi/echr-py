@@ -37,6 +37,15 @@ different cache. Pass `--offline` to prohibit network retrieval; missing HTML
 is reported, partial occurrence artifacts are still written, and the command
 returns non-zero.
 
+In the inclusive scope, citations found in the text but absent from the SCL
+field are resolved in the same run. Online, the resolver looks them up on
+HUDOC. Offline it can reach only the source documents and the lookup cache,
+so pass `--catalog` with the same local HUDOC metadata file given to
+`citations resolve --catalog`; it is used online too. Without a catalogue an
+offline run leaves text-only citations to documents outside the source set at
+application scope or unresolved: on a 50-document sample that was 18% fewer
+document-level resolutions than with the catalogue.
+
 The locator also resolves each independently owned `§`/`§§`/`para.` pinpoint
 against the exact cited document by default. Cited HTML is cached under
 `target-html/` (override with `--target-html-dir`) and checksummed in
