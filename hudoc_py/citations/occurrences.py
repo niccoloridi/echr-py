@@ -2053,7 +2053,7 @@ def _merge_nested_compound_names(
                     and value.mention_id == nested.mention_id
                     and value.occurrence_id not in removable
                     and value.finder in {"unique_series_a", "unique_official_series_a"}
-                    and outer.block_end <= value.block_start <= outer.block_end + 120
+                    and outer.block_end <= value.block_start
                     and re.search(
                         r"[;\n]|(?<=[.!?)])\s+(?=[A-Z])",
                         block.text[outer.block_end : value.block_start],

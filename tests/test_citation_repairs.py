@@ -247,6 +247,30 @@ def test_paired_series_a_judgments_keep_their_own_pinpoints():
     assert any(d["code"] == "nested_compound_name_merged" for d in result.diagnostics)
 
 
+def test_paired_series_a_judgments_merge_across_a_long_pinpoint_list():
+    pinpoints = ", ".join(str(n) for n in range(30, 70))
+    html = (
+        "<p>71. Civil servants are not outside the Convention (see the Glasenapp and the "
+        f"Kosiek judgments of 28 August 1986, Series A no. 104, p. 26, §§ {pinpoints}, and "
+        "Series A no. 105, p. 20, §§ 35-36).</p>"
+    )
+    source = _source(html).model_copy(
+        update={
+            "scl": "Glasenapp judgment of 28 August 1986, Series A no. 104, p. 26, paras. 49-50;"
+            "Kosiek judgment of 28 August 1986, Series A no. 105, p. 20, paras. 35-36"
+        }
+    )
+    catalog = [GLASENAPP, KOSIEK]
+    mentions = discover_citation_mentions(source, html=html).mentions
+    resolutions = [
+        *asyncio.run(resolve_citations([source], catalog=catalog)).resolutions,
+        *asyncio.run(resolve_citations([source], mentions=mentions, catalog=catalog)).resolutions,
+    ]
+    result = extract_citation_occurrences(source, resolutions, html=html, scope="inclusive")
+    kosiek = [o for o in result.occurrences if o.target_itemid == "001-57513"]
+    assert [o.raw_text for o in kosiek] == ["Series A no. 105"]
+
+
 def test_a_later_independent_citation_does_not_absorb_the_nested_name():
     html = (
         "<p>71. See the Glasenapp and the Kosiek judgments of 28 August 1986, "
