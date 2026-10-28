@@ -587,13 +587,28 @@ def _authority_name_before_appno(prefix: str, appno: str) -> tuple[int, int, str
     """
     candidates: list[tuple[int, int, str]] = []
     for title in _authority_titles_by_appno().get(appno, ()):
+        connector = _PARTY_RE.search(title)
+        # Applicants who share a surname are printed once each before the
+        # connector (``Smirnova and Smirnova v. Russia``) while the official
+        # title may name them once.  Keep the repeated name in the envelope.
+        repeated = (
+            re.compile(
+                _pattern(title[: connector.start()].strip()).pattern + r"\s+(?:and|et)\s+$",
+                re.I,
+            )
+            if connector is not None
+            else None
+        )
         for match in _pattern(title).finditer(prefix):
-            candidates.append((match.start(), match.end(), match.group()))
+            start = match.start()
+            shared = repeated.search(prefix[:start]) if repeated is not None else None
+            if shared is not None:
+                start = shared.start()
+            candidates.append((start, match.end(), prefix[start : match.end()]))
         # HUDOC/SCL occasionally inserts a nested editorial bracket directly
         # before the connector: ``Öcalan ([v. Turkey ...])``.  Accept that
         # punctuation only when both complete official parties and the exact
         # application number are present.
-        connector = _PARTY_RE.search(title)
         if connector is not None:
             applicant = title[: connector.start()].strip()
             respondent = title[connector.end() :].strip()
@@ -1993,6 +2008,67 @@ def _merge_classified_commission_report_overlaps(
         occurrences[:] = [value for value in occurrences if value.occurrence_id not in removable]
 
 
+def _merge_nested_compound_names(
+    occurrences: list[CitationOccurrence], diagnostics: list[dict[str, object]]
+) -> None:
+    """Drop a bare name printed inside another authority's compound envelope.
+
+    In ``the Glasenapp and the Kosiek judgments ..., Series A no. 104, ...,
+    and Series A no. 105`` the Kosiek citation is the Series A no. 105
+    reference; the name ``Kosiek`` inside the Glasenapp envelope is the same
+    mention printed once more, not a second occurrence.
+    """
+
+    by_block: dict[str, list[CitationOccurrence]] = defaultdict(list)
+    for value in occurrences:
+        by_block[value.source_block_id].append(value)
+    removable: set[str] = set()
+    for values in by_block.values():
+        for nested in values:
+            if nested.finder not in {"full_name", "short_form"}:
+                continue
+            if not any(
+                outer is not nested
+                and outer.mention_id != nested.mention_id
+                and outer.block_start <= nested.block_start
+                and nested.block_end <= outer.block_end
+                and outer.block_end - outer.block_start > nested.block_end - nested.block_start
+                for outer in values
+            ):
+                continue
+            keeper = next(
+                (
+                    value
+                    for value in values
+                    if value is not nested
+                    and value.mention_id == nested.mention_id
+                    and value.occurrence_id not in removable
+                    and (
+                        value.block_end <= nested.block_start
+                        or nested.block_end <= value.block_start
+                    )
+                ),
+                None,
+            )
+            if keeper is None:
+                continue
+            keeper.discovery_methods = sorted({*keeper.discovery_methods, *nested.discovery_methods})
+            keeper.evidence["printed_name_locus"] = [nested.block_start, nested.block_end]
+            removable.add(nested.occurrence_id)
+            diagnostics.append(
+                {
+                    "code": "nested_compound_name_merged",
+                    "source_itemid": nested.source_itemid,
+                    "block_id": nested.source_block_id,
+                    "raw_text": nested.raw_text,
+                    "kept_occurrence_id": keeper.occurrence_id,
+                    "removed_occurrence_id": nested.occurrence_id,
+                }
+            )
+    if removable:
+        occurrences[:] = [value for value in occurrences if value.occurrence_id not in removable]
+
+
 def _merge_compatible_duplicate_loci(
     occurrences: list[CitationOccurrence], diagnostics: list[dict[str, object]]
 ) -> None:
@@ -3112,6 +3188,14 @@ def discover_citation_mentions(
                 citation_start, _, printed_cited_name = max(
                     printed_title_matches, key=lambda value: (value[1], value[1] - value[0])
                 )
+                # ``the Glasenapp and the Kosiek judgments ..., Series A no. 104,
+                # p. 26, §§ 49-50, and Series A no. 105``: the second name sits
+                # inside the first reference's envelope.  Record it as evidence
+                # but let the second reference own only its reporter citation,
+                # so neither envelope swallows the other's pinpoint.
+                if any(start <= citation_start < end for start, end in occupied):
+                    citation_start = match.start()
+            if printed_title_matches and citation_start != match.start():
                 leading_start = max(0, citation_start - 120)
                 leading_text = block.text[leading_start:citation_start]
                 cue = re.search(
@@ -3617,7 +3701,32 @@ def _assign_owned_pinpoints(
                 occurrence.evidence["pinpoint_source"] = "grouped_procedural_documents"
                 occurrence.evidence["pinpoint_boundary"] = occurrence.block_end
                 continue
-            next_start = values[index + 1].block_start if index + 1 < len(values) else None
+            # A locus nested inside another envelope (``the Glasenapp and the
+            # Kosiek judgments ..., Series A no. 104, §§ 49-50``) may not scan
+            # past that envelope, and it does not cut the outer envelope's
+            # scan short: the pinpoint after the envelope belongs to it.
+            outer_end = min(
+                (
+                    value.block_end
+                    for value in values
+                    if value is not occurrence
+                    and value.block_start <= occurrence.block_start
+                    and occurrence.block_end <= value.block_end
+                    and (value.block_start, value.block_end)
+                    != (occurrence.block_start, occurrence.block_end)
+                ),
+                default=None,
+            )
+            next_start = min(
+                (
+                    value.block_start
+                    for value in values[index + 1 :]
+                    if value.block_start >= occurrence.block_end
+                ),
+                default=None,
+            )
+            if outer_end is not None:
+                next_start = outer_end if next_start is None else min(next_start, outer_end)
             labels, source = _target_paragraphs(
                 block.text,
                 occurrence.block_start,
@@ -4323,6 +4432,7 @@ def extract_citation_occurrences(
     _carry_forward_occurrences(case, spine, occurrences, owners, diagnostics)
     _merge_classified_commission_report_overlaps(occurrences)
     _merge_compatible_duplicate_loci(occurrences, diagnostics)
+    _merge_nested_compound_names(occurrences, diagnostics)
     _attach_source_invocations(occurrences, blocks)
     _assign_owned_pinpoints(occurrences, blocks, diagnostics)
     occurrences.sort(

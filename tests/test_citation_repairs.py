@@ -190,3 +190,58 @@ def test_dated_short_form_span_matches_the_source_text():
     start = mention.discovery_evidence["block_start"]
     end = mention.discovery_evidence["block_end"]
     assert text[start:end] == mention.raw_ref
+
+
+def test_repeated_applicant_name_stays_in_the_printed_title_envelope():
+    html = (
+        "<p>20. See, mutatis mutandis, Smirnova and Smirnova v. Russia (dec.), "
+        "nos. 46133/99 and 48183/99, 3 October 2002.</p>"
+    )
+    mentions = discover_citation_mentions(_source(html), html=html).mentions
+    assert [m.raw_ref.split(" (dec.)")[0] for m in mentions] == ["Smirnova and Smirnova v. Russia"]
+    assert mentions[0].cited_name == "Smirnova and Smirnova v. Russia"
+
+
+def test_a_different_co_applicant_is_not_guessed_into_the_title():
+    html = "<p>20. See Petrov and Smirnova v. Russia (dec.), no. 46133/99, 3 October 2002.</p>"
+    mentions = discover_citation_mentions(_source(html), html=html).mentions
+    assert mentions[0].raw_ref.startswith("Smirnova v. Russia")
+
+
+GLASENAPP = _catalog_case(
+    "001-57494", "ECLI:CE:ECHR:1986:0828JUD000922880",
+    "CASE OF GLASENAPP v. GERMANY", ["9228/80"], "1986-08-28", "DEU",
+)
+KOSIEK = _catalog_case(
+    "001-57513", "ECLI:CE:ECHR:1986:0828JUD000970482",
+    "CASE OF KOSIEK v. GERMANY", ["9704/82"], "1986-08-28", "DEU",
+)
+
+
+def test_paired_series_a_judgments_keep_their_own_pinpoints():
+    html = (
+        "<p>71. Civil servants are not outside the Convention (see the Glasenapp and the "
+        "Kosiek judgments of 28 August 1986, Series A no. 104, p. 26, §§ 49-50, and "
+        "Series A no. 105, p. 20, §§ 35-36).</p>"
+    )
+    source = _source(html).model_copy(
+        update={
+            "scl": "Glasenapp judgment of 28 August 1986, Series A no. 104, p. 26, paras. 49-50;"
+            "Kosiek judgment of 28 August 1986, Series A no. 105, p. 20, paras. 35-36"
+        }
+    )
+    catalog = [GLASENAPP, KOSIEK]
+    mentions = discover_citation_mentions(source, html=html).mentions
+    resolutions = [
+        *asyncio.run(resolve_citations([source], catalog=catalog)).resolutions,
+        *asyncio.run(resolve_citations([source], mentions=mentions, catalog=catalog)).resolutions,
+    ]
+    result = extract_citation_occurrences(source, resolutions, html=html, scope="inclusive")
+    by_target = {}
+    for occurrence in result.occurrences:
+        by_target.setdefault(occurrence.target_itemid, []).append(occurrence)
+    assert [o.target_paragraphs for o in by_target["001-57494"]] == [["49-50"]]
+    assert [(o.raw_text, o.target_paragraphs) for o in by_target["001-57513"]] == [
+        ("Series A no. 105", ["35-36"])
+    ]
+    assert any(d["code"] == "nested_compound_name_merged" for d in result.diagnostics)
