@@ -3,6 +3,43 @@
 All notable user-facing changes are recorded here. The project follows
 semantic versioning during its alpha series.
 
+## Unreleased
+
+### Added
+
+- `echr-py citations locate --catalog FILE` resolves text-discovered
+  citations against a local metadata catalogue, as `citations resolve
+  --catalog` already did for SCL mentions. Without it, offline inclusive
+  location resolved about 18% fewer occurrences to a document in an
+  external 50-judgment pilot.
+
+### Fixed
+
+- Name matching now transliterates letters that Unicode does not decompose
+  (ł ø đ ð ı æ œ þ ß ħ ŧ), so "Kudła", "Öneryıldız" and "Đurović" match their
+  ASCII spellings in occurrence location, docname normalisation, external
+  citation folding and judge names alike.
+- An encoding-damaged SCL name (for example "Kudÿa" for "Kudła") no longer
+  hides the citation: when the printed name links to the same application
+  number, the printed name is used and a `scl_name_encoding_damaged`
+  diagnostic is recorded.
+- Pre-1998 house-style citations resolve: applicant-only names with a
+  Series A reference ("the Golder judgment of 21 February 1975, Series A
+  no. 18") match the packaged historical reporter catalogue, and a judgment
+  date printed before the case name ("its judgment of 8 June 1976 in the
+  Engel and Others case") selects the dated judgment.
+- `<br>` line breaks are normalised in the document spine as well as in
+  plain text, so separate opinions glued to the preceding line are split.
+
+### Benchmarks
+
+- The Mumford full-inclusive audit was re-run on 28 October 2026 in two clean
+  detached worktrees (byte-identical): 5,314/5,425 selected annotations
+  aligned (98.0%). Inputs came from a local HUDOC snapshot because HUDOC
+  search returned Cloudflare 403; on the same inputs, exact-document coverage
+  rose from 3,302 (0.2.5) to 4,419 of the aligned annotations. See
+  `docs/mumford-methodology-audit.md`.
+
 ## 0.2.5 – 2026-10-08
 
 ### Added

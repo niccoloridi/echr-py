@@ -91,12 +91,22 @@ ECHR annotations. This source scope contains the Court's majority reasoning
 only. It does not measure detection in separate opinions, linked footnotes,
 procedure, facts, operative provisions, or appendices.
 
-On 21 August 2026, the final deterministic inclusive run recovered
-5,319
+On 28 October 2026, the deterministic inclusive run recovered
+5,314
 of the 5,425 selected ECHR annotations one-to-one (98.0%). Of those alignments,
-5,316 used strict source-span overlap and three used compatible
-identity/context alignment. The comparison abstained on 86 ambiguous
-annotations and left 20 unmatched.
+5,311 used strict source-span overlap and three used compatible
+identity/context alignment. The comparison abstained on 91 ambiguous
+annotations and left 20 unmatched. The 21 August 2026 run had recovered 5,319
+annotations with 86 abstentions. On the same October inputs, 0.2.5 recovers
+5,315: the one annotation lost is an abstention caused by better resolution
+(a name printed in two parts whose halves are now both resolved), not a missed
+detection.
+
+The October run read its inputs offline from a local HUDOC snapshot, because
+HUDOC search returned Cloudflare 403 throughout and the August lookup cache no
+longer existed. Its catalogue is English-only. Resolution and paragraph
+coverage below are therefore not directly comparable with the August figures.
+The audit file records the inputs and the same-input 0.2.5 baseline.
 
 These figures measure recovery of a selective annotation set. They are not
 detector precision: the reference omits citation classes and document
@@ -107,16 +117,17 @@ citation inventory.
 
 Resolution and paragraph figures use separate denominators:
 
-- an exact target document was identified for 4,629 of the 5,319 aligned
-  annotations (87.0% coverage);
-- among 2,615 aligned annotations that print an application number, 2,412 were
-  identified with no application-number conflict (92.2% coverage); and
-- among 4,543 aligned occurrences with local printed pinpoints, 3,794 received
-  complete target-paragraph mappings (83.5% coverage).
+- an exact target document was identified for 4,419 of the 5,314 aligned
+  annotations (83.2% coverage; 0.2.5 on the same inputs: 3,302);
+- among 2,608 aligned annotations that print an application number, 2,213 were
+  identified with no application-number conflict (84.9% coverage; 0.2.5:
+  1,542); and
+- among 4,535 aligned occurrences with local printed pinpoints, 3,612 received
+  complete target-paragraph mappings (79.6% coverage; 0.2.5: 2,678).
 
 The no-conflict result means that no identified application number disagreed
 with the printed number in this comparison. It is not an accuracy estimate for
-the 202 abstentions. Likewise, Mumford does not supply canonical target
+the 395 abstentions. Likewise, Mumford does not supply canonical target
 documents or structured target-paragraph links, so the document and paragraph
 figures are coverage measures rather than independently scored accuracy.
 
