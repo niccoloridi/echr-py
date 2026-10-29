@@ -3,7 +3,7 @@
 All notable user-facing changes are recorded here. The project follows
 semantic versioning during its alpha series.
 
-## Unreleased
+## 0.2.6 – 2026-10-29
 
 ### Added
 
@@ -30,15 +30,28 @@ semantic versioning during its alpha series.
   Engel and Others case") selects the dated judgment.
 - `<br>` line breaks are normalised in the document spine as well as in
   plain text, so separate opinions glued to the preceding line are split.
+- A repeated applicant name stays in the printed title ("Smirnova and
+  Smirnova v. Russia" is one citation, not a second "Smirnova v. Russia").
+- Paired Series A citations ("the Glasenapp and the Kosiek judgments …,
+  Series A no. 104, §§ 49-50, and Series A no. 105, §§ 35-36") give each
+  judgment its own span and pinpoints and no longer produce a duplicate
+  occurrence of the second name.
+- An English authority row and its French twin count as one row. Letter
+  folding had let both pass the title check ("Blečić c. Croatie" for "Blecic
+  v. Croatia"), which turned resolved citations ambiguous.
+- Accented titles stored in a packaged or custom authority match folded
+  printed names, and an applicant-only name must open the candidate's own
+  title, not only the authority entry's.
 
 ### Benchmarks
 
-- The Mumford full-inclusive audit was re-run on 28 October 2026 in two clean
-  detached worktrees (byte-identical): 5,314/5,425 selected annotations
-  aligned (98.0%). Inputs came from a local HUDOC snapshot because HUDOC
-  search returned Cloudflare 403; on the same inputs, exact-document coverage
-  rose from 3,302 (0.2.5) to 4,419 of the aligned annotations. See
-  `docs/mumford-methodology-audit.md`.
+- The Mumford full-inclusive audit was re-run on 29 October 2026 in two clean
+  detached worktrees (byte-identical): 5,315/5,425 selected annotations
+  aligned (98.0%), as with 0.2.5. Inputs came from a local HUDOC snapshot
+  because HUDOC search returned Cloudflare 403; on the same inputs,
+  exact-document coverage rose from 3,302 (0.2.5) to 4,452 of the aligned
+  annotations and complete paragraph mapping from 2,678 to 3,640 of 4,542.
+  See `docs/mumford-methodology-audit.md`.
 
 ## 0.2.5 – 2026-10-08
 
