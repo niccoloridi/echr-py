@@ -421,8 +421,14 @@ def _authority_matches(
         narrowed = titled
     # A reporter volume is not a document locator. If corroboration has not
     # selected one exact authority row, retain ambiguity instead of iterating
-    # through unrelated cases in the same ECHR/Reports volume.
-    return narrowed if len(narrowed) == 1 else []
+    # through unrelated cases in the same ECHR/Reports volume. An English row
+    # and its French twin ("Blečić c. Croatie") are the same row.
+    return narrowed if len(narrowed) == 1 or _one_authority_row(narrowed) else []
+
+
+def _one_authority_row(entries: list[CitationAuthorityEntry]) -> bool:
+    """Whether the entries are one official row and its other-language twins."""
+    return len({min((entry.entry_id, *entry.equivalent_entry_ids)) for entry in entries}) == 1
 
 
 def _reporter_authority_compatible(printed: Any, official: Any) -> bool:

@@ -317,3 +317,37 @@ def test_persisted_accented_authority_titles_still_match_folded_names():
     ).model_copy(update={"doctype_branch": "GRANDCHAMBER"})
     result = asyncio.run(resolve_citations([source], catalog=[goc]))
     assert [r.target.itemid for r in result.resolutions if r.target] == ["001-60577"]
+
+
+def test_an_authority_row_and_its_french_twin_select_one_judgment():
+    # Letter folding lets "Géorgie c. Russie (I)" and "Blečić c. Croatie" pass
+    # the title gate too; the twins are one row, not an ambiguity.
+    source = Case(
+        itemid="001-source",
+        ecli="ECLI:CE:ECHR:2020:0101JUD000000120",
+        docname="CASE OF SOURCE v. STATE",
+        scl=(
+            "Georgia v. Russia (I) [GC], no. 13255/07, § 228, ECHR 2014; "
+            "Blecic v. Croatia [GC], no. 59532/00, §§ 63-69, ECHR 2006-..."
+        ),
+        kp_date="2020-01-01",
+        doctype="HEJUD",
+    )
+    catalog = [
+        _catalog_case(itemid, ecli, docname, [appno], date, respondent).model_copy(
+            update={"doctype_branch": "GRANDCHAMBER"}
+        )
+        for itemid, ecli, docname, appno, date, respondent in (
+            ("001-145546", "ECLI:CE:ECHR:2014:0703JUD001325507",
+             "CASE OF GEORGIA v. RUSSIA (I)", "13255/07", "2014-07-03", "RUS"),
+            ("001-189019", "ECLI:CE:ECHR:2019:0131JUD001325507",
+             "CASE OF GEORGIA v. RUSSIA (I)", "13255/07", "2019-01-31", "RUS"),
+            ("001-72688", "ECLI:CE:ECHR:2006:0308JUD005953200",
+             "CASE OF BLEČIĆ v. CROATIA", "59532/00", "2006-03-08", "HRV"),
+        )
+    ]
+    result = asyncio.run(resolve_citations([source], catalog=catalog))
+    assert sorted(r.target.itemid for r in result.resolutions if r.target) == [
+        "001-145546",
+        "001-72688",
+    ]
