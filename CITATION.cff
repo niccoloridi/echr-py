@@ -5,8 +5,8 @@ type: software
 authors:
   - family-names: Ridi
     given-names: Niccolo
-version: 0.2.5
-date-released: 2026-10-08
+version: 0.2.6
+date-released: 2026-10-29
 license: MIT
 repository-code: "https://github.com/niccoloridi/echr-py"
 url: "https://github.com/niccoloridi/echr-py"
